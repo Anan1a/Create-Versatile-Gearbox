@@ -12,20 +12,20 @@ public class Config {
     private static final ModConfigSpec.Builder BUILDER = new ModConfigSpec.Builder();
 
     public static final ModConfigSpec.BooleanValue LOG_DIRT_BLOCK = BUILDER
-            .comment("是否在通用设置阶段记录泥土块")
+            .comment("Whether to log the dirt block on common setup")
             .define("logDirtBlock", true);
 
     public static final ModConfigSpec.IntValue MAGIC_NUMBER = BUILDER
-            .comment("一个魔法数字")
+            .comment("A magic number")
             .defineInRange("magicNumber", 42, 0, Integer.MAX_VALUE);
 
     public static final ModConfigSpec.ConfigValue<String> MAGIC_NUMBER_INTRODUCTION = BUILDER
-            .comment("你希望魔法数字的介绍信息是什么")
-            .define("magicNumberIntroduction", "魔法数字是... ");
+            .comment("What you want the introduction message to be for the magic number")
+            .define("magicNumberIntroduction", "The magic number is... ");
 
     // 一个字符串列表，被视为物品的资源位置
     public static final ModConfigSpec.ConfigValue<List<? extends String>> ITEM_STRINGS = BUILDER
-            .comment("要在通用设置阶段记录的物品列表")
+            .comment("A list of items to log on common setup.")
             .defineListAllowEmpty("items", List.of("minecraft:iron_ingot"), () -> "", Config::validateItemName);
 
     static final ModConfigSpec SPEC = BUILDER.build();

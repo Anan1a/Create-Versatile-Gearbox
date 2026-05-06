@@ -6,7 +6,6 @@ import com.mojang.logging.LogUtils;
 
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.network.chat.Component;
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTab;
@@ -37,30 +36,6 @@ public class CreateVersatileGearbox {
     public static final String MODID = "create_versatile_gearbox";
     // 直接引用 slf4j 日志记录器
     public static final Logger LOGGER = LogUtils.getLogger();
-    // 创建一个 Deferred Register 来保存方块，所有方块将注册到 "create_versatile_gearbox" 命名空间下
-    public static final DeferredRegister.Blocks BLOCKS = DeferredRegister.createBlocks(MODID);
-    // 创建一个 Deferred Register 来保存物品，所有物品将注册到 "create_versatile_gearbox" 命名空间下
-    public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(MODID);
-    // 创建一个 Deferred Register 来保存创造模式选项卡，所有选项卡将注册到 "create_versatile_gearbox" 命名空间下
-    public static final DeferredRegister<CreativeModeTab> CREATIVE_MODE_TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, MODID);
-
-    // 创建一个 ID 为 "create_versatile_gearbox:example_block" 的新方块，结合了命名空间和路径
-    public static final DeferredBlock<Block> EXAMPLE_BLOCK = BLOCKS.registerSimpleBlock("example_block", BlockBehaviour.Properties.of().mapColor(MapColor.STONE));
-    // 创建一个 ID 为 "create_versatile_gearbox:example_block" 的新方块物品，结合了命名空间和路径
-    public static final DeferredItem<BlockItem> EXAMPLE_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("example_block", EXAMPLE_BLOCK);
-
-    // 创建一个 ID 为 "create_versatile_gearbox:example_item" 的新食物物品，营养值为 1，饱和度倍率为 2
-    public static final DeferredItem<Item> EXAMPLE_ITEM = ITEMS.registerSimpleItem("example_item", new Item.Properties().food(new FoodProperties.Builder()
-            .alwaysEdible().nutrition(1).saturationModifier(2f).build()));
-
-    // 创建一个 ID 为 "create_versatile_gearbox:example_tab" 的创造模式选项卡，用于放置示例物品，位于战斗选项卡之后
-    public static final DeferredHolder<CreativeModeTab, CreativeModeTab> EXAMPLE_TAB = CREATIVE_MODE_TABS.register("example_tab", () -> CreativeModeTab.builder()
-            .title(Component.translatable("itemGroup.examplemod")) // 创造模式选项卡标题的语言键
-            .withTabsBefore(CreativeModeTabs.COMBAT)
-            .icon(() -> EXAMPLE_ITEM.get().getDefaultInstance())
-            .displayItems((parameters, output) -> {
-                output.accept(EXAMPLE_ITEM.get()); // 将示例物品添加到选项卡中。对于你自己的选项卡，此方法优于事件
-            }).build());
 
     // 模组类的构造函数是模组加载时运行的第一段代码。
     // FML 会识别某些参数类型（如 IEventBus 或 ModContainer）并自动传入。
@@ -68,12 +43,8 @@ public class CreateVersatileGearbox {
         // 注册 commonSetup 方法用于模组加载
         modEventBus.addListener(this::commonSetup);
 
-        // 将 Deferred Register 注册到模组事件总线，以便方块被注册
-        BLOCKS.register(modEventBus);
-        // 将 Deferred Register 注册到模组事件总线，以便物品被注册
-        ITEMS.register(modEventBus);
-        // 将 Deferred Register 注册到模组事件总线，以便选项卡被注册
-        CREATIVE_MODE_TABS.register(modEventBus);
+        // 调用 Registers 类中的静态方法，注册所有方块和物品
+        Registers.registerAll(modEventBus);
 
         // 将我们自己注册到服务器和其他我们感兴趣的游戏事件。
         // 注意：仅当我们需要 *这个* 类（ExampleMod）直接响应事件时才需要这样做。
@@ -102,9 +73,7 @@ public class CreateVersatileGearbox {
 
     // 将示例方块物品添加到建筑方块选项卡
     private void addCreative(BuildCreativeModeTabContentsEvent event) {
-        if (event.getTabKey() == CreativeModeTabs.BUILDING_BLOCKS) {
-            event.accept(EXAMPLE_BLOCK_ITEM);
-        }
+        CreativeTabs.addCreative(event);
     }
 
     // 你可以使用 SubscribeEvent 并让事件总线发现要调用的方法

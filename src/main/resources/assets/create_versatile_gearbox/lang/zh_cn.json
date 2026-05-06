@@ -1,0 +1,21 @@
+{
+  "itemGroup.create_versatile_gearbox_tab": "多功能齿轮箱",
+  "block.create_versatile_gearbox.example_block": "示例方块",
+  "item.create_versatile_gearbox.example_item": "示例物品",
+
+  "create_versatile_gearbox.configuration.title": "多功能齿轮箱配置",
+  "create_versatile_gearbox.configuration.section.create_versatile_gearbox.common.toml": "通用配置",
+  "create_versatile_gearbox.configuration.section.create_versatile_gearbox.common.toml.title": "通用配置",
+
+  "create_versatile_gearbox.configuration.logDirtBlock": "记录泥土方块",
+  "create_versatile_gearbox.configuration.logDirtBlock.tooltip": "是否在通用设置阶段记录泥土块",
+
+  "create_versatile_gearbox.configuration.magicNumber": "魔法数字",
+  "create_versatile_gearbox.configuration.magicNumber.tooltip": "一个魔法数字",
+
+  "create_versatile_gearbox.configuration.magicNumberIntroduction": "魔法数字介绍文本",
+  "create_versatile_gearbox.configuration.magicNumberIntroduction.tooltip": "你希望魔法数字的介绍信息是什么",
+
+  "create_versatile_gearbox.configuration.items": "物品列表",
+  "create_versatile_gearbox.configuration.items.tooltip": "要在通用设置阶段记录的物品列表"
+}
