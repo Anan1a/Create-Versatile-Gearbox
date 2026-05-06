@@ -37,23 +37,23 @@ public class CreateVersatileGearbox {
     public static final String MODID = "create_versatile_gearbox";
     // 直接引用 slf4j 日志记录器
     public static final Logger LOGGER = LogUtils.getLogger();
-    // 创建一个 Deferred Register 来保存方块，所有方块将注册到 "examplemod" 命名空间下
+    // 创建一个 Deferred Register 来保存方块，所有方块将注册到 "create_versatile_gearbox" 命名空间下
     public static final DeferredRegister.Blocks BLOCKS = DeferredRegister.createBlocks(MODID);
-    // 创建一个 Deferred Register 来保存物品，所有物品将注册到 "examplemod" 命名空间下
+    // 创建一个 Deferred Register 来保存物品，所有物品将注册到 "create_versatile_gearbox" 命名空间下
     public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(MODID);
-    // 创建一个 Deferred Register 来保存创造模式选项卡，所有选项卡将注册到 "examplemod" 命名空间下
+    // 创建一个 Deferred Register 来保存创造模式选项卡，所有选项卡将注册到 "create_versatile_gearbox" 命名空间下
     public static final DeferredRegister<CreativeModeTab> CREATIVE_MODE_TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, MODID);
 
-    // 创建一个 ID 为 "examplemod:example_block" 的新方块，结合了命名空间和路径
+    // 创建一个 ID 为 "create_versatile_gearbox:example_block" 的新方块，结合了命名空间和路径
     public static final DeferredBlock<Block> EXAMPLE_BLOCK = BLOCKS.registerSimpleBlock("example_block", BlockBehaviour.Properties.of().mapColor(MapColor.STONE));
-    // 创建一个 ID 为 "examplemod:example_block" 的新方块物品，结合了命名空间和路径
+    // 创建一个 ID 为 "create_versatile_gearbox:example_block" 的新方块物品，结合了命名空间和路径
     public static final DeferredItem<BlockItem> EXAMPLE_BLOCK_ITEM = ITEMS.registerSimpleBlockItem("example_block", EXAMPLE_BLOCK);
 
-    // 创建一个 ID 为 "examplemod:example_id" 的新食物物品，营养值为 1，饱和度倍率为 2
+    // 创建一个 ID 为 "create_versatile_gearbox:example_item" 的新食物物品，营养值为 1，饱和度倍率为 2
     public static final DeferredItem<Item> EXAMPLE_ITEM = ITEMS.registerSimpleItem("example_item", new Item.Properties().food(new FoodProperties.Builder()
             .alwaysEdible().nutrition(1).saturationModifier(2f).build()));
 
-    // 创建一个 ID 为 "examplemod:example_tab" 的创造模式选项卡，用于放置示例物品，位于战斗选项卡之后
+    // 创建一个 ID 为 "create_versatile_gearbox:example_tab" 的创造模式选项卡，用于放置示例物品，位于战斗选项卡之后
     public static final DeferredHolder<CreativeModeTab, CreativeModeTab> EXAMPLE_TAB = CREATIVE_MODE_TABS.register("example_tab", () -> CreativeModeTab.builder()
             .title(Component.translatable("itemGroup.examplemod")) // 创造模式选项卡标题的语言键
             .withTabsBefore(CreativeModeTabs.COMBAT)
