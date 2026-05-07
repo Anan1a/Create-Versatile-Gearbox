@@ -1,9 +1,13 @@
 package com.anan1a.create_versatile_gearbox;
 
+import com.tterrag.registrate.util.entry.BlockEntry;
+
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.material.MapColor;
 
+import com.anan1a.create_versatile_gearbox.content.versatile_gearbox.VersatileGearboxBlock;
 import com.simibubi.create.foundation.data.CreateRegistrate;
+import com.simibubi.create.foundation.data.SharedProperties;
 import com.tterrag.registrate.util.entry.BlockEntry;
 
 /**
@@ -20,12 +24,12 @@ public class AllBlocks {
      */
     private static final CreateRegistrate REGISTRATE = Registers.registrate();
 
-    /**
-     * 静态初始化块
-     * <p>
-     * 设置此类中所有方块的默认创造模式选项卡
-     * 通过 setCreativeTab() 关联到 CreativeTabs.EXAMPLE_TAB
-     * 所有后续注册的方块都会自动使用此选项卡
+    /*
+      静态初始化块
+      <p>
+      设置此类中所有方块的默认创造模式选项卡
+      通过 setCreativeTab() 关联到 CreativeTabs.EXAMPLE_TAB
+      所有后续注册的方块都会自动使用此选项卡
      */
     static {
         REGISTRATE.setCreativeTab(CreativeTabs.EXAMPLE_TAB);
@@ -50,23 +54,22 @@ public class AllBlocks {
             .register();
 
     // 多功能传动箱 - 参考 Create 模组的 GearboxBlock 实现
-    public static final BlockEntry<Block> VERSATILE_GEARBOX = REGISTRATE.block("versatile_gearbox", Block::new)
-            // ========== 方块属性配置 ==========
-            .properties(p -> p
-                    .mapColor(MapColor.METAL)      // 设置地图颜色为金属色
-                    .strength(3.0F, 6.0F)          // 设置硬度和抗爆性（参考 Create Gearbox）
-                    .noOcclusion())                // 不遮挡其他方块的渲染（用于半透明或特殊形状方块）
+    public static final BlockEntry<VersatileGearboxBlock> VERSATILE_GEARBOX = REGISTRATE.block("versatile_gearbox", VersatileGearboxBlock::new)
+            // ========== 基础属性配置 ==========
+            // 使用 Create 预定义的石材属性模板
+            // 包含：硬度(1.5F)、抗爆性(6.0F)、需要正确工具挖掘等基础属性
+            .initialProperties(SharedProperties::stone)
             
-            // 补充属性配置（单独调用一次 properties 保持代码清晰）
+            // ========== 额外属性配置 ==========
             .properties(p -> p
-                    .isValidSpawn((state, level, pos, type) -> false))  // 禁止生物在此方块上生成
+                    .noOcclusion()           // 禁用遮挡，允许方块模型穿过自身边界
+                    .mapColor(MapColor.PODZOL))  // 地图颜色设置为泥土色（与 Create Gearbox 一致）
             
             // ========== 物品配置 ==========
-            .item()                           // 创建对应的方块物品（BlockItem）
-            .build()                          // 构建物品配置
+            .simpleItem()                  // 自动生成对应的 BlockItem
             
             // ========== 完成注册 ==========
-            .register();                      // 将方块和物品注册到游戏中
+            .register();
 
     /**
      * 注册触发方法

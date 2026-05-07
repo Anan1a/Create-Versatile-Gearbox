@@ -3,11 +3,12 @@ package com.anan1a.create_versatile_gearbox;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 
 import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.registries.DeferredRegister;
 
 import com.simibubi.create.foundation.data.CreateRegistrate;
-import net.neoforged.neoforge.registries.DeferredRegister;
 
 /**
  * 模组注册管理类
@@ -44,6 +45,14 @@ public class Registers {
             DeferredRegister.create(Registries.CREATIVE_MODE_TAB, MODID);
 
     /**
+     * 方块实体类型的 DeferredRegister 实例
+     * <p>
+     * 统一管理所有方块实体类型的注册
+     */
+    private static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITY_TYPES =
+            DeferredRegister.create(Registries.BLOCK_ENTITY_TYPE, MODID);
+
+    /**
      * 获取 Registrate 实例
      * <p>
      * 供其他注册类（如 AllBlocks、AllItems）使用
@@ -66,6 +75,17 @@ public class Registers {
     }
 
     /**
+     * 获取方块实体类型的 DeferredRegister 实例
+     * <p>
+     * 供 AllBlockEntityTypes 类使用，实现注册逻辑的集中管理
+     *
+     * @return 方块实体类型的 DeferredRegister 实例
+     */
+    public static DeferredRegister<BlockEntityType<?>> blockEntityTypes() {
+        return BLOCK_ENTITY_TYPES;
+    }
+
+    /**
      * 统一注册入口
      * <p>
      * 按照正确的顺序注册所有模组内容：
@@ -85,10 +105,17 @@ public class Registers {
         // 使用 DeferredRegister 延迟注册，lambda 表达式不会立即执行
         CreativeTabs.register(modEventBus);
 
-        // 步骤3：触发静态字段初始化
+        // 步骤3：触发方块类加载
         // 调用空的 register() 方法会触发类加载，从而执行静态初始化块
         // 静态块中的 setCreativeTab() 和实际注册代码会在此执行
         AllBlocks.register();
+
+        // 步骤4：注册方块实体类型
+        // 必须在方块注册之后（类加载完成）才能注册，因为需要引用方块实例
+        // 通过 Registers 统一注册
+        AllBlockEntityTypes.register(modEventBus);
+
+        // 步骤5：触发物品类加载
         AllItems.register();
     }
 }

@@ -20,12 +20,12 @@ public class AllItems {
      */
     private static final CreateRegistrate REGISTRATE = Registers.registrate();
 
-    /**
-     * 静态初始化块
-     * <p>
-     * 设置此类中所有物品的默认创造模式选项卡
-     * 通过 setCreativeTab() 关联到 CreativeTabs.EXAMPLE_TAB
-     * 所有后续注册的物品都会自动使用此选项卡
+    /*
+      静态初始化块
+      <p>
+      设置此类中所有物品的默认创造模式选项卡
+      通过 setCreativeTab() 关联到 CreativeTabs.EXAMPLE_TAB
+      所有后续注册的物品都会自动使用此选项卡
      */
     static {
         REGISTRATE.setCreativeTab(CreativeTabs.EXAMPLE_TAB);
@@ -48,6 +48,9 @@ public class AllItems {
                     .nutrition(1)
                     .saturationModifier(2f)
                     .build()))
+            .register();
+
+    public static final ItemEntry<Item> VERTICAL_GEARBOX = REGISTRATE.item("vertical_gearbox", Item::new)
             .register();
 
     /**
