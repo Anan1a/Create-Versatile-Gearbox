@@ -24,10 +24,12 @@ import com.tterrag.registrate.util.entry.RegistryEntry;
  */
 public class CreativeTabs {
     /**
-     * DeferredRegister 实例，用于注册创造模式选项卡
+     * 创造模式选项卡的 DeferredRegister 实例
+     * <p>
+     * 从 Registers 类获取，实现注册逻辑的集中管理
+     * 避免在多个地方重复创建 DeferredRegister
      */
-    private static final DeferredRegister<CreativeModeTab> REGISTER =
-            DeferredRegister.create(Registries.CREATIVE_MODE_TAB, CreateVersatileGearbox.MODID);
+    private static final DeferredRegister<CreativeModeTab> REGISTER = Registers.creativeModeTabs();
 
     /**
      * 示例创造模式选项卡

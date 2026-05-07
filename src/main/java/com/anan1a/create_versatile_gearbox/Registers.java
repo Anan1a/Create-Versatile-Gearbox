@@ -1,11 +1,13 @@
 package com.anan1a.create_versatile_gearbox;
 
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.CreativeModeTab;
 
 import net.neoforged.bus.api.IEventBus;
 
 import com.simibubi.create.foundation.data.CreateRegistrate;
+import net.neoforged.neoforge.registries.DeferredRegister;
 
 /**
  * 模组注册管理类
@@ -32,6 +34,16 @@ public class Registers {
             .defaultCreativeTab((ResourceKey<CreativeModeTab>) null);
 
     /**
+     * 创造模式选项卡的 DeferredRegister 实例
+     * <p>
+     * 统一管理所有创造模式选项卡的注册
+     * 使用 Registries.CREATIVE_MODE_TAB 作为注册表类型
+     * MODID 作为命名空间
+     */
+    private static final DeferredRegister<CreativeModeTab> CREATIVE_MODE_TABS =
+            DeferredRegister.create(Registries.CREATIVE_MODE_TAB, MODID);
+
+    /**
      * 获取 Registrate 实例
      * <p>
      * 供其他注册类（如 AllBlocks、AllItems）使用
@@ -40,6 +52,17 @@ public class Registers {
      */
     public static CreateRegistrate registrate() {
         return REGISTRATE;
+    }
+
+    /**
+     * 获取创造模式选项卡的 DeferredRegister 实例
+     * <p>
+     * 供 CreativeTabs 类使用，实现注册逻辑的集中管理
+     *
+     * @return 创造模式选项卡的 DeferredRegister 实例
+     */
+    public static DeferredRegister<CreativeModeTab> creativeModeTabs() {
+        return CREATIVE_MODE_TABS;
     }
 
     /**
