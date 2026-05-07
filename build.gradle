@@ -150,7 +150,7 @@ dependencies {
     // http://www.gradle.org/docs/current/userguide/artifact_dependencies_tutorial.html
     // http://www.gradle.org/docs/current/userguide/dependency_management.html
 
-    // 添加 Create 依赖 - NeoForge 2.x 自动处理反混淆
+    // 添加 Create slim 依赖
     implementation ("com.simibubi.create:create-${minecraft_version}:${create_version}:slim") {
         transitive = false
     }
@@ -160,6 +160,11 @@ dependencies {
 
     // 添加 Ponder 依赖，这是 Create 依赖的可视化库
     implementation ("net.createmod.ponder:ponder-neoforge:${ponder_version}")
+
+    // 添加 Flywheel API 依赖，这是 Create 依赖的渲染库 - 仅编译时需要（用于调用渲染 API）
+    compileOnly("dev.engine-room.flywheel:flywheel-neoforge-api-${minecraft_version}:${flywheel_version}")
+    // 添加 Flywheel Core 依赖，这是 Create 依赖的渲染库 - 仅运行时需要（用于实际渲染）
+    runtimeOnly("dev.engine-room.flywheel:flywheel-neoforge-${minecraft_version}:${flywheel_version}")
 }
 
 // 此代码块在指定的资源目标中展开所有声明的替换属性。
