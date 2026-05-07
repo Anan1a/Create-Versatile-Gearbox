@@ -52,7 +52,7 @@ public class CreateVersatileGearbox {
         NeoForge.EVENT_BUS.register(this);
 
         // 将物品注册到创造模式选项卡
-        modEventBus.addListener(this::addCreative);
+        // modEventBus.addListener(this::addCreative);
 
         // 注册我们模组的 ModConfigSpec，以便 FML 可以为我们创建和加载配置文件
         modContainer.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
@@ -72,9 +72,9 @@ public class CreateVersatileGearbox {
     }
 
     // 将示例方块物品添加到建筑方块选项卡
-    private void addCreative(BuildCreativeModeTabContentsEvent event) {
-        CreativeTabs.addCreative(event);
-    }
+    // private void addCreative(BuildCreativeModeTabContentsEvent event) {
+    //     CreativeTabs.addCreative(event);
+    // }
 
     // 你可以使用 SubscribeEvent 并让事件总线发现要调用的方法
     @SubscribeEvent
