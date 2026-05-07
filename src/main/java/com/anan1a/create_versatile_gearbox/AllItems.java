@@ -7,24 +7,20 @@ import com.simibubi.create.foundation.data.CreateRegistrate;
 import com.tterrag.registrate.util.entry.ItemEntry;
 
 public class AllItems {
-//    // 创建一个 Deferred Register 来保存物品，所有物品将注册到 "create_versatile_gearbox" 命名空间下
-//    public static final DeferredRegister.Items ITEMS = Registers.ITEMS;
-//
-//    // 创建一个 ID 为 "create_versatile_gearbox:example_item" 的新食物物品，营养值为 1，饱和度倍率为 2
-//    public static final DeferredItem<Item> EXAMPLE_ITEM = ITEMS.registerSimpleItem("example_item",
-//            new Item.Properties().food(new FoodProperties.Builder()
-//                    .alwaysEdible().nutrition(1).saturationModifier(2f).build()));
-
+    // 获取 Registrate 实例
     private static final CreateRegistrate REGISTRATE = Registers.registrate();
 
+    // 静态初始化块：设置默认创造模式选项卡
+    static {
+        REGISTRATE.setCreativeTab(CreativeTabs.EXAMPLE_TAB);
+    }
+
+    // 示例物品注册（自动注册对应的 Item，关联到 EXAMPLE_TAB）
     public static final ItemEntry<Item> EXAMPLE_ITEM = REGISTRATE.item("example_item", Item::new)
             .properties(p -> p.food(new FoodProperties.Builder()
                     .alwaysEdible().nutrition(1).saturationModifier(2f).build()))
             .register();
 
-    // 注册物品
+    // 注册方法（触发类加载）
     public static void register() {}
-//    public static void register(IEventBus modEventBus) {
-//        ITEMS.register(modEventBus);
-//    }
 }
