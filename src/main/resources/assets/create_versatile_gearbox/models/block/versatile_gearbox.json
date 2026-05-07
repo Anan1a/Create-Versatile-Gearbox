@@ -1,0 +1,28 @@
+{
+	"format_version": "1.9.0",
+	"credit": "Made with Blockbench",
+	"parent": "minecraft:block/block",
+	"textures": {
+		"particle": "create_versatile_gearbox:block/versatile_gearbox_north",
+		"N": "create_versatile_gearbox:block/versatile_gearbox_north",
+		"E": "create_versatile_gearbox:block/versatile_gearbox_east",
+		"S": "create_versatile_gearbox:block/versatile_gearbox_south",
+		"W": "create_versatile_gearbox:block/versatile_gearbox_west",
+		"U": "create_versatile_gearbox:block/versatile_gearbox_up",
+		"D": "create_versatile_gearbox:block/versatile_gearbox_down"
+	},
+	"elements": [
+		{
+			"from": [0, 0, 0],
+			"to": [16, 16, 16],
+			"faces": {
+				"north": {"uv": [0, 0, 16, 16], "texture": "#N"},
+				"east": {"uv": [0, 0, 16, 16], "texture": "#E"},
+				"south": {"uv": [0, 0, 16, 16], "texture": "#S"},
+				"west": {"uv": [0, 0, 16, 16], "texture": "#W"},
+				"up": {"uv": [0, 0, 16, 16], "texture": "#U"},
+				"down": {"uv": [0, 0, 16, 16], "texture": "#D"}
+			}
+		}
+	]
+}

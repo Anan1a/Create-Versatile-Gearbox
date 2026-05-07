@@ -49,6 +49,25 @@ public class AllBlocks {
             .simpleItem()  // 简化的物品注册，自动生成 BlockItem
             .register();
 
+    // 多功能传动箱 - 参考 Create 模组的 GearboxBlock 实现
+    public static final BlockEntry<Block> VERSATILE_GEARBOX = REGISTRATE.block("versatile_gearbox", Block::new)
+            // ========== 方块属性配置 ==========
+            .properties(p -> p
+                    .mapColor(MapColor.METAL)      // 设置地图颜色为金属色
+                    .strength(3.0F, 6.0F)          // 设置硬度和抗爆性（参考 Create Gearbox）
+                    .noOcclusion())                // 不遮挡其他方块的渲染（用于半透明或特殊形状方块）
+            
+            // 补充属性配置（单独调用一次 properties 保持代码清晰）
+            .properties(p -> p
+                    .isValidSpawn((state, level, pos, type) -> false))  // 禁止生物在此方块上生成
+            
+            // ========== 物品配置 ==========
+            .item()                           // 创建对应的方块物品（BlockItem）
+            .build()                          // 构建物品配置
+            
+            // ========== 完成注册 ==========
+            .register();                      // 将方块和物品注册到游戏中
+
     /**
      * 注册触发方法
      * <p>
