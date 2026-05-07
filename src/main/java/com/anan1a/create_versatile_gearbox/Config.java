@@ -4,6 +4,7 @@ import java.util.List;
 
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
+
 import net.neoforged.neoforge.common.ModConfigSpec;
 
 // 示例配置类。这不是必需的，但为了保持配置整洁，建议使用一个。
