@@ -1,0 +1,18 @@
+{
+  "block.create_versatile_gearbox.example_block": "Example Block",
+  "block.create_versatile_gearbox.versatile_gearbox": "Versatile Gearbox",
+  "create_versatile_gearbox.configuration.items": "Item List",
+  "create_versatile_gearbox.configuration.items.tooltip": "A list of items to log during common setup",
+  "create_versatile_gearbox.configuration.logDirtBlock": "Log Dirt Block",
+  "create_versatile_gearbox.configuration.logDirtBlock.tooltip": "Whether to log the dirt block on common setup",
+  "create_versatile_gearbox.configuration.magicNumber": "Magic Number",
+  "create_versatile_gearbox.configuration.magicNumber.tooltip": "A magic number",
+  "create_versatile_gearbox.configuration.magicNumberIntroduction": "Magic Number Introduction Text",
+  "create_versatile_gearbox.configuration.magicNumberIntroduction.tooltip": "What do you want the magic number introduction to say",
+  "create_versatile_gearbox.configuration.section.create_versatile_gearbox.common.toml": "Common Configuration",
+  "create_versatile_gearbox.configuration.section.create_versatile_gearbox.common.toml.title": "Common Configuration",
+  "create_versatile_gearbox.configuration.title": "Versatile Gearbox Configuration",
+  "item.create_versatile_gearbox.example_item": "Example Item",
+  "item.create_versatile_gearbox.vertical_versatile_gearbox": "Vertical Versatile Gearbox",
+  "itemGroup.create_versatile_gearbox.versatile_gearbox_tab": "Versatile Gearbox"
+}

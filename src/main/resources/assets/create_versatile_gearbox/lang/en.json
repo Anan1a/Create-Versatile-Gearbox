@@ -1,8 +1,10 @@
 {
-  "itemGroup.create_versatile_gearbox_tab": "Versatile Gearbox Tab",
+  "itemGroup.create_versatile_gearbox.versatile_gearbox_tab": "Versatile Gearbox",
   "block.create_versatile_gearbox.example_block": "Example Block",
+  "block.create_versatile_gearbox.versatile_gearbox": "Versatile Gearbox",
   "item.create_versatile_gearbox.example_item": "Example Item",
-
+  "item.create_versatile_gearbox.vertical_versatile_gearbox": "Vertical Versatile Gearbox",
+  
   "create_versatile_gearbox.configuration.title": "Versatile Gearbox Configuration",
   "create_versatile_gearbox.configuration.section.create_versatile_gearbox.common.toml": "Common Configuration",
   "create_versatile_gearbox.configuration.section.create_versatile_gearbox.common.toml.title": "Common Configuration",

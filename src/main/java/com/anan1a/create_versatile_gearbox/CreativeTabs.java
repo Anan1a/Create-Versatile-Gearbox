@@ -34,19 +34,19 @@ public class CreativeTabs {
     /**
      * 示例创造模式选项卡
      * <p>
-     * 注册 ID: create_versatile_gearbox:example_tab
+     * 注册 ID: create_versatile_gearbox:versatile_gearbox_tab
      * <p>
      * 配置说明：
-     * - title: 使用翻译键 "itemGroup.create_versatile_gearbox_tab"
+     * - title: 使用翻译键 "itemGroup.create_versatile_gearbox.versatile_gearbox_tab"
      * - withTabsBefore: 显示在战斗选项卡之前
      * - icon: 使用 EXAMPLE_ITEM 作为图标
      * - displayItems: 使用 RegistrateDisplayItemsGenerator 自动收集物品
      */
-    public static final DeferredHolder<CreativeModeTab, CreativeModeTab> EXAMPLE_TAB = REGISTER.register("example_tab",
+    public static final DeferredHolder<CreativeModeTab, CreativeModeTab> EXAMPLE_TAB = REGISTER.register("versatile_gearbox_tab",
             () -> CreativeModeTab.builder()
-                    .title(Component.translatable("itemGroup.create_versatile_gearbox_tab"))
+                    .title(Component.translatable("itemGroup.create_versatile_gearbox.versatile_gearbox_tab"))
                     .withTabsBefore(CreativeModeTabs.COMBAT)
-                    .icon(() -> AllItems.EXAMPLE_ITEM.get().getDefaultInstance())
+                    .icon(() -> AllItems.EXAMPLE_ITEM.asItem().getDefaultInstance())
                     // 使用 Supplier 延迟获取选项卡引用，避免初始化顺序问题
                     .displayItems(new RegistrateDisplayItemsGenerator(() -> CreativeTabs.EXAMPLE_TAB))
                     .build());

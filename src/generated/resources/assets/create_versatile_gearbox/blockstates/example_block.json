@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "create_versatile_gearbox:block/example_block"
+    }
+  }
+}

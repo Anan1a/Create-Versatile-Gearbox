@@ -4,11 +4,20 @@ import com.tterrag.registrate.util.entry.BlockEntry;
 
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.material.MapColor;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 
 import com.anan1a.create_versatile_gearbox.content.versatile_gearbox.VersatileGearboxBlock;
 import com.simibubi.create.foundation.data.CreateRegistrate;
 import com.simibubi.create.foundation.data.SharedProperties;
-import com.tterrag.registrate.util.entry.BlockEntry;
+import com.simibubi.create.api.stress.BlockStressValues;
+
+import com.simibubi.create.AllSpriteShifts;
+import com.simibubi.create.content.decoration.encasing.EncasedCTBehaviour;
+import com.simibubi.create.foundation.data.AssetLookup;
+
+import static com.simibubi.create.foundation.data.BlockStateGen.axisBlock;
+import static com.simibubi.create.foundation.data.ModelGen.customItemModel;
+import static com.simibubi.create.foundation.data.TagGen.axeOrPickaxe;
 
 /**
  * 方块注册类
@@ -53,23 +62,45 @@ public class AllBlocks {
             .simpleItem()  // 简化的物品注册，自动生成 BlockItem
             .register();
 
-    // 多功能传动箱 - 参考 Create 模组的 GearboxBlock 实现
-    public static final BlockEntry<VersatileGearboxBlock> VERSATILE_GEARBOX = REGISTRATE.block("versatile_gearbox", VersatileGearboxBlock::new)
-            // ========== 基础属性配置 ==========
-            // 使用 Create 预定义的石材属性模板
-            // 包含：硬度(1.5F)、抗爆性(6.0F)、需要正确工具挖掘等基础属性
-            .initialProperties(SharedProperties::stone)
-            
-            // ========== 额外属性配置 ==========
-            .properties(p -> p
-                    .noOcclusion()           // 禁用遮挡，允许方块模型穿过自身边界
-                    .mapColor(MapColor.PODZOL))  // 地图颜色设置为泥土色（与 Create Gearbox 一致）
-            
-            // ========== 物品配置 ==========
-            .simpleItem()                  // 自动生成对应的 BlockItem
-            
-            // ========== 完成注册 ==========
-            .register();
+	// 多功能传动箱 - 参考 Create 模组的 GearboxBlock 实现
+	public static final BlockEntry<VersatileGearboxBlock> VERSATILE_GEARBOX = REGISTRATE.block("versatile_gearbox", VersatileGearboxBlock::new)
+			// ========== 基础属性配置 ==========
+			.initialProperties(SharedProperties::stone)// 基础属性，这里设置为石色
+			
+			// ========== 额外属性配置 ==========
+			.properties(p -> p
+				.noOcclusion()           // 禁用遮挡
+				.mapColor(MapColor.PODZOL))  // 地图颜色
+			
+			// ========== 应力配置 ==========
+			// 齿轮箱应力影响 - 使用 Create 开放的 API
+			.onRegister(block -> BlockStressValues.IMPACTS.register(block, () -> 0))
+			
+			// ========== 采集工具配置 ==========
+			// 可以用斧头或镐子采集
+			.transform(axeOrPickaxe())
+			
+			// ========== 连接纹理配置 ==========
+			// 启用连接纹理，使齿轮箱能与其他外壳连接
+			.onRegister(CreateRegistrate.connectedTextures(() -> new EncasedCTBehaviour(AllSpriteShifts.ANDESITE_CASING)))
+			
+			// ========== 外壳连接性配置 ==========
+			// 配置外壳连接规则
+			.onRegister(CreateRegistrate.casingConnectivity((block, cc) -> cc.make(block, AllSpriteShifts.ANDESITE_CASING,
+				(s, f) -> f.getAxis() == s.getValue(BlockStateProperties.AXIS))))
+			
+			// ========== Blockstate 生成 ==========
+			// 使用 axisBlock 生成三个轴向的 blockstate
+			// AssetLookup.partialBaseModel 会查找 models/block/versatile_gearbox/block.json
+			.blockstate((c, p) -> axisBlock(c, p, $ -> AssetLookup.partialBaseModel(c, p), true))
+			
+			// ========== 物品配置 ==========
+			// customItemModel() 会查找 models/block/versatile_gearbox/item.json
+			.item()
+			.transform(customItemModel())
+			
+			// ========== 完成注册 ==========
+			.register();
 
     /**
      * 注册触发方法

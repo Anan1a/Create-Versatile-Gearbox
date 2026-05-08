@@ -16,6 +16,8 @@ import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.server.ServerStartingEvent;
 
+import com.anan1a.create_versatile_gearbox.data.VersatileGearboxDatagen;
+
 /**
  * 模组主类，是整个模组的入口点
  * <p>
@@ -49,6 +51,10 @@ public class CreateVersatileGearbox {
     public CreateVersatileGearbox(IEventBus modEventBus, ModContainer modContainer) {
         // 注册 commonSetup 方法，在模组加载阶段执行
         modEventBus.addListener(this::commonSetup);
+
+        // 注册数据生成器，使用 HIGHEST 优先级确保在根生成器构建之前执行
+        // modEventBus.addListener(EventPriority.HIGHEST, VersatileGearboxDatagen::gatherData);
+        modEventBus.addListener(VersatileGearboxDatagen::gatherData);
 
         // 调用统一的注册方法，注册所有方块、物品和创造模式选项卡
         // 详见 Registers.java 的 registerAll() 方法
