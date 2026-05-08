@@ -22,17 +22,6 @@ public class AllItems {
      */
     private static final CreateRegistrate REGISTRATE = Registers.registrate();
 
-    /*
-      静态初始化块
-      <p>
-      设置此类中所有物品的默认创造模式选项卡
-      通过 setCreativeTab() 关联到 CreativeTabs.EXAMPLE_TAB
-      所有后续注册的物品都会自动使用此选项卡
-     */
-    static {
-        REGISTRATE.setCreativeTab(CreativeTabs.EXAMPLE_TAB);
-    }
-
     /**
      * 示例物品
      * <p>
@@ -44,7 +33,8 @@ public class AllItems {
      * - saturationModifier(2f): 饱和度修正值为 2.0
      * 自动关联到 EXAMPLE_TAB 创造模式选项卡
      */
-    public static final ItemEntry<Item> EXAMPLE_ITEM = REGISTRATE.item("example_item", Item::new)
+    public static final ItemEntry<Item> EXAMPLE_ITEM = REGISTRATE
+            .item("example_item", Item::new)
             .properties(p -> p.food(new FoodProperties.Builder()
                     .alwaysEdible()
                     .nutrition(1)

@@ -33,17 +33,6 @@ public class AllBlocks {
      */
     private static final CreateRegistrate REGISTRATE = Registers.registrate();
 
-    /*
-      静态初始化块
-      <p>
-      设置此类中所有方块的默认创造模式选项卡
-      通过 setCreativeTab() 关联到 CreativeTabs.EXAMPLE_TAB
-      所有后续注册的方块都会自动使用此选项卡
-     */
-    static {
-        REGISTRATE.setCreativeTab(CreativeTabs.EXAMPLE_TAB);
-    }
-
     /**
      * 示例方块
      * <p>
@@ -53,7 +42,8 @@ public class AllBlocks {
      * 方块颜色设置为石色（MapColor.STONE）
      * 自动关联到 EXAMPLE_TAB 创造模式选项卡
      */
-    public static final BlockEntry<Block> EXAMPLE_BLOCK = REGISTRATE.block("example_block", Block::new)
+    public static final BlockEntry<Block> EXAMPLE_BLOCK = REGISTRATE
+            .block("example_block", Block::new)
             .properties(p -> p.mapColor(MapColor.STONE))
             // .item() - 手动配置物品时使用
             // .tab(CreativeTabs.EXAMPLE_TAB.getKey()) - 手动指定选项卡
@@ -63,7 +53,9 @@ public class AllBlocks {
             .register();
 
 	// 多功能传动箱 - 参考 Create 模组的 GearboxBlock 实现
-	public static final BlockEntry<VersatileGearboxBlock> VERSATILE_GEARBOX = REGISTRATE.block("versatile_gearbox", VersatileGearboxBlock::new)
+	public static final BlockEntry<VersatileGearboxBlock> VERSATILE_GEARBOX = REGISTRATE
+            .block("versatile_gearbox", VersatileGearboxBlock::new)
+
 			// ========== 基础属性配置 ==========
 			.initialProperties(SharedProperties::stone)// 基础属性，这里设置为石色
 			

@@ -6,8 +6,6 @@ import com.anan1a.create_versatile_gearbox.content.versatile_gearbox.VersatileGe
 import com.simibubi.create.foundation.data.CreateRegistrate;
 import com.tterrag.registrate.util.entry.BlockEntityEntry;
 
-import net.neoforged.bus.api.IEventBus;
-
 /**
  * 方块实体类型注册类
  * <p>
