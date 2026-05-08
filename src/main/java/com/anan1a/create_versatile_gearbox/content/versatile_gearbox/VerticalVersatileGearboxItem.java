@@ -66,23 +66,32 @@ public class VerticalVersatileGearboxItem extends BlockItem {
 	/**
 	 * 放置方块时的自定义逻辑
 	 * <p>
-	 * 智能检测周围环境并设置合适的轴方向：
-	 * 1. 检测四个水平方向是否有旋转方块（实现 IRotate 接口）
-	 * 2. 如果找到唯一匹配的轴，使用该轴
-	 * 3. 如果找到多个不同的轴，取消智能选择
-	 * 4. 如果没有找到，使用玩家朝向的顺时针方向作为轴
-	 * 5. 最后将方块设置为水平轴向（X 或 Z）
+	 * 【智能检测流程】
+	 * 1. 遍历四个水平方向（EAST, SOUTH, WEST, NORTH）
+	 * 2. 检查每个方向的相邻方块是否实现 IRotate 接口
+	 * 3. 如果相邻方块有朝向当前位置的传动轴，记录其轴方向
+	 * 4. 如果检测到多个不同的轴方向，取消智能选择（避免冲突）
+	 * <p>
+	 * 【轴方向确定】
+	 * - 有唯一匹配轴 → 使用垂直于该轴的水平轴
+	 *   （例如：检测到 X 轴传动轴，设置为 Z 轴方向）
+	 * - 无匹配或多轴冲突 → 使用玩家朝向的顺时针方向
+	 * <p>
+	 * 【设计原理】
+	 * 当放置齿轮箱时，需要让齿轮箱的传动轴与相邻的传动轴对齐
+	 * 例如：相邻方块在 X 轴方向有传动轴，齿轮箱就应该设置为 Z 轴方向，
+	 * 这样齿轮箱的前后两面（Z轴方向）就会有传动轴接口
 	 * 
-	 * @param pos 放置位置
-	 * @param world 世界
+	 * @param pos    放置位置
+	 * @param world  世界
 	 * @param player 玩家
-	 * @param stack 物品栈
-	 * @param state 方块状态
+	 * @param stack  物品栈
+	 * @param state  方块状态（默认状态）
 	 * @return 是否成功更新
 	 */
 	@Override
 	protected boolean updateCustomBlockEntityTag(BlockPos pos, Level world, Player player, ItemStack stack, BlockState state) {
-		// 存储检测到的优先轴方向
+		// 存储检测到的优先轴方向（可能为 null）
 		Axis preferredAxis = null;
 		
 		// 遍历四个水平方向（东、南、西、北）
@@ -90,15 +99,16 @@ public class VerticalVersatileGearboxItem extends BlockItem {
 			// 获取相邻位置的方块状态
 			BlockState blockState = world.getBlockState(pos.relative(side));
 			
-			// 检查相邻方块是否实现了 IRotate 接口（可旋转的动力组件）
+			// 检查相邻方块是否是可旋转的动力组件（实现 IRotate 接口）
 			if (blockState.getBlock() instanceof IRotate) {
 				IRotate rotateBlock = (IRotate) blockState.getBlock();
 				
-				// 检查相邻方块是否有朝向当前位置的轴
+				// 检查相邻方块是否有朝向当前位置的传动轴
+				// side.getOpposite() 是从相邻方块指向当前位置的方向
 				if (rotateBlock.hasShaftTowards(world, pos.relative(side), blockState, side.getOpposite())) {
 					// 如果已经找到一个轴，且当前轴与之前的不同
 					if (preferredAxis != null && preferredAxis != side.getAxis()) {
-						// 说明有多个不同方向的轴，取消智能选择
+						// 多个不同方向的轴，存在冲突，取消智能选择
 						preferredAxis = null;
 						break;
 					} else {
@@ -112,11 +122,14 @@ public class VerticalVersatileGearboxItem extends BlockItem {
 		// 确定最终的轴方向
 		Axis axis;
 		if (preferredAxis == null) {
-			// 没有检测到旋转方块，使用玩家朝向的顺时针方向
+			// 没有检测到旋转方块或存在冲突
+			// 使用玩家朝向的顺时针方向作为轴（更符合直觉）
 			axis = player.getDirection().getClockWise().getAxis();
 		} else {
-			// 检测到旋转方块，使用垂直于检测轴的方向
-			// 例如：检测到 X 轴的旋转方块，就设置为 Z 轴（水平方向）
+			// 检测到唯一匹配的轴
+			// 设置为垂直于检测轴的水平轴
+			// 例如：检测到 X 轴的旋转方块 → 设置为 Z 轴
+			//       检测到 Z 轴的旋转方块 → 设置为 X 轴
 			axis = preferredAxis == Axis.X ? Axis.Z : Axis.X;
 		}
 		

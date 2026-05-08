@@ -134,23 +134,33 @@ public class VersatileGearboxBlock extends RotatedPillarKineticBlock implements 
     /**
      * 判断指定面是否有传动轴接口
      * <p>
-     * 多功能传动箱的设计原则：
-     * - 与朝向轴平行的面：不是传动轴接口（因为那是箱体本身）
-     * - 与朝向轴垂直的面：是传动轴接口（可以连接传动轴）
+     * 【核心设计原则】
+     * - 方向轴（箱体轴）：由 BlockState.AXIS 属性定义（Y/X/Z）
+     * - 传动轴：垂直于方向轴的半轴，用于传递动力
      * <p>
-     * 示例（朝向轴为Y轴时）：
-     * - 顶面(Y+)和底面(Y-)：无传动轴（与朝向轴平行）
-     * - 北(N)、南(S)、东(E)、西(W)面：都有传动轴
+     * 【判断逻辑】
+     * - 与方向轴平行的面（同轴线）→ 没有传动轴（那是箱体本身）
+     * - 与方向轴垂直的面（不同轴线）→ 有传动轴接口
+     * <p>
+     * 【示例】
+     * - 方向轴=Y（垂直放置）：
+     *   - UP(DOWN) → Y轴 → 无传动轴
+     *   - NORTH/EAST/SOUTH/WEST → X/Z轴 → 有传动轴
+     * - 方向轴=X（水平放置）：
+     *   - EAST/WEST → X轴 → 无传动轴
+     *   - UP/DOWN/NORTH/SOUTH → Y/Z轴 → 有传动轴
      *
      * @param world 世界
      * @param pos   方块位置
-     * @param state 方块状态
+     * @param state 方块状态（包含方向轴信息）
      * @param face  检测的方向
      * @return      该方向是否有传动轴接口
      */
     @Override
     public boolean hasShaftTowards(LevelReader world, BlockPos pos, BlockState state, Direction face) {
-        // 与朝向轴平行的面没有传动轴，垂直的面才有传动轴
+        // face.getAxis() 获取检测方向的轴
+        // state.getValue(AXIS) 获取方向轴（箱体轴）
+        // 不相等 → 垂直 → 有传动轴
         return face.getAxis() != state.getValue(AXIS);
     }
 

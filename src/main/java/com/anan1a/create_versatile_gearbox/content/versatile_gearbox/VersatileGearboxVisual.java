@@ -21,18 +21,24 @@ import java.util.function.Consumer;
 /**
  * 万能变速箱可视化类（用于Flywheel渲染引擎）
  * <p>
- * Flywheel是一个客户端渲染优化库，用于改善方块实体渲染性能
- * 该类负责在Flywheel可视化模式下渲染变速箱内部的旋转轴
+ * 【Flywheel简介】
+ * Flywheel是Create模组的高性能渲染引擎，用于优化大量旋转方块的渲染性能
+ * 当玩家开启"可视化"选项时，方块实体的渲染会从原版渲染器切换到Flywheel
  * <p>
- * 主要功能：
- * - 为每个非箱体轴方向创建旋转实例（RotatingInstance）
+ * 【核心功能】
+ * - 为每个传动轴方向创建独立的旋转实例（RotatingInstance）
  * - 根据动力源方向计算每个轴的实际旋转速度（考虑正转/反转）
- * - 支持动态更新旋转状态
+ * - 支持动态更新旋转状态（当连接关系变化时）
  * <p>
- * 可视化原理：
- * - 遍历所有6个方向，跳过与箱体轴相同方向
- * - 为每个有效方向创建一个旋转实例
- * - 每个实例独立计算旋转角度和方向
+ * 【轴概念区分】
+ * - 方向轴（箱体轴）：由 BlockState.AXIS 定义，决定箱体朝向
+ * - 传动轴：垂直于方向轴的半轴，每个传动轴围绕自己的轴独立旋转
+ * <p>
+ * 【可视化流程】
+ * 1. 初始化：遍历6个方向，跳过与方向轴平行的方向
+ * 2. 创建实例：为每个传动轴方向创建旋转实例
+ * 3. 更新：每帧更新旋转速度和状态
+ * 4. 清理：删除时销毁所有实例
  */
 public class VersatileGearboxVisual extends KineticBlockEntityVisual<VersatileGearboxBlockEntity> {
 
@@ -94,21 +100,29 @@ public class VersatileGearboxVisual extends KineticBlockEntityVisual<VersatileGe
     /**
      * 计算指定方向的旋转速度
      * <p>
-     * 核心逻辑：
-     * - 基本速度来自方块实体的当前速度
-     * - 如果有动力源，根据getRotationSpeedModifier调整方向
-     * - Modifier为1时保持原速，-1时反转
+     * 【计算逻辑】
+     * 1. 获取方块实体的基本速度（来自动力网络）
+     * 2. 如果有动力源，根据轴方向关系调整速度符号
+     * 3. 速度为负数表示反向旋转
+     * <p>
+     * 【示例】
+     * - 基本速度=64，动力源=NORTH，计算EAST方向：
+     *   - getRotationSpeedModifier(EAST, NORTH) = 1（同向）
+     *   - 最终速度=64 * 1 = 64
+     * - 基本速度=64，动力源=NORTH，计算SOUTH方向：
+     *   - getRotationSpeedModifier(SOUTH, NORTH) = -1（反向）
+     *   - 最终速度=64 * -1 = -64
      *
-     * @param direction 要计算的方向
+     * @param direction 要计算的方向（传动轴方向）
      * @return 该方向的旋转速度（可为负数表示反转）
      */
     private float getSpeed(Direction direction) {
-        // 获取基本速度
+        // 获取方块实体的基本速度
         float speed = blockEntity.getSpeed();
 
         // 如果有动力源，应用旋转方向Modifier
         if (speed != 0 && sourceFacing != null) {
-            // Modifier: 1=同向, -1=反向
+            // Modifier: 1=同向旋转, -1=反向旋转
             speed *= VersatileGearboxBlockEntity.getRotationSpeedModifier(direction, sourceFacing);
         }
         return speed;
