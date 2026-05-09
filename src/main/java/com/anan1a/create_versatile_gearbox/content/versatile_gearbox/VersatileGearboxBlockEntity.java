@@ -24,37 +24,72 @@ public class VersatileGearboxBlockEntity extends SplitShaftBlockEntity {
      * 获取指定输出面的旋转速度Modifier
      *
      * @param face 输出面方向
-     * @return 旋转速度倍率（1或-1）
+     * @return 旋转速度倍率（0=关闭, 1=同向, -1=反向）
      */
     @Override
     public float getRotationSpeedModifier(Direction face) {
-        // 如果没有动力源，返回 1（无Modifier，保持原速）
-        if (!hasSource())
-            return 1;
-        // 获取动力源面并计算Modifier（包含翻转属性）
-        return getRotationSpeedModifier(face, getSourceFacing(), getBlockState());
+        // 获取方块状态
+        BlockState state = getBlockState();
+        
+        // 1. 检查输出面状态
+        ShaftState faceState = VersatileGearboxBlock.getShaftState(face, state);
+        if (faceState == ShaftState.OFF) {
+            return 0;
+        }
+        
+        // 2. 检查是否有动力源
+        if (!hasSource()) {
+            return 0;
+        }
+        
+        // 3. 检查输入面状态
+        Direction source = getSourceFacing();
+        ShaftState sourceState = VersatileGearboxBlock.getShaftState(source, state);
+        if (sourceState == ShaftState.OFF) {
+            return 0;
+        }
+        
+        // 4. 计算旋转方向
+        return getRotationSpeedModifier(face, source, state);
     }
 
     /**
-     * 计算输出面相对于动力源面的旋转速度Modifier（静态方法）
+     * 根据动力源面计算指定输出面的旋转速度Modifier（静态方法）
      * <p>
-     * 公式：Modifier = 轴方向修正 × 输出面翻转 × 动力源面翻转
-     * 翻转状态可通过扳手右键切换。
+     * 三状态版本：OFF(关闭), SAME(同向), OPPOSITE(反向)
      *
      * @param face   输出面
      * @param source 动力源面
      * @param state  方块状态
-     * @return 旋转速度倍率（1或-1）
+     * @return 旋转速度倍率（0=关闭, 1=同向, -1=反向）
      */
     public static float getRotationSpeedModifier(Direction face, Direction source, BlockState state) {
+        // 获取输入面（动力源面）状态
+        ShaftState sourceState = VersatileGearboxBlock.getShaftState(source, state);
+        
+        // 如果输入面关闭，所有输出都停止
+        if (sourceState == ShaftState.OFF) {
+            return 0;
+        }
+
+        // 获取输出面状态
+        ShaftState faceState = VersatileGearboxBlock.getShaftState(face, state);
+        
+        // 如果输出面关闭，返回0（不输出动力）
+        if (faceState == ShaftState.OFF) {
+            return 0;
+        }
+
         // 轴方向修正：同向为1，反向为-1
         int axisAdjust = face.getAxisDirection() == source.getAxisDirection() ? 1 : -1;
         
-        // 翻转修正：翻转时为-1，不翻转为1
-        int currentFlipped = VersatileGearboxBlock.isFaceFlipped(face, state) ? -1 : 1;
-        int sourceFlipped = VersatileGearboxBlock.isFaceFlipped(source, state) ? -1 : 1;
+        // 输出面状态修正
+        int faceModifier = faceState == ShaftState.SAME ? 1 : -1;
         
-        return axisAdjust * currentFlipped * sourceFlipped;
+        // 动力源面状态修正（影响输出方向）
+        int sourceModifier = sourceState == ShaftState.SAME ? 1 : -1;
+        
+        return axisAdjust * faceModifier * sourceModifier;
     }
 
     @Override

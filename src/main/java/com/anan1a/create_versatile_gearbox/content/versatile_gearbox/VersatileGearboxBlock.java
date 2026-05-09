@@ -24,6 +24,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.material.PushReaction;
 import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.phys.HitResult;
@@ -37,31 +38,20 @@ import net.minecraft.world.phys.HitResult;
 public class VersatileGearboxBlock extends RotatedPillarKineticBlock implements IBE<VersatileGearboxBlockEntity> {
 
     /**
-     * 六个面的翻转属性，用于控制每个传动轴的旋转方向
-     * true 表示翻转（反向旋转）
+     * 六个面的传动轴状态属性
+     * 支持三种状态：OFF(关闭), SAME(同向), OPPOSITE(反向)
      */
-    public static final BooleanProperty DOWN_FLIPPED = BooleanProperty.create("down_flipped");
-    public static final BooleanProperty UP_FLIPPED = BooleanProperty.create("up_flipped");
-    public static final BooleanProperty NORTH_FLIPPED = BooleanProperty.create("north_flipped");
-    public static final BooleanProperty SOUTH_FLIPPED = BooleanProperty.create("south_flipped");
-    public static final BooleanProperty WEST_FLIPPED = BooleanProperty.create("west_flipped");
-    public static final BooleanProperty EAST_FLIPPED = BooleanProperty.create("east_flipped");
+    public static final EnumProperty<ShaftState> DOWN_STATE = EnumProperty.create("down_state", ShaftState.class);
+    public static final EnumProperty<ShaftState> UP_STATE = EnumProperty.create("up_state", ShaftState.class);
+    public static final EnumProperty<ShaftState> NORTH_STATE = EnumProperty.create("north_state", ShaftState.class);
+    public static final EnumProperty<ShaftState> SOUTH_STATE = EnumProperty.create("south_state", ShaftState.class);
+    public static final EnumProperty<ShaftState> WEST_STATE = EnumProperty.create("west_state", ShaftState.class);
+    public static final EnumProperty<ShaftState> EAST_STATE = EnumProperty.create("east_state", ShaftState.class);
 
-    /**
-     * 创建方块状态定义
-     * 添加四个翻转属性
-     */
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         super.createBlockStateDefinition(builder);
-        builder.add(
-            DOWN_FLIPPED,
-            UP_FLIPPED,
-            NORTH_FLIPPED,
-            SOUTH_FLIPPED,
-            WEST_FLIPPED,
-            EAST_FLIPPED
-        );
+        builder.add(DOWN_STATE, UP_STATE, NORTH_STATE, SOUTH_STATE, WEST_STATE, EAST_STATE);
     }
 
     /**
@@ -70,14 +60,14 @@ public class VersatileGearboxBlock extends RotatedPillarKineticBlock implements 
      */
     public VersatileGearboxBlock(Properties properties) {
         super(properties);
-        // 初始化默认状态：所有面都翻转（与 Brass Gearbox 保持一致）
+        // 初始化默认状态：所有面同向旋转
         this.registerDefaultState(this.defaultBlockState()
-                .setValue(DOWN_FLIPPED, true)
-                .setValue(UP_FLIPPED, true)
-                .setValue(NORTH_FLIPPED, true)
-                .setValue(SOUTH_FLIPPED, true)
-                .setValue(WEST_FLIPPED, true)
-                .setValue(EAST_FLIPPED, true)
+                .setValue(DOWN_STATE, ShaftState.SAME)
+                .setValue(UP_STATE, ShaftState.SAME)
+                .setValue(NORTH_STATE, ShaftState.SAME)
+                .setValue(SOUTH_STATE, ShaftState.SAME)
+                .setValue(WEST_STATE, ShaftState.SAME)
+                .setValue(EAST_STATE, ShaftState.SAME)
         );
     }
 
@@ -96,41 +86,56 @@ public class VersatileGearboxBlock extends RotatedPillarKineticBlock implements 
     }
 
     /**
-     * 根据方向直接获取翻转状态
+     * 获取指定方向的传动轴状态
      */
-    public static boolean isFaceFlipped(Direction face, BlockState state) {
-        return isFaceFlipped(getFaceId(face, state.getValue(AXIS)), state);
-    }
-
-    /**
-     * 获取指定 Face ID 的翻转状态
-     * Face ID 对应：DOWN(1), UP(2), NORTH(3), SOUTH(4), WEST(5), EAST(6)
-     */
-    public static boolean isFaceFlipped(int faceId, BlockState state) {
-        return switch (faceId) {
-            case 1 -> state.getValue(DOWN_FLIPPED);
-            case 2 -> state.getValue(UP_FLIPPED);
-            case 3 -> state.getValue(NORTH_FLIPPED);
-            case 4 -> state.getValue(SOUTH_FLIPPED);
-            case 5 -> state.getValue(WEST_FLIPPED);
-            case 6 -> state.getValue(EAST_FLIPPED);
-            default -> false;
+    public static ShaftState getShaftState(Direction face, BlockState state) {
+        return switch (face) {
+            case DOWN -> state.getValue(DOWN_STATE);
+            case UP -> state.getValue(UP_STATE);
+            case NORTH -> state.getValue(NORTH_STATE);
+            case SOUTH -> state.getValue(SOUTH_STATE);
+            case WEST -> state.getValue(WEST_STATE);
+            case EAST -> state.getValue(EAST_STATE);
         };
     }
 
     /**
-     * 设置指定 Face ID 的翻转状态
-     * Face ID 对应：DOWN(1), UP(2), NORTH(3), SOUTH(4), WEST(5), EAST(6)
+     * 设置指定方向的传动轴状态
      */
-    public static BlockState setFaceFlipped(int faceId, BlockState state, boolean flipped) {
-        return switch (faceId) {
-            case 1 -> state.setValue(DOWN_FLIPPED, flipped);
-            case 2 -> state.setValue(UP_FLIPPED, flipped);
-            case 3 -> state.setValue(NORTH_FLIPPED, flipped);
-            case 4 -> state.setValue(SOUTH_FLIPPED, flipped);
-            case 5 -> state.setValue(WEST_FLIPPED, flipped);
-            case 6 -> state.setValue(EAST_FLIPPED, flipped);
-            default -> state;
+    public static BlockState setShaftState(Direction face, BlockState state, ShaftState shaftState) {
+        return switch (face) {
+            case DOWN -> state.setValue(DOWN_STATE, shaftState);
+            case UP -> state.setValue(UP_STATE, shaftState);
+            case NORTH -> state.setValue(NORTH_STATE, shaftState);
+            case SOUTH -> state.setValue(SOUTH_STATE, shaftState);
+            case WEST -> state.setValue(WEST_STATE, shaftState);
+            case EAST -> state.setValue(EAST_STATE, shaftState);
+        };
+    }
+
+    /**
+     * 获取下一个状态（循环切换）
+     * OFF → SAME → OPPOSITE → OFF
+     */
+    public static ShaftState getNextState(ShaftState current) {
+        return switch (current) {
+            case OFF -> ShaftState.SAME;
+            case SAME -> ShaftState.OPPOSITE;
+            case OPPOSITE -> ShaftState.OFF;
+        };
+    }
+
+    /**
+     * 获取指定方向对应的状态属性
+     */
+    public static EnumProperty<ShaftState> getStateProperty(Direction face) {
+        return switch (face) {
+            case DOWN -> DOWN_STATE;
+            case UP -> UP_STATE;
+            case NORTH -> NORTH_STATE;
+            case SOUTH -> SOUTH_STATE;
+            case WEST -> WEST_STATE;
+            case EAST -> EAST_STATE;
         };
     }
 
@@ -222,12 +227,27 @@ public class VersatileGearboxBlock extends RotatedPillarKineticBlock implements 
     /**
      * 判断指定面是否有传动轴接口（六面轴版本）
      * <p>
-     * 所有六个面都支持动力连接。
+     * 只有当该面状态不为 OFF 时才返回 true。
      */
-    @SuppressWarnings("unused")
     @Override
     public boolean hasShaftTowards(LevelReader world, BlockPos pos, BlockState state, Direction face) {
-        return true;
+        return getShaftState(face, state) != ShaftState.OFF;
+    }
+
+    /**
+     * 判断两个状态是否在动力学上等效
+     * <p>
+     * 用于优化动力网络更新：如果状态变化不影响动力传输，不需要重建网络。
+     */
+    @Override
+    protected boolean areStatesKineticallyEquivalent(BlockState oldState, BlockState newState) {
+        return oldState.getValue(DOWN_STATE) == newState.getValue(DOWN_STATE)
+            && oldState.getValue(UP_STATE) == newState.getValue(UP_STATE)
+            && oldState.getValue(NORTH_STATE) == newState.getValue(NORTH_STATE)
+            && oldState.getValue(SOUTH_STATE) == newState.getValue(SOUTH_STATE)
+            && oldState.getValue(WEST_STATE) == newState.getValue(WEST_STATE)
+            && oldState.getValue(EAST_STATE) == newState.getValue(EAST_STATE)
+            && super.areStatesKineticallyEquivalent(oldState, newState);
     }
 
     /**
@@ -273,33 +293,38 @@ public class VersatileGearboxBlock extends RotatedPillarKineticBlock implements 
      * @return 交互结果
      */
     protected InteractionResult onWrenchRightClick(BlockState state, UseOnContext context) {
-        // 获取上下文信息
         Level level = context.getLevel();
+        if (level.isClientSide)
+            return InteractionResult.SUCCESS;
+
         BlockPos pos = context.getClickedPos();
         Player player = context.getPlayer();
 
-        // 获取点击的方向（玩家点击的方块面）
+        // 获取点击的方向
         Direction clickedFace = context.getClickedFace();
-        // 获取方块的轴方向（六面轴版本仍保留，用于兼容）
-        Axis boxAxis = state.getValue(AXIS);
 
-        // 将方向转换为 Face ID（用于后续查询翻转状态）
-        int faceId = getFaceId(clickedFace, boxAxis);
-
-        // 获取当前翻转状态并取反（实现切换功能）
-        boolean currentFlipped = isFaceFlipped(faceId, state);
-        BlockState newState = setFaceFlipped(faceId, state, !currentFlipped);
-
-        // 更新方块状态（同步到客户端和动力网络）
+        // 使用 cycle 方法切换状态，这会触发 areStatesKineticallyEquivalent 检查
+        // 从而自动重建动力网络
+        BlockState newState = state.cycle(getStateProperty(clickedFace));
         KineticBlockEntity.switchToBlockState(level, pos, newState);
 
-        // 播放玩家手臂挥动动画（提供视觉反馈）
+        // 播放声音反馈
+        playRotateSound(level, pos);
+
+        // 播放玩家手臂挥动动画
         if (player != null) {
             player.swing(context.getHand());
         }
 
-        // 返回交互结果（服务端返回 SUCCESS，客户端返回 CONSUME）
-        return InteractionResult.sidedSuccess(level.isClientSide());
+        return InteractionResult.SUCCESS;
+    }
+
+    /**
+     * 播放旋转声音（从 IWrenchable 接口复制）
+     */
+    protected void playRotateSound(Level level, BlockPos pos) {
+        level.playSound(null, pos, net.minecraft.sounds.SoundEvents.WOODEN_BUTTON_CLICK_ON,
+            net.minecraft.sounds.SoundSource.BLOCKS, 0.2f, level.random.nextFloat() * 0.2f + 0.8f);
     }
 
     // ===== IBE 接口实现 =====
