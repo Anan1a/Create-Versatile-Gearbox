@@ -12,33 +12,15 @@ import dev.engine_room.flywheel.lib.model.Models;
 import net.createmod.catnip.data.Iterate;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 
 import java.util.EnumMap;
 import java.util.Map;
 import java.util.function.Consumer;
 
 /**
- * 万能变速箱可视化类（用于Flywheel渲染引擎）
+ * 万能变速箱可视化类（六面轴版本）
  * <p>
- * 【Flywheel简介】
- * Flywheel是Create模组的高性能渲染引擎，用于优化大量旋转方块的渲染性能
- * 当玩家开启"可视化"选项时，方块实体的渲染会从原版渲染器切换到Flywheel
- * <p>
- * 【核心功能】
- * - 为每个传动轴方向创建独立的旋转实例（RotatingInstance）
- * - 根据动力源方向计算每个轴的实际旋转速度（考虑正转/反转）
- * - 支持动态更新旋转状态（当连接关系变化时）
- * <p>
- * 【轴概念区分】
- * - 方向轴（箱体轴）：由 BlockState.AXIS 定义，决定箱体朝向
- * - 传动轴：垂直于方向轴的半轴，每个传动轴围绕自己的轴独立旋转
- * <p>
- * 【可视化流程】
- * 1. 初始化：遍历6个方向，跳过与方向轴平行的方向
- * 2. 创建实例：为每个传动轴方向创建旋转实例
- * 3. 更新：每帧更新旋转速度和状态
- * 4. 清理：删除时销毁所有实例
+ * Flywheel高性能渲染引擎支持，所有六个面都有传动轴。
  */
 public class VersatileGearboxVisual extends KineticBlockEntityVisual<VersatileGearboxBlockEntity> {
 
@@ -61,38 +43,26 @@ public class VersatileGearboxVisual extends KineticBlockEntityVisual<VersatileGe
     public VersatileGearboxVisual(VisualizationContext context, VersatileGearboxBlockEntity blockEntity, float partialTick) {
         super(context, blockEntity, partialTick);
 
-        // 获取箱体轴方向（由方块状态决定）
-        final Direction.Axis boxAxis = blockState.getValue(BlockStateProperties.AXIS);
-
         // 初始化动力源朝向
         updateSourceFacing();
 
         // 创建旋转实例的instancer
         var instancer = instancerProvider().instancer(AllInstanceTypes.ROTATING, Models.partial(AllPartialModels.SHAFT_HALF));
 
-        // 遍历所有6个方向
+        // 遍历所有6个方向（六面轴版本：所有面都有传动轴）
         for (Direction direction : Iterate.directions) {
             final Direction.Axis axis = direction.getAxis();
-
-            // 跳过与箱体轴相同的方向 - 那是箱体本身
-            if (boxAxis == axis) {
-                continue;
-            }
 
             // 为该方向创建旋转实例
             RotatingInstance instance = instancer.createInstance();
 
-            // 设置实例属性：
-            // - blockEntity: 关联的方块实体
-            // - axis: 旋转轴方向
-            // - speed: 根据动力源计算的旋转速度（考虑正/反转）
+            // 设置实例属性
             instance.setup(blockEntity, axis, getSpeed(direction))
                     .setPosition(getVisualPosition())
-                    // 旋转到目标方向
                     .rotateToFace(Direction.SOUTH, direction)
                     .setChanged();
 
-            // 存储到Map中以便后续更新和删除
+            // 存储到Map中
             keys.put(direction, instance);
         }
     }
@@ -102,16 +72,8 @@ public class VersatileGearboxVisual extends KineticBlockEntityVisual<VersatileGe
      * <p>
      * 【计算逻辑】
      * 1. 获取方块实体的基本速度（来自动力网络）
-     * 2. 如果有动力源，根据轴方向关系调整速度符号
+     * 2. 如果有动力源，根据轴方向关系和翻转属性调整速度符号
      * 3. 速度为负数表示反向旋转
-     * <p>
-     * 【示例】
-     * - 基本速度=64，动力源=NORTH，计算EAST方向：
-     *   - getRotationSpeedModifier(EAST, NORTH) = 1（同向）
-     *   - 最终速度=64 * 1 = 64
-     * - 基本速度=64，动力源=NORTH，计算SOUTH方向：
-     *   - getRotationSpeedModifier(SOUTH, NORTH) = -1（反向）
-     *   - 最终速度=64 * -1 = -64
      *
      * @param direction 要计算的方向（传动轴方向）
      * @return 该方向的旋转速度（可为负数表示反转）
@@ -120,10 +82,10 @@ public class VersatileGearboxVisual extends KineticBlockEntityVisual<VersatileGe
         // 获取方块实体的基本速度
         float speed = blockEntity.getSpeed();
 
-        // 如果有动力源，应用旋转方向Modifier
+        // 如果有动力源，应用旋转方向Modifier（包含翻转属性）
         if (speed != 0 && sourceFacing != null) {
-            // Modifier: 1=同向旋转, -1=反向旋转
-            speed *= VersatileGearboxBlockEntity.getRotationSpeedModifier(direction, sourceFacing);
+            // 使用包含翻转属性的版本计算Modifier
+            speed *= VersatileGearboxBlockEntity.getRotationSpeedModifier(direction, sourceFacing, blockState);
         }
         return speed;
     }

@@ -5,38 +5,64 @@ import java.util.List;
 
 import com.anan1a.create_versatile_gearbox.AllBlockEntityTypes;
 import com.anan1a.create_versatile_gearbox.AllItems;
+import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
 import com.simibubi.create.content.kinetics.base.RotatedPillarKineticBlock;
 import com.simibubi.create.foundation.block.IBE;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Direction.Axis;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.material.PushReaction;
 import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.phys.HitResult;
 
 /**
- * 多功能传动箱方块
+ * 多功能传动箱方块（六面轴版本）
  * <p>
- * 这是一个高性能的齿轮箱，支持多方向动力传输。
- * 与普通齿轮箱不同，它可以在多个方向上同时输入/输出动力，实现并行传动功能。
- * <p>
- * 【核心概念区分】
- * - 朝向轴：方块的放置方向（Y轴=垂直放置，X/Z轴=水平放置），决定方块的外观朝向
- * - 传动轴：方块侧面连接传动轴的接口，用于传递旋转动力
- * <p>
- * 【方块特性】
- * - 朝向轴为Y轴（垂直）时：侧面四个面都可以连接传动轴
- * - 朝向轴为X/Z轴（水平）时：顶面、底面和前后两面可连接传动轴（与朝向轴平行的面除外）
- * - 破坏时：朝向轴为Y轴掉落普通物品，为X/Z轴掉落垂直物品
+ * 支持六个面全部连接传动轴，实现全方位动力传输。
+ * 每个面可独立翻转旋转方向（通过扳手切换）。
  */
 public class VersatileGearboxBlock extends RotatedPillarKineticBlock implements IBE<VersatileGearboxBlockEntity> {
+
+    /**
+     * 六个面的翻转属性，用于控制每个传动轴的旋转方向
+     * true 表示翻转（反向旋转）
+     */
+    public static final BooleanProperty DOWN_FLIPPED = BooleanProperty.create("down_flipped");
+    public static final BooleanProperty UP_FLIPPED = BooleanProperty.create("up_flipped");
+    public static final BooleanProperty NORTH_FLIPPED = BooleanProperty.create("north_flipped");
+    public static final BooleanProperty SOUTH_FLIPPED = BooleanProperty.create("south_flipped");
+    public static final BooleanProperty WEST_FLIPPED = BooleanProperty.create("west_flipped");
+    public static final BooleanProperty EAST_FLIPPED = BooleanProperty.create("east_flipped");
+
+    /**
+     * 创建方块状态定义
+     * 添加四个翻转属性
+     */
+    @Override
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
+        super.createBlockStateDefinition(builder);
+        builder.add(
+            DOWN_FLIPPED,
+            UP_FLIPPED,
+            NORTH_FLIPPED,
+            SOUTH_FLIPPED,
+            WEST_FLIPPED,
+            EAST_FLIPPED
+        );
+    }
 
     /**
      * 构造函数
@@ -44,6 +70,68 @@ public class VersatileGearboxBlock extends RotatedPillarKineticBlock implements 
      */
     public VersatileGearboxBlock(Properties properties) {
         super(properties);
+        // 初始化默认状态：所有面都翻转（与 Brass Gearbox 保持一致）
+        this.registerDefaultState(this.defaultBlockState()
+                .setValue(DOWN_FLIPPED, true)
+                .setValue(UP_FLIPPED, true)
+                .setValue(NORTH_FLIPPED, true)
+                .setValue(SOUTH_FLIPPED, true)
+                .setValue(WEST_FLIPPED, true)
+                .setValue(EAST_FLIPPED, true)
+        );
+    }
+
+    /**
+     * 所有方向的列表缓存
+     * 顺序：DOWN, UP, NORTH, SOUTH, WEST, EAST
+     */
+    private static final List<Direction> DIRECTIONS = Direction.stream().toList();
+
+    /**
+     * 将方向转换为 Face ID（1-6）
+     * 顺序：DOWN(1), UP(2), NORTH(3), SOUTH(4), WEST(5), EAST(6)
+     */
+    public static int getFaceId(Direction face, Axis blockAxis) {
+        return DIRECTIONS.indexOf(face) + 1;
+    }
+
+    /**
+     * 根据方向直接获取翻转状态
+     */
+    public static boolean isFaceFlipped(Direction face, BlockState state) {
+        return isFaceFlipped(getFaceId(face, state.getValue(AXIS)), state);
+    }
+
+    /**
+     * 获取指定 Face ID 的翻转状态
+     * Face ID 对应：DOWN(1), UP(2), NORTH(3), SOUTH(4), WEST(5), EAST(6)
+     */
+    public static boolean isFaceFlipped(int faceId, BlockState state) {
+        return switch (faceId) {
+            case 1 -> state.getValue(DOWN_FLIPPED);
+            case 2 -> state.getValue(UP_FLIPPED);
+            case 3 -> state.getValue(NORTH_FLIPPED);
+            case 4 -> state.getValue(SOUTH_FLIPPED);
+            case 5 -> state.getValue(WEST_FLIPPED);
+            case 6 -> state.getValue(EAST_FLIPPED);
+            default -> false;
+        };
+    }
+
+    /**
+     * 设置指定 Face ID 的翻转状态
+     * Face ID 对应：DOWN(1), UP(2), NORTH(3), SOUTH(4), WEST(5), EAST(6)
+     */
+    public static BlockState setFaceFlipped(int faceId, BlockState state, boolean flipped) {
+        return switch (faceId) {
+            case 1 -> state.setValue(DOWN_FLIPPED, flipped);
+            case 2 -> state.setValue(UP_FLIPPED, flipped);
+            case 3 -> state.setValue(NORTH_FLIPPED, flipped);
+            case 4 -> state.setValue(SOUTH_FLIPPED, flipped);
+            case 5 -> state.setValue(WEST_FLIPPED, flipped);
+            case 6 -> state.setValue(EAST_FLIPPED, flipped);
+            default -> state;
+        };
     }
 
     /**
@@ -132,46 +220,21 @@ public class VersatileGearboxBlock extends RotatedPillarKineticBlock implements 
     }
 
     /**
-     * 判断指定面是否有传动轴接口
+     * 判断指定面是否有传动轴接口（六面轴版本）
      * <p>
-     * 【核心设计原则】
-     * - 方向轴（箱体轴）：由 BlockState.AXIS 属性定义（Y/X/Z）
-     * - 传动轴：垂直于方向轴的半轴，用于传递动力
-     * <p>
-     * 【判断逻辑】
-     * - 与方向轴平行的面（同轴线）→ 没有传动轴（那是箱体本身）
-     * - 与方向轴垂直的面（不同轴线）→ 有传动轴接口
-     * <p>
-     * 【示例】
-     * - 方向轴=Y（垂直放置）：
-     *   - UP(DOWN) → Y轴 → 无传动轴
-     *   - NORTH/EAST/SOUTH/WEST → X/Z轴 → 有传动轴
-     * - 方向轴=X（水平放置）：
-     *   - EAST/WEST → X轴 → 无传动轴
-     *   - UP/DOWN/NORTH/SOUTH → Y/Z轴 → 有传动轴
-     *
-     * @param world 世界
-     * @param pos   方块位置
-     * @param state 方块状态（包含方向轴信息）
-     * @param face  检测的方向
-     * @return      该方向是否有传动轴接口
+     * 所有六个面都支持动力连接。
      */
+    @SuppressWarnings("unused")
     @Override
     public boolean hasShaftTowards(LevelReader world, BlockPos pos, BlockState state, Direction face) {
-        // face.getAxis() 获取检测方向的轴
-        // state.getValue(AXIS) 获取方向轴（箱体轴）
-        // 不相等 → 垂直 → 有传动轴
-        return face.getAxis() != state.getValue(AXIS);
+        return true;
     }
 
     /**
-     * 获取方块的传动轴方向
+     * 获取方块的旋转轴（继承自父类）
      * <p>
-     * 返回方块状态中存储的朝向轴方向
-     * 该方向决定了方块的外观朝向和哪些面有传动轴接口
-     *
-     * @param state 方块状态
-     * @return 朝向轴方向（也是传动轴的旋转轴方向）
+     * 六面轴版本中，此方法主要用于方块渲染朝向和动力系统兼容性。
+     * 实际传动轴的旋转轴由各面方向决定（如 EAST 面围绕 X 轴旋转）。
      */
     @Override
     public Axis getRotationAxis(BlockState state) {
@@ -179,24 +242,72 @@ public class VersatileGearboxBlock extends RotatedPillarKineticBlock implements 
     }
 
     /**
-     * 获取对应的 BlockEntity 类
+     * 扳手交互处理
      * <p>
-     * 实现 IBE 接口的方法
-     * 
-     * @return BlockEntity 类
+     * 【交互逻辑】
+     * - Shift+右键（潜行）：执行快速拆除（调用父类方法）
+     * - 右键（非潜行）：切换点击面的传动轴旋转方向
+     *
+     * @param state   方块状态
+     * @param context 使用上下文
+     * @return 交互结果
      */
+    @Override
+    public InteractionResult onWrenched(BlockState state, UseOnContext context) {
+        if (context.getPlayer() != null && context.getPlayer().isShiftKeyDown()) {
+            // Shift+右键：执行快速拆除
+            return super.onWrenched(state, context);
+        }
+        // 右键（非潜行）：调用自定义交互方法
+        return onWrenchRightClick(state, context);
+    }
+
+    /**
+     * 自定义扳手右键交互（非潜行）
+     * <p>
+     * 【功能】切换点击面的传动轴旋转方向
+     * 当玩家用扳手右键点击某个面时，翻转该面的旋转方向
+     *
+     * @param state   方块状态
+     * @param context 使用上下文
+     * @return 交互结果
+     */
+    protected InteractionResult onWrenchRightClick(BlockState state, UseOnContext context) {
+        // 获取上下文信息
+        Level level = context.getLevel();
+        BlockPos pos = context.getClickedPos();
+        Player player = context.getPlayer();
+
+        // 获取点击的方向（玩家点击的方块面）
+        Direction clickedFace = context.getClickedFace();
+        // 获取方块的轴方向（六面轴版本仍保留，用于兼容）
+        Axis boxAxis = state.getValue(AXIS);
+
+        // 将方向转换为 Face ID（用于后续查询翻转状态）
+        int faceId = getFaceId(clickedFace, boxAxis);
+
+        // 获取当前翻转状态并取反（实现切换功能）
+        boolean currentFlipped = isFaceFlipped(faceId, state);
+        BlockState newState = setFaceFlipped(faceId, state, !currentFlipped);
+
+        // 更新方块状态（同步到客户端和动力网络）
+        KineticBlockEntity.switchToBlockState(level, pos, newState);
+
+        // 播放玩家手臂挥动动画（提供视觉反馈）
+        if (player != null) {
+            player.swing(context.getHand());
+        }
+
+        // 返回交互结果（服务端返回 SUCCESS，客户端返回 CONSUME）
+        return InteractionResult.sidedSuccess(level.isClientSide());
+    }
+
+    // ===== IBE 接口实现 =====
     @Override
     public Class<VersatileGearboxBlockEntity> getBlockEntityClass() {
         return VersatileGearboxBlockEntity.class;
     }
 
-    /**
-     * 获取对应的 BlockEntityType
-     * <p>
-     * 实现 IBE 接口的方法
-     * 
-     * @return BlockEntityType
-     */
     @Override
     public BlockEntityType<? extends VersatileGearboxBlockEntity> getBlockEntityType() {
         return AllBlockEntityTypes.VERSATILE_GEARBOX.get();
