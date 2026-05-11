@@ -82,12 +82,13 @@ public class VersatileGearboxBlockEntity extends SplitShaftBlockEntity {
 
         // 轴方向修正：同向为1，反向为-1
         int axisAdjust = face.getAxisDirection() == source.getAxisDirection() ? 1 : -1;
-        
+        // int axisAdjust = 1;
+
         // 输出面状态修正
-        int faceModifier = faceState == ShaftState.SAME ? 1 : -1;
+        int faceModifier = faceState == ShaftState.FWD ? 1 : -1;
         
         // 动力源面状态修正（影响输出方向）
-        int sourceModifier = sourceState == ShaftState.SAME ? 1 : -1;
+        int sourceModifier = sourceState == ShaftState.FWD ? 1 : -1;
         
         return axisAdjust * faceModifier * sourceModifier;
     }

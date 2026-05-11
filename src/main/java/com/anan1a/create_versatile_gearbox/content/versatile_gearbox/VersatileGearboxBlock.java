@@ -23,7 +23,6 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
-import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.material.PushReaction;
 import net.minecraft.world.level.storage.loot.LootParams;
@@ -62,12 +61,12 @@ public class VersatileGearboxBlock extends RotatedPillarKineticBlock implements 
         super(properties);
         // 初始化默认状态：所有面同向旋转
         this.registerDefaultState(this.defaultBlockState()
-                .setValue(DOWN_STATE, ShaftState.SAME)
-                .setValue(UP_STATE, ShaftState.SAME)
-                .setValue(NORTH_STATE, ShaftState.SAME)
-                .setValue(SOUTH_STATE, ShaftState.SAME)
-                .setValue(WEST_STATE, ShaftState.SAME)
-                .setValue(EAST_STATE, ShaftState.SAME)
+                .setValue(DOWN_STATE, ShaftState.FWD)
+                .setValue(UP_STATE, ShaftState.FWD)
+                .setValue(NORTH_STATE, ShaftState.FWD)
+                .setValue(SOUTH_STATE, ShaftState.FWD)
+                .setValue(WEST_STATE, ShaftState.FWD)
+                .setValue(EAST_STATE, ShaftState.FWD)
         );
     }
 
@@ -119,9 +118,9 @@ public class VersatileGearboxBlock extends RotatedPillarKineticBlock implements 
      */
     public static ShaftState getNextState(ShaftState current) {
         return switch (current) {
-            case OFF -> ShaftState.SAME;
-            case SAME -> ShaftState.OPPOSITE;
-            case OPPOSITE -> ShaftState.OFF;
+            case OFF -> ShaftState.FWD;
+            case FWD -> ShaftState.REV;
+            case REV -> ShaftState.OFF;
         };
     }
 
