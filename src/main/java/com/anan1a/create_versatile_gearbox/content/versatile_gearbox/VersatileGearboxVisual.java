@@ -51,6 +51,10 @@ public class VersatileGearboxVisual extends KineticBlockEntityVisual<VersatileGe
 
         // 遍历所有6个方向（六面轴版本：所有面都有传动轴）
         for (Direction direction : Iterate.directions) {
+            // OFF状态的半轴不渲染
+            if (VersatileGearboxBlock.getShaftState(direction, blockState) == ShaftState.OFF)
+                continue;
+
             final Direction.Axis axis = direction.getAxis();
 
             // 为该方向创建旋转实例
@@ -82,9 +86,8 @@ public class VersatileGearboxVisual extends KineticBlockEntityVisual<VersatileGe
         // 获取方块实体的基本速度
         float speed = blockEntity.getSpeed();
 
-        // 如果有动力源，应用旋转方向Modifier（包含翻转属性）
+        // 如果有动力源，应用旋转方向Modifier（三状态版本）
         if (speed != 0 && sourceFacing != null) {
-            // 使用包含翻转属性的版本计算Modifier
             speed *= VersatileGearboxBlockEntity.getRotationSpeedModifier(direction, sourceFacing, blockState);
         }
         return speed;
@@ -112,6 +115,7 @@ public class VersatileGearboxVisual extends KineticBlockEntityVisual<VersatileGe
      * <p>
      * 更新内容：
      * - 重新计算动力源朝向（因为连接状态可能改变）
+     * - 动态添加/删除半轴实例（根据状态变化）
      * - 为每个旋转实例更新速度和状态
      *
      * @param partialTick 部分tick值（用于插值）
@@ -120,6 +124,9 @@ public class VersatileGearboxVisual extends KineticBlockEntityVisual<VersatileGe
     public void update(float partialTick) {
         // 先更新动力源朝向
         updateSourceFacing();
+
+        // 检查是否有半轴需要添加或删除
+        updateShaftInstances();
 
         // 更新每个方向的旋转实例
         for (Map.Entry<Direction, RotatingInstance> key : keys.entrySet()) {
@@ -130,6 +137,36 @@ public class VersatileGearboxVisual extends KineticBlockEntityVisual<VersatileGe
             key.getValue()
                     .setup(blockEntity, axis, getSpeed(direction))
                     .setChanged();
+        }
+    }
+
+    /**
+     * 动态更新半轴实例
+     * <p>
+     * 检查每个方向的状态，动态添加或删除旋转实例：
+     * - OFF状态 → 删除实例（如果存在）
+     * - 非OFF状态 → 添加实例（如果不存在）
+     */
+    protected void updateShaftInstances() {
+        var instancer = instancerProvider().instancer(AllInstanceTypes.ROTATING, Models.partial(AllPartialModels.SHAFT_HALF));
+
+        for (Direction direction : Iterate.directions) {
+            ShaftState state = VersatileGearboxBlock.getShaftState(direction, blockState);
+            boolean hasInstance = keys.containsKey(direction);
+
+            // OFF状态且有实例 → 删除实例
+            if (state == ShaftState.OFF && hasInstance) {
+                keys.remove(direction).delete();
+            }
+            // 非OFF状态且无实例 → 创建实例
+            else if (state != ShaftState.OFF && !hasInstance) {
+                RotatingInstance instance = instancer.createInstance();
+                instance.setup(blockEntity, direction.getAxis(), getSpeed(direction))
+                        .setPosition(getVisualPosition())
+                        .rotateToFace(Direction.SOUTH, direction)
+                        .setChanged();
+                keys.put(direction, instance);
+            }
         }
     }
 

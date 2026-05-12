@@ -49,14 +49,15 @@ public class VersatileGearboxRenderer extends KineticBlockEntityRenderer<Versati
     /**
      * 检查是否应该渲染指定方向的半轴
      * <p>
-     * 默认返回 true，所有面都渲染半轴（六面轴版本）。
+     * 三状态版本：OFF状态不渲染半轴。
      *
      * @param be        方块实体
      * @param direction 要检查的方向
      * @return true 表示渲染该半轴
      */
     protected boolean shouldRenderShaftHalf(VersatileGearboxBlockEntity be, Direction direction) {
-        return true;
+        ShaftState state = VersatileGearboxBlock.getShaftState(direction, be.getBlockState());
+        return state != ShaftState.OFF;
     }
 
     /**

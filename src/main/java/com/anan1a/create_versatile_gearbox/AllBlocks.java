@@ -2,6 +2,7 @@ package com.anan1a.create_versatile_gearbox;
 
 import com.tterrag.registrate.util.entry.BlockEntry;
 
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
@@ -12,6 +13,7 @@ import com.simibubi.create.foundation.data.SharedProperties;
 import com.simibubi.create.api.stress.BlockStressValues;
 
 import com.simibubi.create.AllSpriteShifts;
+import com.simibubi.create.content.contraptions.wrench.RadialWrenchMenu;
 import com.simibubi.create.content.decoration.encasing.EncasedCTBehaviour;
 import com.simibubi.create.foundation.data.AssetLookup;
 
@@ -81,10 +83,13 @@ public class AllBlocks {
 			.onRegister(CreateRegistrate.casingConnectivity((block, cc) -> cc.make(block, AllSpriteShifts.ANDESITE_CASING,
 				(s, f) -> f.getAxis() == s.getValue(BlockStateProperties.AXIS))))
 			
+			// ========== 扳手黑名单配置 ==========
+			// 将 VersatileGearbox 添加到扳手旋转菜单黑名单，禁止旋转整个方块
+			.onRegister(block -> RadialWrenchMenu.registerBlacklistedBlock(BuiltInRegistries.BLOCK.getKey(block)))
+			
 			// ========== Blockstate 生成 ==========
-			// 使用 axisBlock 生成三个轴向的 blockstate
-			// AssetLookup.partialBaseModel 会查找 models/block/versatile_gearbox/block.json
-			.blockstate((c, p) -> axisBlock(c, p, $ -> AssetLookup.partialBaseModel(c, p), true))
+			// 使用简单 blockstate 避免生成大量 variants（3轴 × 3⁶面状态 = 2187个）
+			.blockstate((c, p) -> p.simpleBlock(c.getEntry(), p.models().getExistingFile(p.modLoc("block/versatile_gearbox/block"))))
 			
 			// ========== 物品配置 ==========
 			// customItemModel() 会查找 models/block/versatile_gearbox/item.json

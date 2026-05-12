@@ -1,20 +1,7 @@
 {
   "variants": {
-    "axis=x": {
-      "model": "create_versatile_gearbox:block/versatile_gearbox/block",
-      "uvlock": true,
-      "x": 90,
-      "y": 90
-    },
-    "axis=y": {
-      "model": "create_versatile_gearbox:block/versatile_gearbox/block",
-      "uvlock": true
-    },
-    "axis=z": {
-      "model": "create_versatile_gearbox:block/versatile_gearbox/block",
-      "uvlock": true,
-      "x": 90,
-      "y": 180
+    "": {
+      "model": "create_versatile_gearbox:block/versatile_gearbox/block"
     }
   }
 }
