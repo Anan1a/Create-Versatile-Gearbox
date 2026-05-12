@@ -3,8 +3,6 @@ package com.anan1a.create_versatile_gearbox;
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.Item;
 
-import com.anan1a.create_versatile_gearbox.content.versatile_gearbox.VerticalVersatileGearboxItem;
-import com.simibubi.create.foundation.data.AssetLookup;
 import com.simibubi.create.foundation.data.CreateRegistrate;
 import com.tterrag.registrate.util.entry.ItemEntry;
 
@@ -40,17 +38,6 @@ public class AllItems {
                     .nutrition(1)
                     .saturationModifier(2f)
                     .build()))
-            .register();
-
-    /**
-     * 垂直多功能传动箱物品
-     * <p>
-     * 放置时会自动检测周围的旋转方块并设置合适的水平轴方向
-     * 使用自定义模型：models/block/versatile_gearbox/item_vertical.json
-     */
-    public static final ItemEntry<VerticalVersatileGearboxItem> VERTICAL_VERSATILE_GEARBOX = REGISTRATE
-            .item("vertical_versatile_gearbox", VerticalVersatileGearboxItem::new)
-            .model(AssetLookup.customBlockItemModel("versatile_gearbox", "item_vertical"))
             .register();
 
     /**

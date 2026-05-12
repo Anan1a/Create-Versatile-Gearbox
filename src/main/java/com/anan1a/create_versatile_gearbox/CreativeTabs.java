@@ -33,7 +33,6 @@ public class CreativeTabs {
             
             // 多功能传动箱相关
             AllBlocks.VERSATILE_GEARBOX,
-            AllItems.VERTICAL_VERSATILE_GEARBOX,
 
             // 示例物品
             AllItems.EXAMPLE_ITEM

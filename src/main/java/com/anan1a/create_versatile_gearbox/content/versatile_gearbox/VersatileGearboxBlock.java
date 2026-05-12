@@ -168,13 +168,7 @@ public class VersatileGearboxBlock extends RotatedPillarKineticBlock implements 
     @SuppressWarnings("deprecation")
     @Override
     public List<ItemStack> getDrops(BlockState state, LootParams.Builder builder) {
-        // 检查朝向轴是否为垂直（Y轴）
-        if (state.getValue(AXIS).isVertical()) {
-            // 垂直朝向轴使用默认掉落（普通齿轮箱物品）
-            return super.getDrops(state, builder);
-        }
-        // 水平朝向轴掉落垂直齿轮箱物品（方便玩家获取垂直版本）
-        return Arrays.asList(new ItemStack(AllItems.VERTICAL_VERSATILE_GEARBOX.get()));
+        return super.getDrops(state, builder);
     }
 
     /**
@@ -200,13 +194,7 @@ public class VersatileGearboxBlock extends RotatedPillarKineticBlock implements 
     @Override
     public ItemStack getCloneItemStack(BlockState state, HitResult target, LevelReader level, BlockPos pos,
             Player player) {
-        // 检查朝向轴是否为垂直（Y轴）
-        if (state.getValue(AXIS).isVertical()) {
-            // 垂直朝向轴使用默认逻辑（显示为普通齿轮箱物品）
-            return super.getCloneItemStack(state, target, level, pos, player);
-        }
-        // 水平朝向轴显示为垂直齿轮箱物品
-        return new ItemStack(AllItems.VERTICAL_VERSATILE_GEARBOX.get());
+        return super.getCloneItemStack(state, target, level, pos, player);
     }
 
     /**
