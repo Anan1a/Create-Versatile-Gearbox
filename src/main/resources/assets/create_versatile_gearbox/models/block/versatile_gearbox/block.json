@@ -4,12 +4,7 @@
 	"parent": "block/block",
 	"textures": {
 		"0": "create_versatile_gearbox:block/versatile_gearbox/side",
-		"1": "create_versatile_gearbox:block/versatile_gearbox/fwd",
-		"2": "create_versatile_gearbox:block/versatile_gearbox/fwd",
-		"3": "create_versatile_gearbox:block/versatile_gearbox/fwd",
-		"4": "create_versatile_gearbox:block/versatile_gearbox/fwd",
-		"5": "create_versatile_gearbox:block/versatile_gearbox/fwd",
-		"6": "create_versatile_gearbox:block/versatile_gearbox/fwd",
+		"1": "create_versatile_gearbox:block/versatile_gearbox/placeholder",
 		"particle": "create_versatile_gearbox:block/versatile_gearbox/side"
 	},
 	"elements": [
@@ -20,11 +15,11 @@
 			"rotation": {"angle": 0, "axis": "z", "origin": [8, 8, 8]},
 			"faces": {
 				"north": {"uv": [1, 1, 15, 15], "texture": "#1"},
-				"east": {"uv": [1, 1, 15, 15], "texture": "#2"},
-				"south": {"uv": [1, 1, 15, 15], "texture": "#3"},
-				"west": {"uv": [1, 1, 15, 15], "texture": "#4"},
-				"up": {"uv": [1, 1, 15, 15], "texture": "#5"},
-				"down": {"uv": [1, 1, 15, 15], "texture": "#6"}
+				"east": {"uv": [1, 1, 15, 15], "texture": "#1"},
+				"south": {"uv": [1, 1, 15, 15], "texture": "#1"},
+				"west": {"uv": [1, 1, 15, 15], "texture": "#1"},
+				"up": {"uv": [1, 1, 15, 15], "texture": "#1"},
+				"down": {"uv": [1, 1, 15, 15], "texture": "#1"}
 			}
 		},
 		{

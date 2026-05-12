@@ -1,9 +1,16 @@
 package com.anan1a.create_versatile_gearbox;
 
+import java.util.Map;
+
 import org.slf4j.Logger;
 
 import com.mojang.logging.LogUtils;
 
+import com.anan1a.create_versatile_gearbox.content.versatile_gearbox.VersatileGearboxModel;
+import com.simibubi.create.foundation.model.ModelSwapper;
+
+import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.client.resources.model.ModelResourceLocation;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.level.block.Blocks;
 
@@ -15,6 +22,7 @@ import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.server.ServerStartingEvent;
+import net.neoforged.neoforge.client.event.ModelEvent;
 
 import com.anan1a.create_versatile_gearbox.data.VersatileGearboxDatagen;
 
@@ -56,6 +64,9 @@ public class CreateVersatileGearbox {
         // modEventBus.addListener(EventPriority.HIGHEST, VersatileGearboxDatagen::gatherData);
         modEventBus.addListener(VersatileGearboxDatagen::gatherData);
 
+        // 注册模型烘焙事件监听器
+        modEventBus.addListener(this::onModelBake);
+
         // 调用统一的注册方法，注册所有方块、物品和创造模式选项卡
         // 详见 Registers.java 的 registerAll() 方法
         Registers.registerAll(modEventBus);
@@ -90,6 +101,44 @@ public class CreateVersatileGearbox {
 
         // 示例：遍历并输出配置中的物品字符串列表
         Config.ITEM_STRINGS.get().forEach((item) -> LOGGER.info("配置物品 >> {}", item));
+    }
+
+    /**
+     * 模型烘焙事件监听器
+     * <p>
+     * 在模型加载完成后，将 VersatileGearbox 的模型替换为自定义动态模型
+     *
+     * @param event 模型烘焙事件
+     */
+    private void onModelBake(ModelEvent.ModifyBakingResult event) {
+        Map<ModelResourceLocation, BakedModel> modelRegistry = event.getModels();
+        
+        LOGGER.info("=== Model Bake Event for VersatileGearbox ===");
+        
+        // 替换 VersatileGearbox 的所有状态模型为动态模型
+        ModelSwapper.getAllBlockStateModelLocations(AllBlocks.VERSATILE_GEARBOX.get())
+            .forEach(location -> {
+                BakedModel originalModel = modelRegistry.get(location);
+                if (originalModel != null) {
+                    modelRegistry.put(location, new VersatileGearboxModel(originalModel));
+                    LOGGER.info("Replaced model for versatile_gearbox at: {}", location);
+                } else {
+                    LOGGER.warn("Original model not found for: {}", location);
+                }
+            });
+        
+        // 检查是否成功替换
+        ModelSwapper.getAllBlockStateModelLocations(AllBlocks.VERSATILE_GEARBOX.get())
+            .forEach(location -> {
+                BakedModel model = modelRegistry.get(location);
+                if (model instanceof VersatileGearboxModel) {
+                    LOGGER.info("SUCCESS: Model at {} is now VersatileGearboxModel", location);
+                } else {
+                    LOGGER.warn("FAILED: Model at {} is still: {}", location, model.getClass().getName());
+                }
+            });
+        
+        LOGGER.info("=== End Model Bake Event ===");
     }
 
     /**
