@@ -27,7 +27,6 @@ import net.neoforged.neoforge.client.model.data.ModelProperty;
  * 使用 BakedModelWrapper 包装原始模型，在渲染时动态修改四边形的纹理坐标。
  */
 public class VersatileGearboxModel extends BakedModelWrapper<BakedModel> {
-
 	/**
 	 * 模型属性：存储六个面的状态
 	 */
@@ -63,10 +62,14 @@ public class VersatileGearboxModel extends BakedModelWrapper<BakedModel> {
 
 		// 遍历所有四边形
 		for (int i = 0; i < quads.size(); i++) {
+			// 获取当前四边形
 			BakedQuad quad = quads.get(i);
+
+			// 检查四边形是否为空
 			if (quad == null)
 				continue;
 
+			// 获取原始四边形的纹理 Sprite
 			TextureAtlasSprite originalSprite = quad.getSprite();
 			if (originalSprite == null)
 				continue;
@@ -87,21 +90,15 @@ public class VersatileGearboxModel extends BakedModelWrapper<BakedModel> {
 			int faceIndex = getDirectionIndex(quadFace);
 			ShaftState faceState = faceStates[faceIndex];
 
-			// 根据状态选择目标纹理，OFF 状态移除四边形
-			String targetTexturePath = null;
-			switch (faceState) {
-				case FWD:
-					targetTexturePath = "block/versatile_gearbox/fwd";
-					break;
-				case REV:
-					targetTexturePath = "block/versatile_gearbox/rev";
-					break;
-				case OFF:
-					quads.set(i, null); // 移除 OFF 状态的四边形
-					continue;
-			}
+			// 根据状态选择目标纹理，OFF 状态返回 null
+			String targetTexturePath = switch (faceState) {
+				case FWD -> "block/versatile_gearbox/fwd";
+				case REV -> "block/versatile_gearbox/rev";
+				case OFF -> null;
+			};
 
 			if (targetTexturePath == null) {
+				quads.set(i, null); // OFF 状态移除四边形
 				continue;
 			}
 

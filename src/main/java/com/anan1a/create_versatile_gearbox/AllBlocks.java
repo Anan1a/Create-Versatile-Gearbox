@@ -45,11 +45,23 @@ public class AllBlocks {
      * 自动关联到 EXAMPLE_TAB 创造模式选项卡
      */
     public static final BlockEntry<Block> EXAMPLE_BLOCK = REGISTRATE
-            .block("example_block", Block::new)
-            .properties(p -> p.mapColor(MapColor.STONE))
-            // .item() - 手动配置物品时使用
-            // .tab(CreativeTabs.EXAMPLE_TAB.getKey()) - 手动指定选项卡
-            // .tab(CreativeModeTabs.BUILDING_BLOCKS) - 添加到多个选项卡
+            .block("example_block", Block::new)  // 注册名为 "example_block" 的方块，使用默认 Block 构造函数
+            .properties(p -> p                     // 配置方块属性
+				.mapColor(MapColor.STONE)           // 地图颜色为石色（影响地图渲染和泥土颜色判定）
+				.noOcclusion()                      // 禁用遮挡，使方块允许光线和物体穿过透明像素
+			)
+			.blockstate((c, p) -> p.simpleBlock(       // 自定义方块状态生成
+				c.getEntry(),                           // 获取当前注册的方块
+				p.models()                              // 获取模型生成器
+					.cubeAll(                          // 创建一个 cube_all 父模型的方块模型
+						"example_block",                // 模型名称（生成文件: example_block.json）
+						p.modLoc("block/example_block")// 纹理路径: create_versatile_gearbox:block/example_block
+					)
+					.renderType("translucent")          // 设置渲染类型为半透明（支持透明通道）
+			))
+            // .item() // 手动配置物品时使用
+            // .tab(CreativeTabs.EXAMPLE_TAB.getKey()) // 手动指定选项卡
+            // .tab(CreativeModeTabs.BUILDING_BLOCKS) // 添加到多个选项卡
             // .build()
             .simpleItem()  // 简化的物品注册，自动生成 BlockItem
             .register();
@@ -63,8 +75,9 @@ public class AllBlocks {
 			
 			// ========== 额外属性配置 ==========
 			.properties(p -> p
+				.mapColor(MapColor.PODZOL)  // 地图颜色
 				.noOcclusion()           // 禁用遮挡
-				.mapColor(MapColor.PODZOL))  // 地图颜色
+			)
 			
 			// ========== 应力配置 ==========
 			// 齿轮箱应力影响 - 使用 Create 开放的 API
