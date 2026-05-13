@@ -5,14 +5,14 @@ import net.minecraft.util.StringRepresentable;
 /**
  * 传动轴状态枚举
  * <p>
+ * FWD:     同向旋转（与动力源同方向）
+ * REV:     反向旋转（与动力源反方向）
  * OFF:     关闭（不输出动力）
- * FWD:    同向旋转（与动力源同方向）
- * REV: 反向旋转（与动力源反方向）
  */
 public enum ShaftState implements StringRepresentable {
-    OFF,
     FWD,
-    REV;
+    REV,
+    OFF;
 
     @Override
     public String getSerializedName() {

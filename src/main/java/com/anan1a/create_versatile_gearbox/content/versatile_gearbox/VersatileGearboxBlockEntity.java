@@ -6,6 +6,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.neoforged.neoforge.client.model.data.ModelData;
 
 /**
  * 万能变速箱方块实体
@@ -96,5 +97,30 @@ public class VersatileGearboxBlockEntity extends SplitShaftBlockEntity {
     @Override
     protected boolean isNoisy() {
         return false;
+    }
+
+    /**
+     * 提供模型数据给渲染器
+     * <p>
+     * 返回六个面的状态，用于动态纹理替换
+     */
+    @Override
+    public ModelData getModelData() {
+        BlockState state = getBlockState();
+        
+        // 按顺序获取六个面的状态：DOWN, UP, NORTH, SOUTH, WEST, EAST
+        ShaftState[] faceStates = new ShaftState[]{
+            VersatileGearboxBlock.getShaftState(Direction.DOWN, state),
+            VersatileGearboxBlock.getShaftState(Direction.UP, state),
+            VersatileGearboxBlock.getShaftState(Direction.NORTH, state),
+            VersatileGearboxBlock.getShaftState(Direction.SOUTH, state),
+            VersatileGearboxBlock.getShaftState(Direction.WEST, state),
+            VersatileGearboxBlock.getShaftState(Direction.EAST, state)
+        };
+        
+        // 将面状态数组打包到 ModelData 中，传递给渲染器
+        return ModelData.builder()
+                .with(VersatileGearboxModel.FACE_STATES, faceStates)
+                .build();
     }
 }

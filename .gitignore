@@ -41,3 +41,5 @@ repo/
 
 ### Create Versatile Gearbox ###
 /.github_examplemod/
+/src/main/resources/assets/create/
+/src/main/resources/assets/create_connected/
