@@ -21,14 +21,14 @@ public class VersatileGearboxModel extends DynamicTextureModel<ShaftState> {
 	 */
 	private static final Map<String, Map<ShaftState, String>> PLACEHOLDER_TEXTURE_MAPS = Map.of(
 		// placeholder1: FWD/REV 状态显示不同纹理，OFF 隐藏
-		"placeholder", Map.of(
+		"shaft", Map.of(
 			ShaftState.FWD, "fwd",
 			ShaftState.REV, "rev"
 			// OFF 不映射 → 自动隐藏
 		),
 		// placeholder2: OFF 状态显示 side 纹理，FWD/REV 隐藏
-		"placeholder2", Map.of(
-			ShaftState.OFF, "side"
+		"off", Map.of(
+			ShaftState.OFF, "off"
 			// FWD/REV 不映射 → 自动隐藏
 		)
 	);
