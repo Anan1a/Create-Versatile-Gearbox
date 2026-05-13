@@ -1,5 +1,7 @@
 package com.anan1a.create_versatile_gearbox.data;
 
+import static com.anan1a.create_versatile_gearbox.CreateVersatileGearbox.MODID;
+
 import java.util.function.BiConsumer;
 
 import com.anan1a.create_versatile_gearbox.Registers;
@@ -22,29 +24,29 @@ public class VersatileGearboxDatagen {
         Registers.registrate().addDataGenerator(ProviderType.LANG, provider -> {
             BiConsumer<String, String> add = provider::add;
             
-            // ========== 创造模式选项卡 ==========
-            add.accept("itemGroup.create_versatile_gearbox.versatile_gearbox_tab", "Versatile Gearbox");
+            // ========== Creative Mode Tab ==========
+            add.accept("itemGroup." + MODID + ".versatile_gearbox_tab", "Versatile Gearbox");
+
+            // ========== Configuration UI ==========
+            add.accept(MODID + ".configuration.title", "Versatile Gearbox Configuration");
+            add.accept(MODID + ".configuration.section." + MODID + ".common.toml", "Common Configuration");
+            add.accept(MODID + ".configuration.section." + MODID + ".common.toml.title", "Common Configuration");
             
-            // ========== 配置界面 ==========
-            add.accept("create_versatile_gearbox.configuration.title", "Versatile Gearbox Configuration");
-            add.accept("create_versatile_gearbox.configuration.section.create_versatile_gearbox.common.toml", "Common Configuration");
-            add.accept("create_versatile_gearbox.configuration.section.create_versatile_gearbox.common.toml.title", "Common Configuration");
+            // ========== Config Option: Log Dirt Block ==========
+            add.accept(MODID + ".configuration.logDirtBlock", "Log Dirt Block");
+            add.accept(MODID + ".configuration.logDirtBlock.tooltip", "Whether to log the dirt block on common setup");
             
-            // ========== 配置选项: Log Dirt Block ==========
-            add.accept("create_versatile_gearbox.configuration.logDirtBlock", "Log Dirt Block");
-            add.accept("create_versatile_gearbox.configuration.logDirtBlock.tooltip", "Whether to log the dirt block on common setup");
+            // ========== Config Option: Magic Number ==========
+            add.accept(MODID + ".configuration.magicNumber", "Magic Number");
+            add.accept(MODID + ".configuration.magicNumber.tooltip", "A magic number");
             
-            // ========== 配置选项: Magic Number ==========
-            add.accept("create_versatile_gearbox.configuration.magicNumber", "Magic Number");
-            add.accept("create_versatile_gearbox.configuration.magicNumber.tooltip", "A magic number");
+            // ========== Config Option: Magic Number Introduction ==========
+            add.accept(MODID + ".configuration.magicNumberIntroduction", "Magic Number Introduction Text");
+            add.accept(MODID + ".configuration.magicNumberIntroduction.tooltip", "What do you want the magic number introduction to say");
             
-            // ========== 配置选项: Magic Number Introduction ==========
-            add.accept("create_versatile_gearbox.configuration.magicNumberIntroduction", "Magic Number Introduction Text");
-            add.accept("create_versatile_gearbox.configuration.magicNumberIntroduction.tooltip", "What do you want the magic number introduction to say");
-            
-            // ========== 配置选项: Item List ==========
-            add.accept("create_versatile_gearbox.configuration.items", "Item List");
-            add.accept("create_versatile_gearbox.configuration.items.tooltip", "A list of items to log during common setup");
+            // ========== Config Option: Item List ==========
+            add.accept(MODID + ".configuration.items", "Item List");
+            add.accept(MODID + ".configuration.items.tooltip", "A list of items to log during common setup");
         });
     }
 }

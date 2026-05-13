@@ -3,6 +3,7 @@ package com.anan1a.create_versatile_gearbox.content.versatile_gearbox;
 import java.util.Map;
 
 import com.anan1a.create_versatile_gearbox.foundation.DynamicTextureModel;
+import static com.anan1a.create_versatile_gearbox.CreateVersatileGearbox.MODID;
 
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.core.Direction;
@@ -28,7 +29,7 @@ public class VersatileGearboxModel extends DynamicTextureModel<ShaftState> {
 		),
 		// placeholder2: OFF 状态显示 side 纹理，FWD/REV 隐藏
 		"off", Map.of(
-			ShaftState.OFF, "off"
+			ShaftState.OFF, "casing"
 			// FWD/REV 不映射 → 自动隐藏
 		)
 	);
@@ -41,7 +42,7 @@ public class VersatileGearboxModel extends DynamicTextureModel<ShaftState> {
 	public VersatileGearboxModel(BakedModel template) {
 		super(
 			template,
-			"create_versatile_gearbox",
+				MODID,
 			"block/versatile_gearbox/",
 			PLACEHOLDER_TEXTURE_MAPS,
 			VersatileGearboxModel::getFaceStatesFromBlock

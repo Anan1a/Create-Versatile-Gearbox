@@ -112,18 +112,21 @@ public class CreateVersatileGearbox {
      * @param event 模型烘焙事件
      */
     private void onModelBake(ModelEvent.ModifyBakingResult event) {
-        // 获取已烘焙的模型注册表
-        Map<ModelResourceLocation, BakedModel> modelRegistry = event.getModels();
-        
-        // 遍历万能变速箱的所有 BlockState 变体，替换为动态模型
-        ModelSwapper.getAllBlockStateModelLocations(AllBlocks.VERSATILE_GEARBOX.get())
-            .forEach(location -> {
-                BakedModel originalModel = modelRegistry.get(location);
-                if (originalModel != null) {
-                    // 用 VersatileGearboxModel 包装原始模型，实现运行时动态纹理替换
-                    modelRegistry.put(location, new VersatileGearboxModel(originalModel));
-                }
-            });
+        // 仅在物理客户端执行，避免在数据生成或服务器端崩溃
+        if (!event.getModels().isEmpty()) {
+            // 获取已烘焙的模型注册表
+            Map<ModelResourceLocation, BakedModel> modelRegistry = event.getModels();
+            
+            // 遍历万能变速箱的所有 BlockState 变体，替换为动态模型
+            ModelSwapper.getAllBlockStateModelLocations(AllBlocks.VERSATILE_GEARBOX.get())
+                .forEach(location -> {
+                    BakedModel originalModel = modelRegistry.get(location);
+                    if (originalModel != null) {
+                        // 用 VersatileGearboxModel 包装原始模型，实现运行时动态纹理替换
+                        modelRegistry.put(location, new VersatileGearboxModel(originalModel));
+                    }
+                });
+        }
     }
 
     /**

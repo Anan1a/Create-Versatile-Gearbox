@@ -9,6 +9,7 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 
 import com.anan1a.create_versatile_gearbox.content.versatile_gearbox.ShaftState;
 import com.anan1a.create_versatile_gearbox.content.versatile_gearbox.VersatileGearboxBlock;
+import com.anan1a.create_versatile_gearbox.foundation.AllModSpriteShifts;
 import com.simibubi.create.foundation.data.CreateRegistrate;
 import com.simibubi.create.foundation.data.SharedProperties;
 import com.simibubi.create.api.stress.BlockStressValues;
@@ -89,14 +90,21 @@ public class AllBlocks {
 			.transform(axeOrPickaxe())
 			
 			// ========== 连接纹理配置 ==========
-			// 启用连接纹理，使齿轮箱能与其他外壳连接
+			// 为自定义机壳和安山合金机壳注册连接纹理行为
+			// EncasedCTBehaviour 根据相邻方块状态处理纹理渲染
+			.onRegister(CreateRegistrate.connectedTextures(() -> new EncasedCTBehaviour(AllModSpriteShifts.VERSATILE_GEARBOX_CASING)))
 			.onRegister(CreateRegistrate.connectedTextures(() -> new EncasedCTBehaviour(AllSpriteShifts.ANDESITE_CASING)))
-			
-			// ========== 外壳连接性配置 ==========
-			// 配置外壳连接规则 - 仅当面的状态为 OFF 时才显示连接纹理
-			.onRegister(CreateRegistrate.casingConnectivity((block, cc) -> cc.make(block, AllSpriteShifts.ANDESITE_CASING,
-				(s, f) -> VersatileGearboxBlock.getShaftState(f, s) == ShaftState.OFF)))
-			
+									
+			// ========== 外壳连接性规则 ==========
+			// 定义连接条件：仅当轴状态为 OFF 时面才连接
+			// 防止轴激活时出现视觉错误
+			.onRegister(CreateRegistrate.casingConnectivity((block, cc) -> {
+				cc.make(block, AllModSpriteShifts.VERSATILE_GEARBOX_CASING,
+					(s, f) -> VersatileGearboxBlock.getShaftState(f, s) == ShaftState.OFF);
+				cc.make(block, AllSpriteShifts.ANDESITE_CASING,
+					(s, f) -> VersatileGearboxBlock.getShaftState(f, s) == ShaftState.OFF);
+			}))
+
 			// ========== 扳手黑名单配置 ==========
 			// 将 VersatileGearbox 添加到扳手旋转菜单黑名单，禁止旋转整个方块
 			.onRegister(block -> RadialWrenchMenu.registerBlacklistedBlock(BuiltInRegistries.BLOCK.getKey(block)))

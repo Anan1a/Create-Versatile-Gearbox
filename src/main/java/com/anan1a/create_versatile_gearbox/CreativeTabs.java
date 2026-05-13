@@ -1,5 +1,7 @@
 package com.anan1a.create_versatile_gearbox;
 
+import static com.anan1a.create_versatile_gearbox.CreateVersatileGearbox.MODID;
+
 import java.util.List;
 
 import net.minecraft.network.chat.Component;
@@ -40,7 +42,7 @@ public class CreativeTabs {
 
     public static final DeferredHolder<CreativeModeTab, CreativeModeTab> EXAMPLE_TAB = REGISTER.register("versatile_gearbox_tab",
             () -> CreativeModeTab.builder()
-                    .title(Component.translatable("itemGroup.create_versatile_gearbox.versatile_gearbox_tab"))
+                    .title(Component.translatable("itemGroup." + MODID + ".versatile_gearbox_tab"))
                     .withTabsBefore(CreativeModeTabs.COMBAT)
                     .icon(() -> AllItems.EXAMPLE_ITEM.asItem().getDefaultInstance())
                     .displayItems(new SimpleDisplayItemsGenerator(ITEMS))
