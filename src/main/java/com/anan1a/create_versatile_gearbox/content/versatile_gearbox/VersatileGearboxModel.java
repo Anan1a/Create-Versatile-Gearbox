@@ -11,24 +11,49 @@ import net.neoforged.neoforge.client.model.data.ModelData;
 import net.neoforged.neoforge.client.model.data.ModelProperty;
 
 public class VersatileGearboxModel extends DynamicTextureModel<ShaftState> {
+	/**
+	 * 状态属性
+	 */
 	public static final ModelProperty<ShaftState[]> FACE_STATES = new ModelProperty<>();
-	
-	private static final Map<ShaftState, String> TEXTURE_MAP = Map.of(
-		ShaftState.FWD, "fwd",
-		ShaftState.REV, "rev"
+
+	/**
+	 * 占位符纹理映射
+	 */
+	private static final Map<String, Map<ShaftState, String>> PLACEHOLDER_TEXTURE_MAPS = Map.of(
+		// placeholder1: FWD/REV 状态显示不同纹理，OFF 隐藏
+		"placeholder", Map.of(
+			ShaftState.FWD, "fwd",
+			ShaftState.REV, "rev"
+			// OFF 不映射 → 自动隐藏
+		),
+		// placeholder2: OFF 状态显示 side 纹理，FWD/REV 隐藏
+		"placeholder2", Map.of(
+			ShaftState.OFF, "side"
+			// FWD/REV 不映射 → 自动隐藏
+		)
 	);
-	
+
+	/**
+	 * 构造函数
+	 *
+	 * @param template 原始烘焙模型
+	 */
 	public VersatileGearboxModel(BakedModel template) {
 		super(
 			template,
 			"create_versatile_gearbox",
 			"block/versatile_gearbox/",
-			"placeholder",
-			TEXTURE_MAP,
+			PLACEHOLDER_TEXTURE_MAPS,
 			VersatileGearboxModel::getFaceStatesFromBlock
 		);
 	}
-	
+
+	/**
+	 * 从 ModelData 获取状态数组
+	 *
+	 * @param extraData 额外的数据
+	 * @return 状态数组
+	 */
 	@Override
 	@SuppressWarnings("unchecked")
 	protected ShaftState[] getStatesFromModelData(ModelData extraData) {
@@ -38,12 +63,25 @@ public class VersatileGearboxModel extends DynamicTextureModel<ShaftState> {
 		}
 		return null;
 	}
-	
+
+	/**
+	 * 根据面方向获取对应的状态
+	 *
+	 * @param face   面方向
+	 * @param states 状态数组
+	 * @return 该面对应的状态
+	 */
 	@Override
 	protected ShaftState getStateForFace(Direction face, ShaftState[] states) {
 		return states[getDirectionIndex(face)];
 	}
-	
+
+	/**
+	 * 从 BlockState 获取状态数组
+	 *
+	 * @param state 状态
+	 * @return 状态数组
+	 */
 	private static ShaftState[] getFaceStatesFromBlock(BlockState state) {
 		if (!(state.getBlock() instanceof VersatileGearboxBlock)) {
 			return null;
@@ -57,7 +95,13 @@ public class VersatileGearboxModel extends DynamicTextureModel<ShaftState> {
 			VersatileGearboxBlock.getShaftState(Direction.EAST, state)
 		};
 	}
-	
+
+	/**
+	 * 获取方向索引
+	 *
+	 * @param direction 方向
+	 * @return 方向索引
+	 */
 	private int getDirectionIndex(Direction direction) {
 		return switch (direction) {
 			case DOWN -> 0;

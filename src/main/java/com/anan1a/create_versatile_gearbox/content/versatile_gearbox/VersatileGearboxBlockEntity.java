@@ -107,16 +107,18 @@ public class VersatileGearboxBlockEntity extends SplitShaftBlockEntity {
     @Override
     public ModelData getModelData() {
         BlockState state = getBlockState();
-        ShaftState[] faceStates = new ShaftState[6];
         
-        // 按顺序：DOWN, UP, NORTH, SOUTH, WEST, EAST
-        faceStates[0] = VersatileGearboxBlock.getShaftState(Direction.DOWN, state);
-        faceStates[1] = VersatileGearboxBlock.getShaftState(Direction.UP, state);
-        faceStates[2] = VersatileGearboxBlock.getShaftState(Direction.NORTH, state);
-        faceStates[3] = VersatileGearboxBlock.getShaftState(Direction.SOUTH, state);
-        faceStates[4] = VersatileGearboxBlock.getShaftState(Direction.WEST, state);
-        faceStates[5] = VersatileGearboxBlock.getShaftState(Direction.EAST, state);
+        // 按顺序获取六个面的状态：DOWN, UP, NORTH, SOUTH, WEST, EAST
+        ShaftState[] faceStates = new ShaftState[]{
+            VersatileGearboxBlock.getShaftState(Direction.DOWN, state),
+            VersatileGearboxBlock.getShaftState(Direction.UP, state),
+            VersatileGearboxBlock.getShaftState(Direction.NORTH, state),
+            VersatileGearboxBlock.getShaftState(Direction.SOUTH, state),
+            VersatileGearboxBlock.getShaftState(Direction.WEST, state),
+            VersatileGearboxBlock.getShaftState(Direction.EAST, state)
+        };
         
+        // 将面状态数组打包到 ModelData 中，传递给渲染器
         return ModelData.builder()
                 .with(VersatileGearboxModel.FACE_STATES, faceStates)
                 .build();

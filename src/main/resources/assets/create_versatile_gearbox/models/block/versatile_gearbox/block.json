@@ -5,6 +5,7 @@
 	"textures": {
 		"0": "create_versatile_gearbox:block/versatile_gearbox/side",
 		"1": "create_versatile_gearbox:block/versatile_gearbox/placeholder",
+		"2": "create_versatile_gearbox:block/versatile_gearbox/placeholder2",
 		"particle": "create_versatile_gearbox:block/versatile_gearbox/side"
 	},
 	"elements": [
@@ -251,6 +252,36 @@
 				"south": {"uv": [0, 2, 2, 14], "texture": "#0"},
 				"west": {"uv": [0, 2, 2, 14], "texture": "#0"}
 			}
+		},
+		{
+			"name": "Casing",
+			"from": [2, 2, 0],
+			"to": [14, 14, 16],
+			"rotation": {"angle": 0, "axis": "y", "origin": [0, 2, 2]},
+			"faces": {
+				"north": {"uv": [2, 2, 14, 14], "texture": "#2"},
+				"south": {"uv": [2, 2, 14, 14], "texture": "#2"}
+			}
+		},
+		{
+			"name": "Casing",
+			"from": [0, 2, 2],
+			"to": [16, 14, 14],
+			"rotation": {"angle": 0, "axis": "y", "origin": [0, 2, 2]},
+			"faces": {
+				"east": {"uv": [2, 2, 14, 14], "texture": "#2"},
+				"west": {"uv": [2, 2, 14, 14], "texture": "#2"}
+			}
+		},
+		{
+			"name": "Casing",
+			"from": [2, 0, 2],
+			"to": [14, 16, 14],
+			"rotation": {"angle": 0, "axis": "y", "origin": [0, 2, 2]},
+			"faces": {
+				"up": {"uv": [2, 2, 14, 14], "texture": "#2"},
+				"down": {"uv": [2, 2, 14, 14], "texture": "#2"}
+			}
 		}
 	],
 	"groups": [
@@ -266,22 +297,29 @@
 			"name": "Bottom",
 			"origin": [0, 0, 0],
 			"scope": 0,
-			"color": 0,
+			"color": 1,
 			"children": [9, 10, 11, 12]
 		},
 		{
 			"name": "Top",
 			"origin": [8, 8, 8],
 			"scope": 0,
-			"color": 0,
+			"color": 2,
 			"children": [13, 14, 15, 16]
 		},
 		{
 			"name": "Side",
 			"origin": [8, 8, 8],
 			"scope": 0,
-			"color": 0,
+			"color": 3,
 			"children": [17, 18, 19, 20]
+		},
+		{
+			"name": "Casing",
+			"origin": [8, 8, 8],
+			"scope": 0,
+			"color": 4,
+			"children": [21, 22, 23]
 		}
 	]
 }

@@ -295,12 +295,6 @@ public class VersatileGearboxBlock extends RotatedPillarKineticBlock implements 
         BlockState newState = state.cycle(getStateProperty(clickedFace));
         KineticBlockEntity.switchToBlockState(level, pos, newState);
 
-        // 通知客户端更新模型数据，触发动态纹理重新渲染
-        level.getBlockEntity(pos, getBlockEntityType()).ifPresent(be -> {
-            be.requestModelDataUpdate();
-            level.sendBlockUpdated(pos, state, newState, Block.UPDATE_ALL);
-        });
-
         // 播放声音反馈
         playRotateSound(level, pos);
 

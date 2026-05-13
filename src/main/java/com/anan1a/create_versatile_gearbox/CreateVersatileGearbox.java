@@ -107,38 +107,23 @@ public class CreateVersatileGearbox {
      * 模型烘焙事件监听器
      * <p>
      * 在模型加载完成后，将 VersatileGearbox 的模型替换为自定义动态模型
+     * 模型烘焙事件 - 替换为动态纹理模型
      *
      * @param event 模型烘焙事件
      */
     private void onModelBake(ModelEvent.ModifyBakingResult event) {
+        // 获取已烘焙的模型注册表
         Map<ModelResourceLocation, BakedModel> modelRegistry = event.getModels();
         
-        LOGGER.info("=== Model Bake Event for VersatileGearbox ===");
-        
-        // 替换 VersatileGearbox 的所有状态模型为动态模型
+        // 遍历万能变速箱的所有 BlockState 变体，替换为动态模型
         ModelSwapper.getAllBlockStateModelLocations(AllBlocks.VERSATILE_GEARBOX.get())
             .forEach(location -> {
                 BakedModel originalModel = modelRegistry.get(location);
                 if (originalModel != null) {
+                    // 用 VersatileGearboxModel 包装原始模型，实现运行时动态纹理替换
                     modelRegistry.put(location, new VersatileGearboxModel(originalModel));
-                    LOGGER.info("Replaced model for versatile_gearbox at: {}", location);
-                } else {
-                    LOGGER.warn("Original model not found for: {}", location);
                 }
             });
-        
-        // 检查是否成功替换
-        ModelSwapper.getAllBlockStateModelLocations(AllBlocks.VERSATILE_GEARBOX.get())
-            .forEach(location -> {
-                BakedModel model = modelRegistry.get(location);
-                if (model instanceof VersatileGearboxModel) {
-                    LOGGER.info("SUCCESS: Model at {} is now VersatileGearboxModel", location);
-                } else {
-                    LOGGER.warn("FAILED: Model at {} is still: {}", location, model.getClass().getName());
-                }
-            });
-        
-        LOGGER.info("=== End Model Bake Event ===");
     }
 
     /**

@@ -25,50 +25,65 @@ import net.neoforged.neoforge.client.model.data.ModelData;
  * 通用动态纹理模型基类
  * <p>
  * 根据占位符纹理和映射规则，在渲染时动态替换四边形纹理。
- * 支持自定义状态到纹理的映射逻辑。
+ * 支持多个占位符纹理，每个占位符可独立配置状态→纹理映射。
  * 
  * @param <T> 状态类型（如 ShaftState、Enum 等）
  */
 public abstract class DynamicTextureModel<T> extends BakedModelWrapper<BakedModel> {
-	
-	protected final ResourceLocation placeholder;
-	protected final Map<T, ResourceLocation> textureMap;
+	/**
+	 * 占位符→(状态→纹理路径)的映射
+	 */
+	protected final Map<ResourceLocation, Map<T, ResourceLocation>> placeholderTextureMaps;
+
+	/**
+	 * 从 BlockState 获取状态数组的函数
+	 */
 	protected final Function<BlockState, T[]> stateProvider;
 	
 	/**
 	 * 构造函数
 	 * 
-	 * @param template       	原始烘焙模型
-	 * @param modId          	模组ID
-	 * @param textureBase    	纹理基础路径（如 "block/example/"）
-	 * @param placeholderName 	占位符纹理名称
-	 * @param texturePathMap	状态到纹理路径的映射
-	 * @param stateProvider  	从 BlockState 获取状态数组的函数
+	 * @param template       			原始烘焙模型
+	 * @param modId          			模组ID
+	 * @param textureBase   			纹理基础路径（如 "block/example/"）
+	 * @param placeholderTextureMaps	占位符→(状态→纹理路径)的映射
+	 * @param stateProvider  			从 BlockState 获取状态数组的函数
 	 */
 	protected DynamicTextureModel(
 			BakedModel template,
 			String modId,
 			String textureBase,
-			String placeholderName,
-			Map<T, String> texturePathMap,
+			Map<String, Map<T, String>> placeholderTextureMaps,
 			Function<BlockState, T[]> stateProvider
 	) {
 		super(template);
-		this.placeholder = createLocation(modId, textureBase, placeholderName);
-		this.textureMap = buildTextureMap(modId, textureBase, texturePathMap);
+		this.placeholderTextureMaps = new java.util.HashMap<>();
+		placeholderTextureMaps.forEach((placeholderName, texturePathMap) -> {
+			ResourceLocation placeholder = createLocation(modId, textureBase, placeholderName);
+			this.placeholderTextureMaps.put(placeholder, buildTextureMap(modId, textureBase, texturePathMap));
+		});
 		this.stateProvider = stateProvider;
 	}
-	
+
+	/**
+	 * 创建 ResourceLocation
+	 */
 	private static ResourceLocation createLocation(String modId, String base, String name) {
 		return ResourceLocation.fromNamespaceAndPath(modId, base + name);
 	}
-	
+
+	/**
+	 * 构建占位符→(状态→纹理路径)的映射
+	 */
 	private Map<T, ResourceLocation> buildTextureMap(String modId, String base, Map<T, String> pathMap) {
 		Map<T, ResourceLocation> result = new java.util.HashMap<>();
 		pathMap.forEach((key, path) -> result.put(key, createLocation(modId, base, path)));
 		return result;
 	}
-	
+
+	/**
+	 * 重写获取四边形纹理方法
+	 */
 	@Override
 	public List<BakedQuad> getQuads(BlockState state, Direction side, RandomSource rand, ModelData extraData,
 			RenderType renderType) {
@@ -86,12 +101,12 @@ public abstract class DynamicTextureModel<T> extends BakedModelWrapper<BakedMode
 			
 			TextureAtlasSprite originalSprite = quad.getSprite();
 			Direction quadFace = quad.getDirection();
-			if (
-					originalSprite == null ||
-					quadFace == null ||
-					!placeholder.equals(originalSprite.contents().name())
-			) continue;
-
+			if (originalSprite == null || quadFace == null) continue;
+			
+			ResourceLocation originalLocation = originalSprite.contents().name();
+			// 查找匹配的占位符
+			Map<T, ResourceLocation> textureMap = placeholderTextureMaps.get(originalLocation);
+			if (textureMap == null) continue;
 			
 			T stateKey = getStateForFace(quadFace, states);
 			ResourceLocation targetLocation = textureMap.get(stateKey);
