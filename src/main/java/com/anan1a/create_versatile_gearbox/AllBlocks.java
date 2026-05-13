@@ -7,6 +7,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 
+import com.anan1a.create_versatile_gearbox.content.versatile_gearbox.ShaftState;
 import com.anan1a.create_versatile_gearbox.content.versatile_gearbox.VersatileGearboxBlock;
 import com.simibubi.create.foundation.data.CreateRegistrate;
 import com.simibubi.create.foundation.data.SharedProperties;
@@ -92,9 +93,9 @@ public class AllBlocks {
 			.onRegister(CreateRegistrate.connectedTextures(() -> new EncasedCTBehaviour(AllSpriteShifts.ANDESITE_CASING)))
 			
 			// ========== 外壳连接性配置 ==========
-			// 配置外壳连接规则
+			// 配置外壳连接规则 - 仅当面的状态为 OFF 时才显示连接纹理
 			.onRegister(CreateRegistrate.casingConnectivity((block, cc) -> cc.make(block, AllSpriteShifts.ANDESITE_CASING,
-				(s, f) -> f.getAxis() == s.getValue(BlockStateProperties.AXIS))))
+				(s, f) -> VersatileGearboxBlock.getShaftState(f, s) == ShaftState.OFF)))
 			
 			// ========== 扳手黑名单配置 ==========
 			// 将 VersatileGearbox 添加到扳手旋转菜单黑名单，禁止旋转整个方块
