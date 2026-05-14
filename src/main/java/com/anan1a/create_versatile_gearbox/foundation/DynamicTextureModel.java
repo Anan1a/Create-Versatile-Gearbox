@@ -41,7 +41,7 @@ public abstract class DynamicTextureModel<T> extends BakedModelWrapper<BakedMode
 	protected final Function<BlockState, T[]> stateProvider;
 	
 	/**
-	 * 构造函数
+	 * 构造函数（使用局部路径，自动拼接）
 	 * 
 	 * @param template       			原始烘焙模型
 	 * @param modId          			模组ID
@@ -62,6 +62,23 @@ public abstract class DynamicTextureModel<T> extends BakedModelWrapper<BakedMode
 			ResourceLocation placeholder = createLocation(modId, textureBase, placeholderName);
 			this.placeholderTextureMaps.put(placeholder, buildTextureMap(modId, textureBase, texturePathMap));
 		});
+		this.stateProvider = stateProvider;
+	}
+
+	/**
+	 * 构造函数（使用完整路径，不自动拼接）
+	 * 
+	 * @param template       			原始烘焙模型
+	 * @param placeholderTextureMaps	占位符→(状态→纹理路径)的映射（使用完整 ResourceLocation）
+	 * @param stateProvider  			从 BlockState 获取状态数组的函数
+	 */
+	protected DynamicTextureModel(
+			BakedModel template,
+			Map<ResourceLocation, Map<T, ResourceLocation>> placeholderTextureMaps,
+			Function<BlockState, T[]> stateProvider
+	) {
+		super(template);
+		this.placeholderTextureMaps = placeholderTextureMaps;
 		this.stateProvider = stateProvider;
 	}
 

@@ -7,6 +7,7 @@ import static com.anan1a.create_versatile_gearbox.CreateVersatileGearbox.MODID;
 
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.core.Direction;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.client.model.data.ModelData;
 import net.neoforged.neoforge.client.model.data.ModelProperty;
@@ -20,16 +21,16 @@ public class VersatileGearboxModel extends DynamicTextureModel<ShaftState> {
 	/**
 	 * 占位符纹理映射
 	 */
-	private static final Map<String, Map<ShaftState, String>> PLACEHOLDER_TEXTURE_MAPS = Map.of(
-		// placeholder1: FWD/REV 状态显示不同纹理，OFF 隐藏
-		"shaft", Map.of(
-			ShaftState.FWD, "fwd",
-			ShaftState.REV, "rev"
+	private static final Map<ResourceLocation, Map<ShaftState, ResourceLocation>> PLACEHOLDER_TEXTURE_MAPS = Map.of(
+		// shaft: FWD/REV 状态显示不同纹理，OFF 隐藏
+		ResourceLocation.fromNamespaceAndPath(MODID, "block/versatile_gearbox/shaft"), Map.of(
+			ShaftState.FWD, ResourceLocation.fromNamespaceAndPath(MODID, "block/versatile_gearbox/fwd"),
+			ShaftState.REV, ResourceLocation.fromNamespaceAndPath(MODID, "block/versatile_gearbox/rev")
 			// OFF 不映射 → 自动隐藏
 		),
-		// placeholder2: OFF 状态显示 side 纹理，FWD/REV 隐藏
-		"off", Map.of(
-			ShaftState.OFF, "casing"
+		// off: OFF 状态显示 side 纹理，FWD/REV 隐藏
+		ResourceLocation.fromNamespaceAndPath(MODID, "block/versatile_gearbox/off"), Map.of(
+			ShaftState.OFF, ResourceLocation.fromNamespaceAndPath(MODID, "block/versatile_gearbox/casing")
 			// FWD/REV 不映射 → 自动隐藏
 		)
 	);
@@ -42,8 +43,6 @@ public class VersatileGearboxModel extends DynamicTextureModel<ShaftState> {
 	public VersatileGearboxModel(BakedModel template) {
 		super(
 			template,
-				MODID,
-			"block/versatile_gearbox/",
 			PLACEHOLDER_TEXTURE_MAPS,
 			VersatileGearboxModel::getFaceStatesFromBlock
 		);
@@ -56,8 +55,7 @@ public class VersatileGearboxModel extends DynamicTextureModel<ShaftState> {
 	 * @return 状态数组
 	 */
 	@Override
-	@SuppressWarnings("unchecked")
-	protected ShaftState[] getStatesFromModelData(ModelData extraData) {
+    protected ShaftState[] getStatesFromModelData(ModelData extraData) {
 		if (extraData != null && extraData.has(FACE_STATES)) {
 			ShaftState[] states = extraData.get(FACE_STATES);
 			return (states != null && states.length == 6) ? states : null;
