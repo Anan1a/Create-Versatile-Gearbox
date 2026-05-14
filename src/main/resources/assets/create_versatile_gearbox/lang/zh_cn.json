@@ -1,7 +1,6 @@
 {
-  "itemGroup.create_versatile_gearbox.tab": "多功能齿轮箱",
-  "block.create_versatile_gearbox.example_block": "示例方块",
-  "item.create_versatile_gearbox.example_item": "示例物品",
+  "itemGroup.create_versatile_gearbox.versatile_gearbox_tab": "多功能齿轮箱",
+  "block.create_versatile_gearbox.versatile_gearbox": "多功能齿轮箱",
 
   "create_versatile_gearbox.configuration.title": "多功能齿轮箱配置",
   "create_versatile_gearbox.configuration.section.create_versatile_gearbox.common.toml": "通用配置",

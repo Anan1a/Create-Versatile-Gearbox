@@ -1,5 +1,4 @@
 {
-  "block.create_versatile_gearbox.example_block": "Example Block",
   "block.create_versatile_gearbox.versatile_gearbox": "Versatile Gearbox",
   "create_versatile_gearbox.configuration.items": "Item List",
   "create_versatile_gearbox.configuration.items.tooltip": "A list of items to log during common setup",
@@ -12,6 +11,5 @@
   "create_versatile_gearbox.configuration.section.create_versatile_gearbox.common.toml": "Common Configuration",
   "create_versatile_gearbox.configuration.section.create_versatile_gearbox.common.toml.title": "Common Configuration",
   "create_versatile_gearbox.configuration.title": "Versatile Gearbox Configuration",
-  "item.create_versatile_gearbox.example_item": "Example Item",
   "itemGroup.create_versatile_gearbox.versatile_gearbox_tab": "Versatile Gearbox"
 }

@@ -31,20 +31,19 @@ public class CreativeTabs {
      */
     public static final List<ItemProviderEntry<?, ?>> ITEMS = List.of(
             // 示例方块
-            AllBlocks.EXAMPLE_BLOCK,
+//            AllBlocks.EXAMPLE_BLOCK,
+            // 示例物品
+//            AllItems.EXAMPLE_ITEM,
             
             // 多功能传动箱相关
-            AllBlocks.VERSATILE_GEARBOX,
-
-            // 示例物品
-            AllItems.EXAMPLE_ITEM
+            AllBlocks.VERSATILE_GEARBOX
     );
 
     public static final DeferredHolder<CreativeModeTab, CreativeModeTab> EXAMPLE_TAB = REGISTER.register("versatile_gearbox_tab",
             () -> CreativeModeTab.builder()
                     .title(Component.translatable("itemGroup." + MODID + ".versatile_gearbox_tab"))
                     .withTabsBefore(CreativeModeTabs.COMBAT)
-                    .icon(() -> AllItems.EXAMPLE_ITEM.asItem().getDefaultInstance())
+                    .icon(() -> AllBlocks.VERSATILE_GEARBOX.asStack())
                     .displayItems(new SimpleDisplayItemsGenerator(ITEMS))
                     .build());
 

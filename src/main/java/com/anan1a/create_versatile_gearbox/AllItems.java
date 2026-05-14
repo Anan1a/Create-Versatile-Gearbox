@@ -20,25 +20,25 @@ public class AllItems {
      */
     private static final CreateRegistrate REGISTRATE = Registers.registrate();
 
-    /**
-     * 示例物品
-     * <p>
-     * 注册 ID: create_versatile_gearbox:example_item
-     * <p>
-     * 配置为食物属性：
-     * - alwaysEdible: 可以随时食用
-     * - nutrition(1): 恢复 1 点饥饿值
-     * - saturationModifier(2f): 饱和度修正值为 2.0
-     * 自动关联到 EXAMPLE_TAB 创造模式选项卡
-     */
-    public static final ItemEntry<Item> EXAMPLE_ITEM = REGISTRATE
-            .item("example_item", Item::new)
-            .properties(p -> p.food(new FoodProperties.Builder()
-                    .alwaysEdible()
-                    .nutrition(1)
-                    .saturationModifier(2f)
-                    .build()))
-            .register();
+//    /**
+//     * 示例物品
+//     * <p>
+//     * 注册 ID: create_versatile_gearbox:example_item
+//     * <p>
+//     * 配置为食物属性：
+//     * - alwaysEdible: 可以随时食用
+//     * - nutrition(1): 恢复 1 点饥饿值
+//     * - saturationModifier(2f): 饱和度修正值为 2.0
+//     * 自动关联到 EXAMPLE_TAB 创造模式选项卡
+//     */
+//    public static final ItemEntry<Item> EXAMPLE_ITEM = REGISTRATE
+//            .item("example_item", Item::new)
+//            .properties(p -> p.food(new FoodProperties.Builder()
+//                    .alwaysEdible()
+//                    .nutrition(1)
+//                    .saturationModifier(2f)
+//                    .build()))
+//            .register();
 
     /**
      * 注册触发方法
