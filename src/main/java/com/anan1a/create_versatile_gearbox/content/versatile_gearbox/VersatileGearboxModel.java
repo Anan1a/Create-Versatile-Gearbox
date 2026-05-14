@@ -30,7 +30,7 @@ public class VersatileGearboxModel extends DynamicTextureModel<ShaftState> {
 		),
 		// off: OFF 状态显示 side 纹理，FWD/REV 隐藏
 		ResourceLocation.fromNamespaceAndPath(MODID, "block/versatile_gearbox/off"), Map.of(
-			ShaftState.OFF, ResourceLocation.fromNamespaceAndPath(MODID, "block/versatile_gearbox/casing")
+			ShaftState.OFF, ResourceLocation.fromNamespaceAndPath(MODID, "block/versatile_gearbox/off")
 			// FWD/REV 不映射 → 自动隐藏
 		)
 	);

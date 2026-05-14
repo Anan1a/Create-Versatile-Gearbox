@@ -14,32 +14,14 @@ import net.minecraft.resources.ResourceLocation;
  * 为多功能齿轮箱的机壳定义连接纹理映射关系
  */
 public class AllModSpriteShifts {
-
     /**
-     * 多功能齿轮箱机壳连接纹理
+     * off状态机壳连接纹理配置项
      * <p>
-     * 使用 OMNIDIRECTIONAL 类型，支持全方向连接
-     * 自动查找：
-     * - 基础纹理：create_versatile_gearbox:block/versatile_gearbox/casing
-     * - 连接纹理：create_versatile_gearbox:block/versatile_gearbox/casing_connected
+     * 复用 Create 原版安山机壳的连接纹理图集
      */
-    public static final CTSpriteShiftEntry VERSATILE_GEARBOX_CASING = getCT(
-        AllCTTypes.OMNIDIRECTIONAL, 
-        "versatile_gearbox/casing"
+    public static final CTSpriteShiftEntry VERSATILE_GEARBOX_OFF = CTSpriteShifter.getCT(
+            AllCTTypes.OMNIDIRECTIONAL,
+            ResourceLocation.fromNamespaceAndPath(MODID, "block/versatile_gearbox/off"),
+            ResourceLocation.fromNamespaceAndPath("create", "block/andesite_casing_connected")
     );
-
-    /**
-     * 获取连接纹理配置的辅助方法
-     * 
-     * @param type 连接类型（如 OMNIDIRECTIONAL、HORIZONTAL 等）
-     * @param name 纹理名称（不含路径和扩展名）
-     * @return 连接纹理配置项
-     */
-    private static CTSpriteShiftEntry getCT(com.simibubi.create.foundation.block.connected.CTType type, String name) {
-        return CTSpriteShifter.getCT(
-            type,
-            ResourceLocation.fromNamespaceAndPath(MODID, "block/" + name),
-            ResourceLocation.fromNamespaceAndPath(MODID, "block/" + name + "_connected")
-        );
-    }
 }

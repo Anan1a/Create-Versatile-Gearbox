@@ -3,11 +3,11 @@
 	"credit": "Made with Blockbench",
 	"parent": "block/block",
 	"textures": {
-		"0": "create_versatile_gearbox:block/versatile_gearbox/casing",
+		"0": "create:block/andesite_casing",
 		"1": "create_versatile_gearbox:block/versatile_gearbox/shaft",
-		"2": "create_versatile_gearbox:block/versatile_gearbox/axis",
-		"3": "create_versatile_gearbox:block/versatile_gearbox/axis_top",
-		"particle": "create_versatile_gearbox:block/versatile_gearbox/axis"
+		"2": "create:block/axis",
+		"3": "create:block/axis_top",
+		"particle": "create:block/andesite_casing"
 	},
 	"elements": [
 		{
