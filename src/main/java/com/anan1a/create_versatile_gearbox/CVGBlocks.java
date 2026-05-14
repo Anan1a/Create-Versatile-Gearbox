@@ -3,9 +3,7 @@ package com.anan1a.create_versatile_gearbox;
 import com.tterrag.registrate.util.entry.BlockEntry;
 
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.material.MapColor;
-import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 
 import com.anan1a.create_versatile_gearbox.content.versatile_gearbox.ShaftState;
 import com.anan1a.create_versatile_gearbox.content.versatile_gearbox.VersatileGearboxBlock;
@@ -15,9 +13,14 @@ import com.simibubi.create.foundation.data.SharedProperties;
 import com.simibubi.create.api.stress.BlockStressValues;
 
 import com.simibubi.create.AllSpriteShifts;
+import com.simibubi.create.AllItems;
+import com.simibubi.create.AllBlocks;
 import com.simibubi.create.content.contraptions.wrench.RadialWrenchMenu;
 import com.simibubi.create.content.decoration.encasing.EncasedCTBehaviour;
-import com.simibubi.create.foundation.data.AssetLookup;
+
+import net.minecraft.data.recipes.RecipeCategory;
+import net.minecraft.data.recipes.ShapedRecipeBuilder;
+import net.minecraft.advancements.critereon.InventoryChangeTrigger;
 
 import static com.simibubi.create.foundation.data.BlockStateGen.axisBlock;
 import static com.simibubi.create.foundation.data.ModelGen.customItemModel;
@@ -31,7 +34,7 @@ import static com.simibubi.create.foundation.data.TagGen.axeOrPickaxe;
  * - 自动生成 BlockItem
  * - 简化的注册流程
  */
-public class AllBlocks {
+public class CVGBlocks {
     /**
      * CreateRegistrate 实例，用于注册方块
      */
@@ -86,7 +89,33 @@ public class AllBlocks {
 				.mapColor(MapColor.PODZOL)  // 地图颜色
 				.noOcclusion()           // 禁用遮挡
 			)
-			
+
+			// ========== 合成配方配置 ==========
+			// 配方结构：
+			//   C C P
+			//   C A C
+			//   P C C
+			// 其中：A=安山机壳(1个), C=小齿轮(6个), P=精密构件(2个)
+			.recipe((ctx, prov) -> {
+				ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ctx.getEntry())
+					.pattern("CCP")  // 第一行：2个小齿轮 + 1个精密构件
+					.pattern("CAC")  // 第二行：小齿轮 + 安山机壳 + 小齿轮
+					.pattern("PCC")  // 第三行：1个精密构件 + 2个小齿轮
+					.define('A', AllBlocks.ANDESITE_CASING.get())      // A: 安山机壳（中心）
+					.define('C', AllBlocks.COGWHEEL.get())             // C: 小齿轮（6个）
+					.define('P', AllItems.PRECISION_MECHANISM.get())   // P: 精密构件（2个）
+					// 解锁条件：获得任意一个材料即可在配方书中显示
+					.unlockedBy("has_alloy", 
+						InventoryChangeTrigger.TriggerInstance.hasItems(AllItems.ANDESITE_ALLOY.get()))			// 解锁条件：获得安山合金
+					.unlockedBy("has_casing", 
+						InventoryChangeTrigger.TriggerInstance.hasItems(AllBlocks.ANDESITE_CASING.get()))		// 解锁条件：获得安山机壳
+					.unlockedBy("has_cogwheel", 
+						InventoryChangeTrigger.TriggerInstance.hasItems(AllBlocks.COGWHEEL.get()))				// 解锁条件：获得齿轮
+					.unlockedBy("has_precision_mechanism", 
+						InventoryChangeTrigger.TriggerInstance.hasItems(AllItems.PRECISION_MECHANISM.get()))	// 解锁条件：获得精密构件
+					.save(prov);
+			})
+
 			// ========== 应力配置 ==========
 			// 齿轮箱应力影响 - 使用 Create 开放的 API
 			.onRegister(block -> BlockStressValues.IMPACTS.register(block, () -> 0))

@@ -1,10 +1,8 @@
 package com.anan1a.create_versatile_gearbox.content.versatile_gearbox;
 
-import java.util.Arrays;
 import java.util.List;
 
-import com.anan1a.create_versatile_gearbox.AllBlockEntityTypes;
-import com.anan1a.create_versatile_gearbox.AllItems;
+import com.anan1a.create_versatile_gearbox.CVGBlockEntityTypes;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
 import com.simibubi.create.content.kinetics.base.RotatedPillarKineticBlock;
 import com.simibubi.create.foundation.block.IBE;
@@ -154,8 +152,8 @@ public class VersatileGearboxBlock extends RotatedPillarKineticBlock implements 
      * 获取方块破坏时的掉落物
      * <p>
      * 【实际破坏场景】当玩家破坏方块时调用此方法，决定实际获得的物品：
-     * - 朝向轴为Y轴（垂直）：掉落普通齿轮箱物品 -> 对应 AllBlocks.VERSATILE_GEARBOX
-     * - 朝向轴为X/Z轴（水平）：掉落垂直齿轮箱物品 -> 对应 AllItems.VERTICAL_VERSATILE_GEARBOX
+     * - 当前实现委托给父类方法，使用默认掉落逻辑
+     * - 可根据需要重写此方法，实现基于方块状态的自定义掉落
      * <p>
      * 【掉落逻辑】
      * - 玩家使用精准采集附魔的镐子时，如果此方法返回空列表，方块不会被破坏
@@ -322,6 +320,6 @@ public class VersatileGearboxBlock extends RotatedPillarKineticBlock implements 
 
     @Override
     public BlockEntityType<? extends VersatileGearboxBlockEntity> getBlockEntityType() {
-        return AllBlockEntityTypes.VERSATILE_GEARBOX.get();
+        return CVGBlockEntityTypes.VERSATILE_GEARBOX.get();
     }
 }

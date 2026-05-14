@@ -55,7 +55,7 @@ public class Registers {
     /**
      * 获取 Registrate 实例
      * <p>
-     * 供其他注册类（如 AllBlocks、AllItems）使用
+     * 供其他注册类（如 CVGBlocks、CVGItems）使用
      *
      * @return CreateRegistrate 实例
      */
@@ -77,7 +77,7 @@ public class Registers {
     /**
      * 获取方块实体类型的 DeferredRegister 实例
      * <p>
-     * 供 AllBlockEntityTypes 类使用，实现注册逻辑的集中管理
+     * 供 CVGBlockEntityTypes 类使用，实现注册逻辑的集中管理
      *
      * @return 方块实体类型的 DeferredRegister 实例
      */
@@ -108,14 +108,14 @@ public class Registers {
         // 步骤3：触发方块类加载
         // 调用空的 register() 方法会触发类加载，从而执行静态初始化块
         // 静态块中的 setCreativeTab() 和实际注册代码会在此执行
-        AllBlocks.register();
+        CVGBlocks.register();
 
         // 步骤4：注册方块实体类型
         // 必须在方块注册之后（类加载完成）才能注册，因为需要引用方块实例
         // 通过 Registers 统一注册
-        AllBlockEntityTypes.register();
+        CVGBlockEntityTypes.register();
 
         // 步骤5：触发物品类加载
-        AllItems.register();
+        CVGItems.register();
     }
 }

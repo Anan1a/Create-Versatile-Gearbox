@@ -14,7 +14,7 @@ import com.tterrag.registrate.util.entry.BlockEntityEntry;
  * - 配置渲染器（用于原版渲染）
  * - 配置可视化（用于Flywheel渲染引擎）
  */
-public class AllBlockEntityTypes {
+public class CVGBlockEntityTypes {
 
     private static final CreateRegistrate REGISTRATE = Registers.registrate();
 
@@ -41,8 +41,8 @@ public class AllBlockEntityTypes {
             .visual(() -> VersatileGearboxVisual::new, false)
             
             // 指定该方块实体可附着的方块
-            // 关联到 AllBlocks.VERSATILE_GEARBOX，确保只能放置在该方块上
-            .validBlocks(AllBlocks.VERSATILE_GEARBOX)
+            // 关联到 CVGBlocks.VERSATILE_GEARBOX，确保只能放置在该方块上
+            .validBlocks(CVGBlocks.VERSATILE_GEARBOX)
             
             // 配置原版渲染器
             // 返回 VersatileGearboxRenderer 实例，用于非 Flywheel 环境的渲染

@@ -1,10 +1,6 @@
 package com.anan1a.create_versatile_gearbox;
 
-import net.minecraft.world.food.FoodProperties;
-import net.minecraft.world.item.Item;
-
 import com.simibubi.create.foundation.data.CreateRegistrate;
-import com.tterrag.registrate.util.entry.ItemEntry;
 
 /**
  * 物品注册类
@@ -14,7 +10,7 @@ import com.tterrag.registrate.util.entry.ItemEntry;
  * - 简化的属性配置
  * - 统一的注册流程
  */
-public class AllItems {
+public class CVGItems {
     /**
      * CreateRegistrate 实例，用于注册物品
      */

@@ -118,7 +118,7 @@ public class CreateVersatileGearbox {
             Map<ModelResourceLocation, BakedModel> modelRegistry = event.getModels();
             
             // 遍历万能变速箱的所有 BlockState 变体，替换为动态模型
-            ModelSwapper.getAllBlockStateModelLocations(AllBlocks.VERSATILE_GEARBOX.get())
+            ModelSwapper.getAllBlockStateModelLocations(CVGBlocks.VERSATILE_GEARBOX.get())
                 .forEach(location -> {
                     BakedModel originalModel = modelRegistry.get(location);
                     if (originalModel != null) {
