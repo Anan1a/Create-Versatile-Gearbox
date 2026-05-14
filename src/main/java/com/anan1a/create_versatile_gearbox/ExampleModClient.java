@@ -26,7 +26,7 @@ public class ExampleModClient {
     @SubscribeEvent
     static void onClientSetup(FMLClientSetupEvent event) {
         // 一些客户端设置代码
-        CreateVersatileGearbox.LOGGER.info("来自客户端设置的问候");
-        CreateVersatileGearbox.LOGGER.info("Minecraft 用户名 >> {}", Minecraft.getInstance().getUser().getName());
+        CreateVersatileGearbox.LOGGER.info("Greetings from client setup");
+        CreateVersatileGearbox.LOGGER.info("Minecraft username >> {}", Minecraft.getInstance().getUser().getName());
     }
 }

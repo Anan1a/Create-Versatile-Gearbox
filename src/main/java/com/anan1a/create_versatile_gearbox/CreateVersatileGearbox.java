@@ -89,18 +89,18 @@ public class CreateVersatileGearbox {
      */
     private void commonSetup(FMLCommonSetupEvent event) {
         // 输出初始化日志
-        LOGGER.info("Create Versatile Gearbox 模组初始化完成");
+        LOGGER.info("Create Versatile Gearbox mod initialized successfully");
 
         // 示例：根据配置决定是否输出泥土块的注册信息
         if (Config.LOG_DIRT_BLOCK.getAsBoolean()) {
-            LOGGER.info("泥土块注册键 >> {}", BuiltInRegistries.BLOCK.getKey(Blocks.DIRT));
+            LOGGER.info("Dirt block registry key >> {}", BuiltInRegistries.BLOCK.getKey(Blocks.DIRT));
         }
 
         // 示例：输出配置中的魔法数字
         LOGGER.info("{}{}", Config.MAGIC_NUMBER_INTRODUCTION.get(), Config.MAGIC_NUMBER.getAsInt());
 
         // 示例：遍历并输出配置中的物品字符串列表
-        Config.ITEM_STRINGS.get().forEach((item) -> LOGGER.info("配置物品 >> {}", item));
+        Config.ITEM_STRINGS.get().forEach((item) -> LOGGER.info("Configured item >> {}", item));
     }
 
     /**
@@ -139,6 +139,6 @@ public class CreateVersatileGearbox {
     @SubscribeEvent
     public void onServerStarting(ServerStartingEvent event) {
         // 服务器启动时输出日志
-        LOGGER.info("Create Versatile Gearbox 服务器启动完成");
+        LOGGER.info("Create Versatile Gearbox server started successfully");
     }
 }
