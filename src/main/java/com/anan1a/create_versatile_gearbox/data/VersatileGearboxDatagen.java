@@ -5,8 +5,10 @@ import static com.anan1a.create_versatile_gearbox.CreateVersatileGearbox.MODID;
 import java.util.function.BiConsumer;
 
 import com.anan1a.create_versatile_gearbox.Registers;
+import com.anan1a.create_versatile_gearbox.ponder.CVGPonderPlugin;
 import com.tterrag.registrate.providers.ProviderType;
 
+import net.createmod.ponder.foundation.PonderIndex;
 import net.neoforged.neoforge.data.event.GatherDataEvent;
 
 /**
@@ -24,29 +26,35 @@ public class VersatileGearboxDatagen {
         Registers.registrate().addDataGenerator(ProviderType.LANG, provider -> {
             BiConsumer<String, String> add = provider::add;
             
-            // ========== Creative Mode Tab ==========
+            // ========== 创造模式物品栏 ==========
             add.accept("itemGroup." + MODID + ".versatile_gearbox_tab", "Versatile Gearbox");
 
-            // ========== Configuration UI ==========
+            // ========== 配置界面 ==========
             add.accept(MODID + ".configuration.title", "Versatile Gearbox Configuration");
             add.accept(MODID + ".configuration.section." + MODID + ".common.toml", "Common Configuration");
             add.accept(MODID + ".configuration.section." + MODID + ".common.toml.title", "Common Configuration");
             
-            // ========== Config Option: Log Dirt Block ==========
+            // ========== 配置项：记录泥土方块 ==========
             add.accept(MODID + ".configuration.logDirtBlock", "Log Dirt Block");
             add.accept(MODID + ".configuration.logDirtBlock.tooltip", "Whether to log the dirt block on common setup");
             
-            // ========== Config Option: Magic Number ==========
+            // ========== 配置项：魔法数字 ==========
             add.accept(MODID + ".configuration.magicNumber", "Magic Number");
             add.accept(MODID + ".configuration.magicNumber.tooltip", "A magic number");
             
-            // ========== Config Option: Magic Number Introduction ==========
+            // ========== 配置项：魔法数字介绍 ==========
             add.accept(MODID + ".configuration.magicNumberIntroduction", "Magic Number Introduction Text");
             add.accept(MODID + ".configuration.magicNumberIntroduction.tooltip", "What do you want the magic number introduction to say");
             
-            // ========== Config Option: Item List ==========
+            // ========== 配置项：物品列表 ==========
             add.accept(MODID + ".configuration.items", "Item List");
             add.accept(MODID + ".configuration.items.tooltip", "A list of items to log during common setup");
+            
+            // ========== Ponder 场景翻译（自动生成） ==========
+            // Ponder 会自动从场景代码中提取文本并生成翻译键
+            // 格式：{modid}.ponder.{scene_id}.header 和 .text_N
+            PonderIndex.addPlugin(new CVGPonderPlugin());
+            PonderIndex.getLangAccess().provideLang(MODID, add);
         });
     }
 }
