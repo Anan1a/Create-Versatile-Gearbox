@@ -105,16 +105,26 @@ public class VersatileGearboxScenes {
         // 等待 10 ticks（0.5 秒），让基板稳定显示
         scene.idle(10);
 
-        // --- 步骤 1：显示齿轮箱 ---
+        // --- 步骤 1：设置动力传输 ---
+        // 初始设置转速，防止动效异常
+        // setKineticSpeed: 设置方块的动力速度（RPM - 每分钟转速）
+        // 正值 = 顺时针旋转，负值 = 逆时针旋转，0 = 停止
+        // 16 RPM 是 Create 模组的常见速度
+//        scene.world().setKineticSpeed(motorGroup, -16);      // 电机开始转动
+        scene.world().setKineticSpeed(gearboxSelection, 16); // 齿轮箱开始转动
+//        scene.world().setKineticSpeed(sawGroup, 16);        // 锯木机组开始转动
+//        scene.world().setKineticSpeed(shaftXGroup1, -16);     // X轴方向轴转动
+//        scene.world().setKineticSpeed(shaftXGroup2, 16);     // X轴方向轴转动
+
+        // --- 步骤 2：显示齿轮箱 ---
         // 首先显示中心的齿轮箱（核心组件）
         scene.world().showSection(gearboxSelection, Direction.DOWN);
         scene.idle(5);
 
-        // --- 步骤 2：显示所有传动轴 ---
+        // --- 步骤 3：显示所有传动轴 ---
         // 显示 Z 轴方向的轴（前后方向）
         scene.world().showSection(shaftXGroup1, Direction.DOWN);
         scene.idle(5);
-        
         // 显示 X 轴方向的轴（左右方向）
         scene.world().showSection(shaftXGroup2, Direction.DOWN);
         scene.idle(5);
@@ -124,21 +134,10 @@ public class VersatileGearboxScenes {
         scene.world().showSection(sawGroup, Direction.DOWN);
         scene.idle(5);
 
-        // --- 步骤 3：显示动力源（电机）---
+        // --- 步骤 5：显示动力源（电机）---
         // 显示后侧的电机及其连接的轴
         scene.world().showSection(motorGroup, Direction.DOWN);
         scene.idle(10); // 等待动画稳定
-
-        // --- 步骤 5：启动动力传输 ---
-        // setKineticSpeed: 设置方块的动力速度（RPM - 每分钟转速）
-        // 正值 = 顺时针旋转，负值 = 逆时针旋转，0 = 停止
-        // 32 RPM 是 Create 模组的常见速度
-        scene.world().setKineticSpeed(motorGroup, -16);      // 电机开始转动
-        scene.world().setKineticSpeed(gearboxSelection, 16); // 齿轮箱开始转动
-        scene.world().setKineticSpeed(sawGroup, 16);        // 锯木机组开始转动
-        scene.world().setKineticSpeed(shaftXGroup1, -16);     // X轴方向轴转动
-        scene.world().setKineticSpeed(shaftXGroup2, 16);     // X轴方向轴转动
-        scene.idle(20);  // 等待动力稳定
 
         // 添加第一个关键帧
         scene.addKeyframe();
@@ -183,7 +182,7 @@ public class VersatileGearboxScenes {
         scene.idle(7);
 
         // 模拟实际切换效果：将北侧面的轴状态从 FWD → REV → OFF
-        // 这里我们直接设置为 OFF（关闭）状态来演示停用效果
+        // 这里我们设置为 REV（逆时针旋转）状态来演示切换效果
         scene.world().modifyBlock(gearbox, state ->
                         VersatileGearboxBlock.setShaftState(Direction.UP, state, ShaftState.REV),
                 false);
@@ -201,7 +200,7 @@ public class VersatileGearboxScenes {
         scene.idle(7);
 
         // 模拟实际切换效果：将北侧面的轴状态从 FWD → REV → OFF
-        // 这里我们直接设置为 OFF（关闭）状态来演示停用效果
+        // 这里我们设置为 OFF（关闭）状态来演示停用效果
         scene.world().modifyBlock(gearbox, state ->
                         VersatileGearboxBlock.setShaftState(Direction.UP, state, ShaftState.OFF),
                 false);
@@ -213,7 +212,7 @@ public class VersatileGearboxScenes {
         scene.idle(7);
 
         // 模拟实际切换效果：将北侧面的轴状态从 FWD → REV → OFF
-        // 这里我们直接设置为 OFF（关闭）状态来演示停用效果
+        // 这里我们设置为 FWD（顺时针旋转）状态来演示切换效果
         scene.world().modifyBlock(gearbox, state ->
                         VersatileGearboxBlock.setShaftState(Direction.UP, state, ShaftState.FWD),
                 false);
