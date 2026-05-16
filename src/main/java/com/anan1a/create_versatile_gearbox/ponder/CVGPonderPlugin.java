@@ -69,11 +69,11 @@ public class CVGPonderPlugin implements PonderPlugin {
         SCENE_HELPER.forComponents(CVGBlocks.VERSATILE_GEARBOX)
                 // 场景 1：基本用法（归类到动力中继标签）
                 .addStoryBoard("versatile_gearbox/usage", 
-                               VersatileGearboxScenes::versatileGearboxUsage, 
+                               VersatileGearboxScenes::versatileGearboxUsage,
                                AllCreatePonderTags.KINETIC_RELAYS)
                 // 场景 2：轴控制（无标签，只出现在方块专属场景中）
                 .addStoryBoard("versatile_gearbox/shaft_control", 
-                               VersatileGearboxScenes::shaftControl);
+                               VersatileGearboxScenes::versatileGearboxShaftControl);
     }
 
     /**

@@ -23,10 +23,10 @@
   "create_versatile_gearbox.ponder.versatile_gearbox_usage.text_2": "齿轮箱可以从任意面输入动力",
   "create_versatile_gearbox.ponder.versatile_gearbox_usage.text_3": "并将动力传输到其他所有面",
   "create_versatile_gearbox.ponder.versatile_gearbox_usage.text_4": "使用扳手右键点击面来切换轴状态",
-  "create_versatile_gearbox.ponder.shaft_control.header": "独立轴状态控制",
-  "create_versatile_gearbox.ponder.shaft_control.text_1": "所有轴默认都是激活状态",
-  "create_versatile_gearbox.ponder.shaft_control.text_2": "使用扳手点击可以将轴切换为停用状态",
-  "create_versatile_gearbox.ponder.shaft_control.text_3": "停用后，该面不再传输动力",
-  "create_versatile_gearbox.ponder.shaft_control.text_4": "再次点击可以重新激活该面",
-  "create_versatile_gearbox.ponder.shaft_control.text_5": "轴被重新激活，恢复动力传输"
+  "create_versatile_gearbox.ponder.versatile_gearbox_shaft_control.header": "独立轴状态控制",
+  "create_versatile_gearbox.ponder.versatile_gearbox_shaft_control.text_1": "所有轴默认都是激活状态",
+  "create_versatile_gearbox.ponder.versatile_gearbox_shaft_control.text_2": "使用扳手点击可以将轴切换为停用状态",
+  "create_versatile_gearbox.ponder.versatile_gearbox_shaft_control.text_3": "停用后，该面不再传输动力",
+  "create_versatile_gearbox.ponder.versatile_gearbox_shaft_control.text_4": "再次点击可以重新激活该面",
+  "create_versatile_gearbox.ponder.versatile_gearbox_shaft_control.text_5": "轴被重新激活，恢复动力传输"
 }
