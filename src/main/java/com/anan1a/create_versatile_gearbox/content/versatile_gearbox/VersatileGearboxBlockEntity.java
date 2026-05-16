@@ -57,7 +57,10 @@ public class VersatileGearboxBlockEntity extends SplitShaftBlockEntity {
     /**
      * 根据动力源面计算指定输出面的旋转速度Modifier（静态方法）
      * <p>
-     * 三状态版本：OFF(关闭), SAME(同向), OPPOSITE(反向)
+     * 三状态版本：
+     * FWD:     同向旋转（与动力源同方向）
+     * REV:     反向旋转（与动力源反方向）
+     * OFF:     关闭（不输出动力）
      *
      * @param face   输出面
      * @param source 动力源面
@@ -102,7 +105,7 @@ public class VersatileGearboxBlockEntity extends SplitShaftBlockEntity {
     /**
      * 提供模型数据给渲染器
      * <p>
-     * 返回六个面的状态，用于动态纹理替换
+     * 返回六个面的状态，用于动态纹理替换和半轴显示控制
      */
     @Override
     public ModelData getModelData() {
