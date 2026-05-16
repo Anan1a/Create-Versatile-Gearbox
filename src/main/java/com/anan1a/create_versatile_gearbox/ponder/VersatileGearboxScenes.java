@@ -34,8 +34,7 @@ public class VersatileGearboxScenes {
      * - 使用扳手切换轴状态的交互方式
      * <p>
      * 动画流程：
-     * 1. 显示基板 -> 2. 显示电机 -> 3. 显示齿轮箱 -> 4. 显示输出轴
-     * 5. 启动动力 -> 6. 展示扳手交互
+     * 1. 显示基板 -> 2. 显示电机 -> 3. 显示齿轮箱 -> 4. 显示输出轴 -> 5. 启动动力 -> 6. 展示扳手交互
      * <p>
      * @param builder Ponder 场景构建器（基础 API）
      * @param util    场景构建工具（提供更便捷的方法）
@@ -65,12 +64,13 @@ public class VersatileGearboxScenes {
         // - 场景中心在 (2, 1, 2)，因为基板是 5x5，中心正好在 2
         // 
         // 布局示意（俯视图，y=1 层）：
-        // x=4  [ ]    [ ]    [ ]   [ ]    [ ]
-        // x=3  [ ]    [ ]    [ ]   [ ]    [ ]
-        // x=2  [锯木机][轴]   [齿轮箱][轴]   [电机]
-        // x=1  [ ]    [ ]    [ ]   [ ]    [ ]
-        // x=0  [ ]    [ ]    [ ]   [ ]    [ ]
-        //   z=0    z=1    z=2    z=3    z=4
+        // 锯木机 = S、轴 = X、齿轮箱 = G、电机 = M
+        // x=4  [ ] [ ] [ ] [ ] [ ]
+        // x=3  [ ] [ ] [ ] [ ] [ ]
+        // x=2  [S] [X] [G] [X] [M]
+        // x=1  [ ] [ ] [ ] [ ] [ ]
+        // x=0  [ ] [ ] [ ] [ ] [ ]
+        //      z=0 z=1 z=2 z=3 z=4
         
         BlockPos gearbox = util.grid().at(2, 1, 2);   // 齿轮箱在中心位置
         BlockPos motor = util.grid().at(2, 1, 4);     // 电机在后侧（动力源）
@@ -130,7 +130,7 @@ public class VersatileGearboxScenes {
         // --- 步骤 5：显示介绍文本 ---
         // showText(60): 文本显示 60 ticks（3 秒）
         // text(): Ponder 会自动查找翻译键 {modid}.ponder.{scene_id}.text_N
-        // pointAt(): 文本指向的目标位置（齿轮箱顶部）
+        // pointAt(): 文本指向的目标位置（齿轮箱中心）
         scene.overlay().showText(70)
                 .text("Versatile Gearbox can transmit power and independently control each face's shaft")
                 .pointAt(util.vector().centerOf(gearbox));
@@ -236,12 +236,13 @@ public class VersatileGearboxScenes {
 
         // ==================== 定义关键位置 ====================
         // 布局示意（俯视图，y=1 层）：
-        // x=4  [ ]    [ ]    [ ]   [ ]    [ ]
-        // x=3  [ ]    [ ]    [ ]   [ ]    [ ]
-        // x=2  [锯木机][轴]   [齿轮箱][轴]   [电机]
-        // x=1  [ ]    [ ]    [ ]   [ ]    [ ]
-        // x=0  [ ]    [ ]    [ ]   [ ]    [ ]
-        //   z=0    z=1    z=2    z=3    z=4
+        // 锯木机 = S、轴 = X、齿轮箱 = G、电机 = M
+        // x=4  [ ] [ ] [ ] [ ] [ ]
+        // x=3  [ ] [ ] [ ] [ ] [ ]
+        // x=2  [S] [X] [G] [X] [M]
+        // x=1  [ ] [ ] [ ] [ ] [ ]
+        // x=0  [ ] [ ] [ ] [ ] [ ]
+        //      z=0 z=1 z=2 z=3 z=4
         
         BlockPos gearbox = util.grid().at(2, 1, 2);   // 齿轮箱在中心
         BlockPos motor = util.grid().at(2, 1, 4);     // 电机在后侧（动力源）
