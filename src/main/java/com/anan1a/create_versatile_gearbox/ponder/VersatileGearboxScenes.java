@@ -65,11 +65,11 @@ public class VersatileGearboxScenes {
         // - 场景中心在 (2, 1, 2)，因为基板是 5x5，中心正好在 2
         // 
         // 布局示意（俯视图，y=1 层）：
-        // x=4  [ ]    [ ]    [轴]   [ ]    [ ]
-        // x=3  [ ]    [ ]    [轴]   [ ]    [ ]
+        // x=4  [ ]    [ ]    [ ]   [ ]    [ ]
+        // x=3  [ ]    [ ]    [ ]   [ ]    [ ]
         // x=2  [锯木机][轴]   [齿轮箱][轴]   [电机]
-        // x=1  [ ]    [ ]    [轴]   [ ]    [ ]
-        // x=0  [ ]    [ ]    [轴]   [ ]    [ ]
+        // x=1  [ ]    [ ]    [ ]   [ ]    [ ]
+        // x=0  [ ]    [ ]    [ ]   [ ]    [ ]
         //   z=0    z=1    z=2    z=3    z=4
         
         BlockPos gearbox = util.grid().at(2, 1, 2);   // 齿轮箱在中心位置
@@ -78,15 +78,8 @@ public class VersatileGearboxScenes {
 
         // ==================== 定义方块选择区域 ====================
         // Selection 用于批量操作一组方块（显示/隐藏/设置动力等）
-        // 
         // gearboxSelection: 仅齿轮箱本身
         Selection gearboxSelection = util.select().position(gearbox);
-
-        // shaftXGroup1: X轴方向的传动轴（上）
-        Selection shaftXGroup1 = util.select().fromTo(3, 1, 2, 4, 1, 2);
-        
-        // shaftXGroup2: X轴方向的传动轴（下）
-        Selection shaftXGroup2 = util.select().fromTo(0, 1, 2, 1, 1, 2);
 
         // sawGroup: 锯木机及其连接的轴（左）
         Selection sawGroup = util.select()
@@ -121,34 +114,26 @@ public class VersatileGearboxScenes {
         scene.world().showSection(gearboxSelection, Direction.DOWN);
         scene.idle(5);
 
-        // --- 步骤 3：显示所有传动轴 ---
-        // 显示 Z 轴方向的轴（前后方向）
-        scene.world().showSection(shaftXGroup1, Direction.DOWN);
-        scene.idle(5);
-        // 显示 X 轴方向的轴（左右方向）
-        scene.world().showSection(shaftXGroup2, Direction.DOWN);
-        scene.idle(5);
-
-        // --- 步骤 4：显示动力输出端（锯木机）---
+        // --- 步骤 3：显示动力输出端（锯木机）---
         // 显示前侧的锯木机及其连接的轴
         scene.world().showSection(sawGroup, Direction.DOWN);
-        scene.idle(5);
+        scene.idle(3);
 
-        // --- 步骤 5：显示动力源（电机）---
+        // --- 步骤 4：显示动力源（电机）---
         // 显示后侧的电机及其连接的轴
         scene.world().showSection(motorGroup, Direction.DOWN);
-        scene.idle(10); // 等待动画稳定
+        scene.idle(15); // 等待动画稳定
 
         // 添加第一个关键帧
         scene.addKeyframe();
 
-        // --- 步骤 6：显示介绍文本 ---
+        // --- 步骤 5：显示介绍文本 ---
         // showText(60): 文本显示 60 ticks（3 秒）
         // text(): Ponder 会自动查找翻译键 {modid}.ponder.{scene_id}.text_N
         // pointAt(): 文本指向的目标位置（齿轮箱顶部）
         scene.overlay().showText(70)
                 .text("Versatile Gearbox can transmit power and independently control each face's shaft")
-                .pointAt(util.vector().topOf(gearbox));
+                .pointAt(util.vector().centerOf(gearbox));
         scene.idle(80);
 
         // 添加第二个关键帧
@@ -157,7 +142,7 @@ public class VersatileGearboxScenes {
         // 显示说明文本
         scene.overlay().showText(60)
                 .text("Gearbox can receive power input from any face")
-                .pointAt(util.vector().topOf(gearbox));
+                .pointAt(util.vector().centerOf(gearbox));
         scene.idle(70);
 
         // 添加第三个关键帧
@@ -165,13 +150,13 @@ public class VersatileGearboxScenes {
 
         scene.overlay().showText(60)
                 .text("And transmit power to all other faces")
-                .pointAt(util.vector().topOf(gearbox));
+                .pointAt(util.vector().centerOf(gearbox));
         scene.idle(70);
 
         // 添加第四个关键帧
         scene.addKeyframe();
 
-        // --- 步骤 7：演示扳手交互 ---
+        // --- 步骤 6：演示扳手交互 ---
         // showControls: 显示玩家交互提示（如左键、右键、蹲下等）
         // blockSurface: 获取方块表面中心位置
         // Pointing.DOWN: 箭头从上方指向目标
@@ -251,12 +236,12 @@ public class VersatileGearboxScenes {
 
         // ==================== 定义关键位置 ====================
         // 布局示意（俯视图，y=1 层）：
-        //   z=0    z=1    z=2    z=3    z=4
-        // x=0  [ ]    [ ]    [轴]   [ ]    [ ]
-        // x=1  [ ]    [ ]    [轴]   [ ]    [ ]
+        // x=4  [ ]    [ ]    [ ]   [ ]    [ ]
+        // x=3  [ ]    [ ]    [ ]   [ ]    [ ]
         // x=2  [锯木机][轴]   [齿轮箱][轴]   [电机]
-        // x=3  [ ]    [ ]    [轴]   [ ]    [ ]
-        // x=4  [ ]    [ ]    [轴]   [ ]    [ ]
+        // x=1  [ ]    [ ]    [ ]   [ ]    [ ]
+        // x=0  [ ]    [ ]    [ ]   [ ]    [ ]
+        //   z=0    z=1    z=2    z=3    z=4
         
         BlockPos gearbox = util.grid().at(2, 1, 2);   // 齿轮箱在中心
         BlockPos motor = util.grid().at(2, 1, 4);     // 电机在后侧（动力源）
@@ -265,12 +250,6 @@ public class VersatileGearboxScenes {
         // ==================== 定义方块选择区域 ====================
         // gearboxSelection: 仅齿轮箱本身
         Selection gearboxSelection = util.select().position(gearbox);
-
-        // shaftXGroup1: X轴方向的传动轴（上）
-        Selection shaftXGroup1 = util.select().fromTo(3, 1, 2, 4, 1, 2);
-        
-        // shaftXGroup2: X轴方向的传动轴（下）
-        Selection shaftXGroup2 = util.select().fromTo(0, 1, 2, 1, 1, 2);
 
         // sawGroup: 锯木机及其连接的轴（左）
         Selection sawGroup = util.select()
@@ -288,18 +267,23 @@ public class VersatileGearboxScenes {
         // 等待基板稳定显示
         scene.idle(10);
 
-        // --- 步骤 1：显示完整结构 ---
+        // --- 步骤 1：设置动力传输 ---
+        // 初始设置转速，防止动效异常
+        // setKineticSpeed: 设置方块的动力速度（RPM - 每分钟转速）
+        // 正值 = 顺时针旋转，负值 = 逆时针旋转，0 = 停止
+        // 16 RPM 是 Create 模组的常见速度
+//        scene.world().setKineticSpeed(motorGroup, -16);      // 电机开始转动
+        scene.world().setKineticSpeed(gearboxSelection, 16); // 齿轮箱开始转动
+//        scene.world().setKineticSpeed(sawGroup, 16);        // 锯木机组开始转动
+//        scene.world().setKineticSpeed(shaftXGroup1, -16);     // X轴方向轴转动
+//        scene.world().setKineticSpeed(shaftXGroup2, 16);     // X轴方向轴转动
+
+        // --- 步骤 2：显示完整结构 ---
         // 按顺序显示：齿轮箱 → 轴 → 电机 → 锯木机
         
         // 首先显示齿轮箱
         scene.world().showSection(gearboxSelection, Direction.DOWN);
         scene.idle(5);
-        
-        // 显示所有传动轴
-        scene.world().showSection(shaftXGroup1, Direction.DOWN);
-        scene.idle(3);
-        scene.world().showSection(shaftXGroup2, Direction.DOWN);
-        scene.idle(3);
         
         // 显示电机
         scene.world().showSection(motorGroup, Direction.DOWN);
@@ -307,26 +291,16 @@ public class VersatileGearboxScenes {
         
         // 显示锯木机
         scene.world().showSection(sawGroup, Direction.DOWN);
-        scene.idle(10);
-
-        // --- 步骤 2：启动动力 ---
-        // setKineticSpeed: 设置方块的动力速度（RPM - 每分钟转速）
-        // 正值 = 顺时针旋转，负值 = 逆时针旋转，0 = 停止
-        scene.world().setKineticSpeed(motorGroup, 32);      // 电机开始转动
-        scene.world().setKineticSpeed(gearboxSelection, -32); // 齿轮箱开始转动
-        scene.world().setKineticSpeed(sawGroup, -32);        // 锯木机组开始转动
-        scene.world().setKineticSpeed(shaftXGroup1, 32);     // X轴方向轴转动
-        scene.world().setKineticSpeed(shaftXGroup2, -32);    // X轴方向轴转动
-        scene.idle(20);  // 等待动力稳定
+        scene.idle(15);
 
         // 添加第一个关键帧（初始状态）
         scene.addKeyframe();
 
         // 显示说明文本
-        scene.overlay().showText(50)
+        scene.overlay().showText(60)
                 .text("All shafts are active by default")
-                .pointAt(util.vector().topOf(gearbox));
-        scene.idle(60);
+                .pointAt(util.vector().centerOf(gearbox));
+        scene.idle(70);
 
         // 添加第二个关键帧（准备停用）
         scene.addKeyframe();
@@ -335,27 +309,40 @@ public class VersatileGearboxScenes {
         // 先显示提示文本，告诉玩家接下来要做什么
         scene.overlay().showText(60)
                 .text("Right-click with a wrench to deactivate a shaft")
-                .attachKeyFrame()  // 将此文本与关键帧关联
-                .pointAt(util.vector().topOf(gearbox));
+                .pointAt(util.vector().blockSurface(gearbox, Direction.NORTH));
         scene.idle(70);
 
         // 显示扳手交互提示（右键点击齿轮箱的前侧面）
         // Direction.NORTH 表示前侧面（-Z 方向，即朝向锯木机的面）
-        scene.overlay().showControls(util.vector().blockSurface(gearbox, Direction.NORTH), Pointing.LEFT, 40)
+        scene.overlay().showControls(util.vector().blockSurface(gearbox, Direction.NORTH), Pointing.RIGHT, 10)
                 .rightClick()
                 .withItem(AllItems.WRENCH.asStack());  // 显示扳手物品
         scene.idle(7);
-        
         // 模拟实际切换效果：将北侧面的轴状态从 FWD → REV → OFF
-        // 这里我们直接设置为 OFF（关闭）状态来演示停用效果
-        scene.world().modifyBlock(gearbox, state -> 
-            VersatileGearboxBlock.setShaftState(Direction.NORTH, state, ShaftState.OFF), 
-        false);
+        scene.world().modifyBlock(gearbox, state ->
+                        VersatileGearboxBlock.setShaftState(Direction.NORTH, state, ShaftState.REV),
+                false);
+
+        // 设置 sawGroup 的动力反转（-16 RPM）
+        scene.world().setKineticSpeed(sawGroup, -16);
+        scene.idle(10);
+
+        // 显示扳手交互提示（右键点击齿轮箱的前侧面）
+        scene.overlay().showControls(util.vector().blockSurface(gearbox, Direction.NORTH), Pointing.RIGHT, 10)
+                .rightClick()
+                .withItem(AllItems.WRENCH.asStack());  // 显示扳手物品
+        scene.idle(7);
+        // 模拟实际切换效果：将北侧面的轴状态从 FWD → REV → OFF
+        scene.world().modifyBlock(gearbox, state ->
+                        VersatileGearboxBlock.setShaftState(Direction.NORTH, state, ShaftState.OFF),
+                false);
+
+        // 设置 sawGroup 的动力速度为 0（停止转动）
+        scene.world().setKineticSpeed(sawGroup, 0);
+        scene.idle(10);
 
         // --- 步骤 4：展示停用效果 ---
         // 停用前侧面后，该面不再传输动力
-        // 设置 sawGroup 的动力速度为 0（停止转动）
-        scene.world().setKineticSpeed(sawGroup, 0);
 
         // 添加第三个关键帧（停用状态）
         scene.addKeyframe();
@@ -365,42 +352,41 @@ public class VersatileGearboxScenes {
         // 1.5 是方块中心偏上的位置，适合文本指向
         scene.overlay().showText(60)
                 .text("After deactivation, this face no longer transmits power")
-                .pointAt(util.vector().of(2, 1.5, 0));
+                .pointAt(util.vector().centerOf(saw));
         scene.idle(70);
 
-        // 添加第四个关键帧（准备重新激活）
+        // --- 步骤 5：重新激活该面 ---
+        // 添加第四个关键帧（重新激活）
         scene.addKeyframe();
 
-        // --- 步骤 5：重新激活该面 ---
         // 先显示提示文本
         scene.overlay().showText(50)
                 .text("Click again to reactivate the shaft")
-                .attachKeyFrame()  // 与关键帧关联
-                .pointAt(util.vector().topOf(gearbox));
+                .pointAt(util.vector().blockSurface(gearbox, Direction.NORTH));
         scene.idle(60);
 
         // 再次显示扳手交互提示（右键点击前侧面）
-        scene.overlay().showControls(util.vector().blockSurface(gearbox, Direction.NORTH), Pointing.LEFT, 40)
+        scene.overlay().showControls(util.vector().blockSurface(gearbox, Direction.NORTH), Pointing.RIGHT, 10)
                 .rightClick()
                 .withItem(AllItems.WRENCH.asStack());  // 显示扳手物品
         scene.idle(7);
-        
         // 重新激活北侧面：将状态从 OFF → FWD
-        scene.world().modifyBlock(gearbox, state -> 
-            VersatileGearboxBlock.setShaftState(Direction.NORTH, state, ShaftState.FWD), 
-        false);
+        scene.world().modifyBlock(gearbox, state ->
+                        VersatileGearboxBlock.setShaftState(Direction.NORTH, state, ShaftState.FWD),
+                false);
+
+        // 恢复锯木机的动力传输（16 RPM）
+        scene.world().setKineticSpeed(sawGroup, 16);
+        scene.idle(10);
 
         // --- 步骤 6：展示恢复效果 ---
-        // 恢复锯木机的动力传输（32 RPM）
-        scene.world().setKineticSpeed(sawGroup, 32);
-
         // 添加第五个关键帧（恢复状态）
         scene.addKeyframe();
 
         // 显示说明文本
         scene.overlay().showText(50)
                 .text("Shaft reactivated, power transmission restored")
-                .pointAt(util.vector().of(2, 1.5, 0));
+                .pointAt(util.vector().centerOf(saw));
         scene.idle(60);
 
         scene.markAsFinished();
