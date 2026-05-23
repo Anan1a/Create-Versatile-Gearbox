@@ -327,18 +327,15 @@ public class VersatileGearboxBlock extends HorizontalKineticBlock implements IBE
     /**
      * 获取放置时的方块状态
      * <p>
-     * 优先尝试智能朝向（与相邻的动力方块对齐），否则使用玩家面对的反方向
+     * 【蓝图兼容性】始终返回固定朝向（NORTH），确保蓝图粘贴时方块朝向一致。
+     * 方块本身没有方向性，所有面的功能通过相对面ID系统处理。
      *
      * @param context 放置上下文
-     * @return 方块状态
+     * @return 方块状态（固定朝向为 NORTH）
      */
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
-        Direction preferredSide = getPreferredHorizontalFacing(context);
-        if (preferredSide != null) {
-            return defaultBlockState().setValue(HORIZONTAL_FACING, preferredSide);
-        }
-        return defaultBlockState().setValue(HORIZONTAL_FACING, context.getHorizontalDirection().getOpposite());
+        return defaultBlockState().setValue(HORIZONTAL_FACING, Direction.NORTH);
     }
 
     /**
