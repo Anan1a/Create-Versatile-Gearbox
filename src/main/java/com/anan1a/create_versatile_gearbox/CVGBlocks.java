@@ -1,11 +1,10 @@
 package com.anan1a.create_versatile_gearbox;
 
+import com.anan1a.create_versatile_gearbox.content.versatile_gearbox.VersatileGearboxShaftState;
 import com.tterrag.registrate.util.entry.BlockEntry;
 
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.level.material.MapColor;
 
-import com.anan1a.create_versatile_gearbox.content.versatile_gearbox.ShaftState;
 import com.anan1a.create_versatile_gearbox.content.versatile_gearbox.VersatileGearboxBlock;
 import com.anan1a.create_versatile_gearbox.foundation.AllModSpriteShifts;
 import com.simibubi.create.foundation.data.CreateRegistrate;
@@ -15,7 +14,6 @@ import com.simibubi.create.api.stress.BlockStressValues;
 import com.simibubi.create.AllSpriteShifts;
 import com.simibubi.create.AllItems;
 import com.simibubi.create.AllBlocks;
-import com.simibubi.create.content.contraptions.wrench.RadialWrenchMenu;
 import com.simibubi.create.content.decoration.encasing.EncasedCTBehaviour;
 
 import net.minecraft.data.recipes.RecipeCategory;
@@ -135,9 +133,9 @@ public class CVGBlocks {
 			// 防止轴激活时出现视觉错误
 			.onRegister(CreateRegistrate.casingConnectivity((block, cc) -> {
 				cc.make(block, AllModSpriteShifts.VERSATILE_GEARBOX_OFF,
-						(s, f) -> VersatileGearboxBlock.getShaftState(f, s) == ShaftState.OFF);
+						(s, f) -> VersatileGearboxBlock.getShaftState(f, s) == VersatileGearboxShaftState.OFF);
 				cc.make(block, AllSpriteShifts.ANDESITE_CASING,
-						(s, f) -> VersatileGearboxBlock.getShaftState(f, s) == ShaftState.OFF);
+						(s, f) -> VersatileGearboxBlock.getShaftState(f, s) == VersatileGearboxShaftState.OFF);
 			}))
 
 			// ========== 扳手黑名单配置 ==========

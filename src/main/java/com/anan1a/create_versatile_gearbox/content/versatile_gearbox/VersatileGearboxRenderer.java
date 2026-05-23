@@ -14,7 +14,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Direction.Axis;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 
 /**
  * 万能变速箱渲染器（六面轴版本）
@@ -87,7 +86,7 @@ public class VersatileGearboxRenderer extends KineticBlockEntityRenderer<Versati
      * @return true 表示渲染该半轴
      */
     protected boolean shouldRenderShaftHalf(BlockState state, Direction direction) {
-        return VersatileGearboxBlock.getShaftState(direction, state) != ShaftState.OFF;
+        return VersatileGearboxBlock.getShaftState(direction, state) != VersatileGearboxShaftState.OFF;
     }
 
     /**

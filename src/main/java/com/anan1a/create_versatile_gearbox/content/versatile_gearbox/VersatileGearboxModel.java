@@ -12,25 +12,25 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.client.model.data.ModelData;
 import net.neoforged.neoforge.client.model.data.ModelProperty;
 
-public class VersatileGearboxModel extends DynamicTextureModel<ShaftState> {
+public class VersatileGearboxModel extends DynamicTextureModel<VersatileGearboxShaftState> {
     /**
      * 状态属性
      */
-    public static final ModelProperty<ShaftState[]> FACE_STATES = new ModelProperty<>();
+    public static final ModelProperty<VersatileGearboxShaftState[]> FACE_STATES = new ModelProperty<>();
 
     /**
      * 占位符纹理映射
      */
-    private static final Map<ResourceLocation, Map<ShaftState, ResourceLocation>> PLACEHOLDER_TEXTURE_MAPS = Map.of(
+    private static final Map<ResourceLocation, Map<VersatileGearboxShaftState, ResourceLocation>> PLACEHOLDER_TEXTURE_MAPS = Map.of(
         // shaft: FWD/REV 状态显示不同纹理，OFF 隐藏
         ResourceLocation.fromNamespaceAndPath(MODID, "block/versatile_gearbox/shaft"), Map.of(
-            ShaftState.FWD, ResourceLocation.fromNamespaceAndPath(MODID, "block/versatile_gearbox/fwd"),
-            ShaftState.REV, ResourceLocation.fromNamespaceAndPath(MODID, "block/versatile_gearbox/rev")
+            VersatileGearboxShaftState.FWD, ResourceLocation.fromNamespaceAndPath(MODID, "block/versatile_gearbox/fwd"),
+            VersatileGearboxShaftState.REV, ResourceLocation.fromNamespaceAndPath(MODID, "block/versatile_gearbox/rev")
             // OFF 不映射 → 自动隐藏
         ),
         // off: OFF 状态显示 side 纹理，FWD/REV 隐藏
         ResourceLocation.fromNamespaceAndPath(MODID, "block/versatile_gearbox/off"), Map.of(
-            ShaftState.OFF, ResourceLocation.fromNamespaceAndPath(MODID, "block/versatile_gearbox/off")
+            VersatileGearboxShaftState.OFF, ResourceLocation.fromNamespaceAndPath(MODID, "block/versatile_gearbox/off")
             // FWD/REV 不映射 → 自动隐藏
         )
     );
@@ -55,9 +55,9 @@ public class VersatileGearboxModel extends DynamicTextureModel<ShaftState> {
      * @return 状态数组
      */
     @Override
-    protected ShaftState[] getStatesFromModelData(ModelData extraData) {
+    protected VersatileGearboxShaftState[] getStatesFromModelData(ModelData extraData) {
         if (extraData != null && extraData.has(FACE_STATES)) {
-            ShaftState[] states = extraData.get(FACE_STATES);
+            VersatileGearboxShaftState[] states = extraData.get(FACE_STATES);
             return (states != null && states.length == 6) ? states : null;
         }
         return null;
@@ -71,15 +71,15 @@ public class VersatileGearboxModel extends DynamicTextureModel<ShaftState> {
      * @return 该面对应的状态
      */
     @Override
-    protected ShaftState getStateForFace(Direction face, ShaftState[] states) {
+    protected VersatileGearboxShaftState getStateForFace(Direction face, VersatileGearboxShaftState[] states) {
         // 【健壮性增强】边界检查，防止数组越界
         if (states == null || states.length != 6) {
-            return ShaftState.OFF; // 默认返回 OFF 状态
+            return VersatileGearboxShaftState.OFF; // 默认返回 OFF 状态
         }
         
         int index = getDirectionIndex(face);
         if (index < 0 || index >= states.length) {
-            return ShaftState.OFF;
+            return VersatileGearboxShaftState.OFF;
         }
         
         return states[index];
@@ -91,11 +91,11 @@ public class VersatileGearboxModel extends DynamicTextureModel<ShaftState> {
      * @param state 状态
      * @return 状态数组
      */
-    private static ShaftState[] getFaceStatesFromBlock(BlockState state) {
+    private static VersatileGearboxShaftState[] getFaceStatesFromBlock(BlockState state) {
         if (!(state.getBlock() instanceof VersatileGearboxBlock)) {
             return null;
         }
-        return new ShaftState[]{
+        return new VersatileGearboxShaftState[]{
             VersatileGearboxBlock.getShaftState(Direction.DOWN, state),
             VersatileGearboxBlock.getShaftState(Direction.UP, state),
             VersatileGearboxBlock.getShaftState(Direction.NORTH, state),

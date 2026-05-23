@@ -75,7 +75,7 @@ public class VersatileGearboxVisual extends KineticBlockEntityVisual<VersatileGe
     private void initShaftInstances() {
         var instancer = instancerProvider().instancer(AllInstanceTypes.ROTATING, Models.partial(AllPartialModels.SHAFT_HALF));
         for (Direction direction : Iterate.directions) {
-            if (VersatileGearboxBlock.getShaftState(direction, blockState) == ShaftState.OFF)
+            if (VersatileGearboxBlock.getShaftState(direction, blockState) == VersatileGearboxShaftState.OFF)
                 continue;
 
             RotatingInstance instance = instancer.createInstance();
@@ -164,13 +164,13 @@ public class VersatileGearboxVisual extends KineticBlockEntityVisual<VersatileGe
         var instancer = instancerProvider().instancer(AllInstanceTypes.ROTATING, Models.partial(AllPartialModels.SHAFT_HALF));
         for (Direction direction : Iterate.directions) {
             int idx = direction.ordinal();
-            ShaftState state = VersatileGearboxBlock.getShaftState(direction, blockState);
+            VersatileGearboxShaftState state = VersatileGearboxBlock.getShaftState(direction, blockState);
             RotatingInstance existing = keys[idx];
 
-            if (state == ShaftState.OFF && existing != null) {
+            if (state == VersatileGearboxShaftState.OFF && existing != null) {
                 keys[idx] = null;
                 existing.delete();
-            } else if (state != ShaftState.OFF && existing == null) {
+            } else if (state != VersatileGearboxShaftState.OFF && existing == null) {
                 RotatingInstance instance = instancer.createInstance();
                 instance.setup(blockEntity, direction.getAxis(), getSpeed(direction))
                         .setPosition(getVisualPosition())

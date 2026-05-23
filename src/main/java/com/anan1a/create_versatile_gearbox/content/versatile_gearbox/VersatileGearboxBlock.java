@@ -41,12 +41,12 @@ public class VersatileGearboxBlock extends KineticBlock implements IBE<Versatile
      * 六个面的传动轴状态属性
      * 支持三种状态：OFF(关闭), SAME(同向), OPPOSITE(反向)
      */
-    public static final EnumProperty<ShaftState> DOWN_STATE = EnumProperty.create("down_state", ShaftState.class);
-    public static final EnumProperty<ShaftState> UP_STATE = EnumProperty.create("up_state", ShaftState.class);
-    public static final EnumProperty<ShaftState> NORTH_STATE = EnumProperty.create("north_state", ShaftState.class);
-    public static final EnumProperty<ShaftState> SOUTH_STATE = EnumProperty.create("south_state", ShaftState.class);
-    public static final EnumProperty<ShaftState> WEST_STATE = EnumProperty.create("west_state", ShaftState.class);
-    public static final EnumProperty<ShaftState> EAST_STATE = EnumProperty.create("east_state", ShaftState.class);
+    public static final EnumProperty<VersatileGearboxShaftState> DOWN_STATE = EnumProperty.create("down_state", VersatileGearboxShaftState.class);
+    public static final EnumProperty<VersatileGearboxShaftState> UP_STATE = EnumProperty.create("up_state", VersatileGearboxShaftState.class);
+    public static final EnumProperty<VersatileGearboxShaftState> NORTH_STATE = EnumProperty.create("north_state", VersatileGearboxShaftState.class);
+    public static final EnumProperty<VersatileGearboxShaftState> SOUTH_STATE = EnumProperty.create("south_state", VersatileGearboxShaftState.class);
+    public static final EnumProperty<VersatileGearboxShaftState> WEST_STATE = EnumProperty.create("west_state", VersatileGearboxShaftState.class);
+    public static final EnumProperty<VersatileGearboxShaftState> EAST_STATE = EnumProperty.create("east_state", VersatileGearboxShaftState.class);
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
@@ -63,19 +63,19 @@ public class VersatileGearboxBlock extends KineticBlock implements IBE<Versatile
         super(properties);
         // 初始化默认状态：所有面同向旋转
         this.registerDefaultState(this.defaultBlockState()
-                .setValue(DOWN_STATE, ShaftState.FWD)
-                .setValue(UP_STATE, ShaftState.FWD)
-                .setValue(NORTH_STATE, ShaftState.FWD)
-                .setValue(SOUTH_STATE, ShaftState.FWD)
-                .setValue(WEST_STATE, ShaftState.FWD)
-                .setValue(EAST_STATE, ShaftState.FWD)
+                .setValue(DOWN_STATE, VersatileGearboxShaftState.FWD)
+                .setValue(UP_STATE, VersatileGearboxShaftState.FWD)
+                .setValue(NORTH_STATE, VersatileGearboxShaftState.FWD)
+                .setValue(SOUTH_STATE, VersatileGearboxShaftState.FWD)
+                .setValue(WEST_STATE, VersatileGearboxShaftState.FWD)
+                .setValue(EAST_STATE, VersatileGearboxShaftState.FWD)
         );
     }
 
     /**
      * 获取指定方向的传动轴状态
      */
-    public static ShaftState getShaftState(Direction face, BlockState state) {
+    public static VersatileGearboxShaftState getShaftState(Direction face, BlockState state) {
         return switch (face) {
             case DOWN -> state.getValue(DOWN_STATE);
             case UP -> state.getValue(UP_STATE);
@@ -89,7 +89,7 @@ public class VersatileGearboxBlock extends KineticBlock implements IBE<Versatile
     /**
      * 设置指定方向的传动轴状态
      */
-    public static BlockState setShaftState(Direction face, BlockState state, ShaftState shaftState) {
+    public static BlockState setShaftState(Direction face, BlockState state, VersatileGearboxShaftState shaftState) {
         return switch (face) {
             case DOWN -> state.setValue(DOWN_STATE, shaftState);
             case UP -> state.setValue(UP_STATE, shaftState);
@@ -104,18 +104,18 @@ public class VersatileGearboxBlock extends KineticBlock implements IBE<Versatile
      * 获取下一个状态（循环切换）
      * OFF → SAME → OPPOSITE → OFF
      */
-    public static ShaftState getNextState(ShaftState current) {
+    public static VersatileGearboxShaftState getNextState(VersatileGearboxShaftState current) {
         return switch (current) {
-            case OFF -> ShaftState.FWD;
-            case FWD -> ShaftState.REV;
-            case REV -> ShaftState.OFF;
+            case OFF -> VersatileGearboxShaftState.FWD;
+            case FWD -> VersatileGearboxShaftState.REV;
+            case REV -> VersatileGearboxShaftState.OFF;
         };
     }
 
     /**
      * 获取指定方向对应的状态属性
      */
-    public static EnumProperty<ShaftState> getStateProperty(Direction face) {
+    public static EnumProperty<VersatileGearboxShaftState> getStateProperty(Direction face) {
         return switch (face) {
             case DOWN -> DOWN_STATE;
             case UP -> UP_STATE;
@@ -192,7 +192,7 @@ public class VersatileGearboxBlock extends KineticBlock implements IBE<Versatile
      */
     @Override
     public boolean hasShaftTowards(LevelReader world, BlockPos pos, BlockState state, Direction face) {
-        return getShaftState(face, state) != ShaftState.OFF;
+        return getShaftState(face, state) != VersatileGearboxShaftState.OFF;
     }
 
     /**
@@ -244,12 +244,12 @@ public class VersatileGearboxBlock extends KineticBlock implements IBE<Versatile
     @Override
     public BlockState rotate(BlockState state, Rotation rotation) {
         // 获取当前六个面的状态
-        ShaftState down = state.getValue(DOWN_STATE);
-        ShaftState up = state.getValue(UP_STATE);
-        ShaftState north = state.getValue(NORTH_STATE);
-        ShaftState south = state.getValue(SOUTH_STATE);
-        ShaftState west = state.getValue(WEST_STATE);
-        ShaftState east = state.getValue(EAST_STATE);
+        VersatileGearboxShaftState down = state.getValue(DOWN_STATE);
+        VersatileGearboxShaftState up = state.getValue(UP_STATE);
+        VersatileGearboxShaftState north = state.getValue(NORTH_STATE);
+        VersatileGearboxShaftState south = state.getValue(SOUTH_STATE);
+        VersatileGearboxShaftState west = state.getValue(WEST_STATE);
+        VersatileGearboxShaftState east = state.getValue(EAST_STATE);
 
         // 根据旋转角度重新分配水平方向的状态
         return switch (rotation) {
@@ -291,12 +291,12 @@ public class VersatileGearboxBlock extends KineticBlock implements IBE<Versatile
     @Override
     public BlockState mirror(BlockState state, Mirror mirror) {
         // 获取当前六个面的状态
-        ShaftState down = state.getValue(DOWN_STATE);
-        ShaftState up = state.getValue(UP_STATE);
-        ShaftState north = state.getValue(NORTH_STATE);
-        ShaftState south = state.getValue(SOUTH_STATE);
-        ShaftState west = state.getValue(WEST_STATE);
-        ShaftState east = state.getValue(EAST_STATE);
+        VersatileGearboxShaftState down = state.getValue(DOWN_STATE);
+        VersatileGearboxShaftState up = state.getValue(UP_STATE);
+        VersatileGearboxShaftState north = state.getValue(NORTH_STATE);
+        VersatileGearboxShaftState south = state.getValue(SOUTH_STATE);
+        VersatileGearboxShaftState west = state.getValue(WEST_STATE);
+        VersatileGearboxShaftState east = state.getValue(EAST_STATE);
 
         // 根据镜像方式重新分配状态
         return switch (mirror) {

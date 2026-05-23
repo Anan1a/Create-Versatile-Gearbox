@@ -32,7 +32,7 @@ import org.slf4j.LoggerFactory;
  * 根据占位符纹理和映射规则，在渲染时动态替换四边形纹理。
  * 支持多个占位符纹理，每个占位符可独立配置状态→纹理映射。
  *
- * @param <T> 状态类型（如 ShaftState、Enum 等）
+ * @param <T> 状态类型（如 VersatileGearboxShaftState、Enum 等）
  */
 @OnlyIn(Dist.CLIENT)
 public abstract class DynamicTextureModel<T> extends BakedModelWrapper<BakedModel> {

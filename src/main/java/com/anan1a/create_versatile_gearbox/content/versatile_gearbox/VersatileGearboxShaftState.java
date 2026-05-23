@@ -9,7 +9,7 @@ import net.minecraft.util.StringRepresentable;
  * REV:     反向旋转（与动力源反方向）
  * OFF:     关闭（不输出动力）
  */
-public enum ShaftState implements StringRepresentable {
+public enum VersatileGearboxShaftState implements StringRepresentable {
     FWD,
     REV,
     OFF;

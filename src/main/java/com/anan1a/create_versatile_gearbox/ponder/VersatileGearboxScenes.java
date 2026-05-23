@@ -1,6 +1,6 @@
 package com.anan1a.create_versatile_gearbox.ponder;
 
-import com.anan1a.create_versatile_gearbox.content.versatile_gearbox.ShaftState;
+import com.anan1a.create_versatile_gearbox.content.versatile_gearbox.VersatileGearboxShaftState;
 import com.anan1a.create_versatile_gearbox.content.versatile_gearbox.VersatileGearboxBlock;
 import com.simibubi.create.AllItems;
 import com.simibubi.create.foundation.ponder.CreateSceneBuilder;
@@ -194,7 +194,7 @@ public class VersatileGearboxScenes {
         // 模拟实际切换效果：将北侧面的轴状态从 FWD → REV → OFF
         // 这里我们设置为 REV（逆时针旋转）状态来演示切换效果
         scene.world().modifyBlock(gearbox, state ->
-                        VersatileGearboxBlock.setShaftState(Direction.UP, state, ShaftState.REV),
+                        VersatileGearboxBlock.setShaftState(Direction.UP, state, VersatileGearboxShaftState.REV),
                 false);
         scene.world().setKineticSpeed(shaftYGroup2, 32);       // +Y轴方向轴转动
         scene.idle(5);
@@ -213,7 +213,7 @@ public class VersatileGearboxScenes {
         // 模拟实际切换效果：将北侧面的轴状态从 FWD → REV → OFF
         // 这里我们设置为 OFF（关闭）状态来演示停用效果
         scene.world().modifyBlock(gearbox, state ->
-                        VersatileGearboxBlock.setShaftState(Direction.UP, state, ShaftState.OFF),
+                        VersatileGearboxBlock.setShaftState(Direction.UP, state, VersatileGearboxShaftState.OFF),
                 false);
         scene.world().setKineticSpeed(shaftYGroup2, 0);       // +Y轴方向轴转动
         scene.idle(10);
@@ -226,7 +226,7 @@ public class VersatileGearboxScenes {
         // 模拟实际切换效果：将北侧面的轴状态从 FWD → REV → OFF
         // 这里我们设置为 FWD（顺时针旋转）状态来演示切换效果
         scene.world().modifyBlock(gearbox, state ->
-                        VersatileGearboxBlock.setShaftState(Direction.UP, state, ShaftState.FWD),
+                        VersatileGearboxBlock.setShaftState(Direction.UP, state, VersatileGearboxShaftState.FWD),
                 false);
         scene.world().setKineticSpeed(shaftYGroup2, -32);       // +Y轴方向轴转动
         scene.idle(20);
@@ -348,7 +348,7 @@ public class VersatileGearboxScenes {
         scene.idle(7);
         // 模拟实际切换效果：将北侧面的轴状态从 FWD → REV → OFF
         scene.world().modifyBlock(gearbox, state ->
-                        VersatileGearboxBlock.setShaftState(Direction.NORTH, state, ShaftState.REV),
+                        VersatileGearboxBlock.setShaftState(Direction.NORTH, state, VersatileGearboxShaftState.REV),
                 false);
 
         // 设置 sawGroup 的动力反转（-16 RPM）
@@ -362,7 +362,7 @@ public class VersatileGearboxScenes {
         scene.idle(7);
         // 模拟实际切换效果：将北侧面的轴状态从 FWD → REV → OFF
         scene.world().modifyBlock(gearbox, state ->
-                        VersatileGearboxBlock.setShaftState(Direction.NORTH, state, ShaftState.OFF),
+                        VersatileGearboxBlock.setShaftState(Direction.NORTH, state, VersatileGearboxShaftState.OFF),
                 false);
 
         // 设置 sawGroup 的动力速度为 0（停止转动）
@@ -400,7 +400,7 @@ public class VersatileGearboxScenes {
         scene.idle(7);
         // 重新激活北侧面：将状态从 OFF → FWD
         scene.world().modifyBlock(gearbox, state ->
-                        VersatileGearboxBlock.setShaftState(Direction.NORTH, state, ShaftState.FWD),
+                        VersatileGearboxBlock.setShaftState(Direction.NORTH, state, VersatileGearboxShaftState.FWD),
                 false);
 
         // 恢复锯木机的动力传输（16 RPM）
