@@ -64,42 +64,28 @@ public class VersatileGearboxScenes {
         // - 场景中心在 (2, 1, 2)，因为基板是 5x5，中心正好在 2
         // 
         // 布局示意（俯视图，y=1 层）：
-        // 轴 = X、齿轮箱 = G
+        // 轴 = X、齿轮箱 = G、传送带 = B
         //
-        // x=1  [ ] [ ] [ ] [ ] [ ]
-        // x=1  [ ] [ ] [ ] [ ] [ ]
-        // x=2  [ ] [ ] [X] [ ] [ ]
-        // x=1  [ ] [ ] [ ] [ ] [ ]
-        // x=1  [ ] [ ] [ ] [ ] [ ]
-        // y=1  z=0 z=1 z=2 z=3 z=4
+        // x=1    [ ] [ ] [ ] [ ] [ ] [ ]
+        // x=1    [ ] [ ] [ ] [ ] [ ] [ ]
+        // x=2    [ ] [ ] [X] [ ] [ ] [ ]
+        // x=1    [ ] [ ] [ ] [ ] [ ] [ ]
+        // x=1    [ ] [ ] [ ] [ ] [ ] [ ]
+        // y=4~5  z=0 z=1 z=2 z=3 z=4 z=5
         //
-        // x=1  [ ] [ ] [ ] [ ] [ ]
-        // x=1  [ ] [ ] [ ] [ ] [ ]
-        // x=2  [ ] [ ] [X] [ ] [ ]
-        // x=1  [ ] [ ] [ ] [ ] [ ]
-        // x=1  [ ] [ ] [ ] [ ] [ ]
-        // y=2  z=0 z=1 z=2 z=3 z=4
+        // x=4    [ ] [ ] [X] [ ] [ ] [ ]
+        // x=3    [ ] [ ] [X] [ ] [ ] [ ]
+        // x=2    [X] [X] [G] [X] [X] [B]
+        // x=1    [ ] [ ] [X] [ ] [ ] [ ]
+        // x=0    [ ] [ ] [X] [ ] [ ] [ ]
+        // y=3    z=0 z=1 z=2 z=3 z=4 z=5
         //
-        // x=4  [ ] [ ] [X] [ ] [ ]
-        // x=3  [ ] [ ] [X] [ ] [ ]
-        // x=2  [X] [X] [G] [X] [X]
-        // x=1  [ ] [ ] [X] [ ] [ ]
-        // x=0  [ ] [ ] [X] [ ] [ ]
-        // y=3  z=0 z=1 z=2 z=3 z=4
-        //
-        // x=1  [ ] [ ] [ ] [ ] [ ]
-        // x=1  [ ] [ ] [ ] [ ] [ ]
-        // x=2  [ ] [ ] [X] [ ] [ ]
-        // x=1  [ ] [ ] [ ] [ ] [ ]
-        // x=1  [ ] [ ] [ ] [ ] [ ]
-        // y=4  z=0 z=1 z=2 z=3 z=4
-        //
-        // x=1  [ ] [ ] [ ] [ ] [ ]
-        // x=1  [ ] [ ] [ ] [ ] [ ]
-        // x=2  [ ] [ ] [X] [ ] [ ]
-        // x=1  [ ] [ ] [ ] [ ] [ ]
-        // x=1  [ ] [ ] [ ] [ ] [ ]
-        // y=5  z=0 z=1 z=2 z=3 z=4
+        // x=1    [ ] [ ] [ ] [ ] [ ] [ ]
+        // x=1    [ ] [ ] [ ] [ ] [ ] [ ]
+        // x=2    [ ] [ ] [X] [ ] [ ] [B]
+        // x=1    [ ] [ ] [ ] [ ] [ ] [ ]
+        // x=1    [ ] [ ] [ ] [ ] [ ] [ ]
+        // y=1~2  z=0 z=1 z=2 z=3 z=4 z=5
         
         BlockPos gearbox = util.grid().at(2, 3, 2);   // 齿轮箱在中心位置
 
@@ -107,6 +93,8 @@ public class VersatileGearboxScenes {
         // Selection 用于批量操作一组方块（显示/隐藏/设置动力等）
         // gearboxSelection: 仅齿轮箱本身
         Selection gearboxSelection = util.select().position(gearbox);
+
+        Selection BeltGroup = util.select().fromTo(2, 0, 5, 2, 3, 5);
 
         // shaftXGroup1: X轴方向的传动轴（-x）
         Selection shaftXGroup1 = util.select().fromTo(0, 3, 2, 1, 3, 2);
@@ -121,6 +109,10 @@ public class VersatileGearboxScenes {
         // shaftXGroup2: X轴方向的传动轴（+y）
         Selection shaftYGroup2 = util.select().fromTo(2, 4, 2, 2, 5, 2);
 
+        // 显示其他内容
+        scene.world().showSection(BeltGroup, Direction.UP);
+        scene.world().showSection(shaftZGroup2, Direction.UP);
+
         // ==================== 动画时间线 ====================
         // Minecraft 时间单位：20 ticks = 1 秒
         // idle() 用于控制动画节奏，让每个步骤有时间让玩家看清
@@ -133,7 +125,7 @@ public class VersatileGearboxScenes {
         // setKineticSpeed: 设置方块的动力速度（RPM - 每分钟转速）
         // 正值 = 顺时针旋转，负值 = 逆时针旋转，0 = 停止
         // 16 RPM 是 Create 模组的常见速度
-        scene.world().setKineticSpeed(gearboxSelection, 16);    // 齿轮箱开始转动
+        scene.world().setKineticSpeed(gearboxSelection, 32);    // 齿轮箱开始转动
 //        scene.world().setKineticSpeed(shaftXGroup1, 16);        // -X轴方向轴转动
 //        scene.world().setKineticSpeed(shaftXGroup2, -16);       // +X轴方向轴转动
 //        scene.world().setKineticSpeed(shaftZGroup1, 16);        // -Z轴方向轴转动
@@ -152,8 +144,8 @@ public class VersatileGearboxScenes {
         scene.idle(3);
         scene.world().showSection(shaftZGroup1, Direction.DOWN);
         scene.idle(3);
-        scene.world().showSection(shaftZGroup2, Direction.DOWN);
-        scene.idle(3);
+//        scene.world().showSection(shaftZGroup2, Direction.DOWN);
+//        scene.idle(3);
         scene.world().showSection(shaftYGroup2, Direction.DOWN);
         scene.idle(15); // 等待动画稳定
 
@@ -204,7 +196,7 @@ public class VersatileGearboxScenes {
         scene.world().modifyBlock(gearbox, state ->
                         VersatileGearboxBlock.setShaftState(Direction.UP, state, ShaftState.REV),
                 false);
-        scene.world().setKineticSpeed(shaftYGroup2, 16);       // +Y轴方向轴转动
+        scene.world().setKineticSpeed(shaftYGroup2, 32);       // +Y轴方向轴转动
         scene.idle(5);
 
         scene.overlay().showText(60)
@@ -236,7 +228,7 @@ public class VersatileGearboxScenes {
         scene.world().modifyBlock(gearbox, state ->
                         VersatileGearboxBlock.setShaftState(Direction.UP, state, ShaftState.FWD),
                 false);
-        scene.world().setKineticSpeed(shaftYGroup2, -16);       // +Y轴方向轴转动
+        scene.world().setKineticSpeed(shaftYGroup2, -32);       // +Y轴方向轴转动
         scene.idle(20);
 
         scene.markAsFinished();
@@ -311,7 +303,7 @@ public class VersatileGearboxScenes {
         // 正值 = 顺时针旋转，负值 = 逆时针旋转，0 = 停止
         // 16 RPM 是 Create 模组的常见速度
 //        scene.world().setKineticSpeed(motorGroup, -16);      // 电机开始转动
-        scene.world().setKineticSpeed(gearboxSelection, 16); // 齿轮箱开始转动
+        scene.world().setKineticSpeed(gearboxSelection, 32); // 齿轮箱开始转动
 //        scene.world().setKineticSpeed(sawGroup, 16);        // 锯木机组开始转动
 
         // --- 步骤 2：显示完整结构 ---
@@ -360,7 +352,7 @@ public class VersatileGearboxScenes {
                 false);
 
         // 设置 sawGroup 的动力反转（-16 RPM）
-        scene.world().setKineticSpeed(sawGroup, -16);
+        scene.world().setKineticSpeed(sawGroup, -32);
         scene.idle(10);
 
         // 显示扳手交互提示（右键点击齿轮箱的前侧面）
@@ -412,7 +404,7 @@ public class VersatileGearboxScenes {
                 false);
 
         // 恢复锯木机的动力传输（16 RPM）
-        scene.world().setKineticSpeed(sawGroup, 16);
+        scene.world().setKineticSpeed(sawGroup, 32);
         scene.idle(10);
 
         // --- 步骤 6：展示恢复效果 ---
