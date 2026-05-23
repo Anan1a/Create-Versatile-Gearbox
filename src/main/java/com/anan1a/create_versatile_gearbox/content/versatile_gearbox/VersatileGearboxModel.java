@@ -23,7 +23,7 @@ public class VersatileGearboxModel extends DynamicTextureModel<VersatileGearboxS
      */
     private static final Map<ResourceLocation, Map<VersatileGearboxShaftState, ResourceLocation>> PLACEHOLDER_TEXTURE_MAPS = Map.of(
         // shaft: FWD/REV 状态显示不同纹理，OFF 隐藏
-        ResourceLocation.fromNamespaceAndPath(MODID, "block/versatile_gearbox/shaft"), Map.of(
+        ResourceLocation.fromNamespaceAndPath(MODID, "block/versatile_gearbox/fwd"), Map.of(
             VersatileGearboxShaftState.FWD, ResourceLocation.fromNamespaceAndPath(MODID, "block/versatile_gearbox/fwd"),
             VersatileGearboxShaftState.REV, ResourceLocation.fromNamespaceAndPath(MODID, "block/versatile_gearbox/rev")
             // OFF 不映射 → 自动隐藏

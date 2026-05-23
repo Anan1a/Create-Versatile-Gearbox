@@ -4,7 +4,7 @@
 	"parent": "block/block",
 	"textures": {
 		"0": "create:block/andesite_casing",
-		"1": "create_versatile_gearbox:block/versatile_gearbox/shaft",
+		"1": "create_versatile_gearbox:block/versatile_gearbox/fwd",
 		"2": "create:block/axis",
 		"3": "create:block/axis_top",
 		"particle": "create:block/andesite_casing"
