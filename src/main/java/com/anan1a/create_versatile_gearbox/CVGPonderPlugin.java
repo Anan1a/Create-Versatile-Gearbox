@@ -1,7 +1,6 @@
-package com.anan1a.create_versatile_gearbox.ponder;
+package com.anan1a.create_versatile_gearbox;
 
-import com.anan1a.create_versatile_gearbox.CreateVersatileGearbox;
-import com.anan1a.create_versatile_gearbox.CVGBlocks;
+import com.anan1a.create_versatile_gearbox.ponder.VersatileGearboxScenes;
 import com.simibubi.create.infrastructure.ponder.AllCreatePonderTags;
 import com.tterrag.registrate.util.entry.ItemProviderEntry;
 import com.tterrag.registrate.util.entry.RegistryEntry;

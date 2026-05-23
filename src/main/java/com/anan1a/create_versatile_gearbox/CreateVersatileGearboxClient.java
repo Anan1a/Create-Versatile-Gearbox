@@ -1,6 +1,5 @@
 package com.anan1a.create_versatile_gearbox;
 
-import com.anan1a.create_versatile_gearbox.ponder.CVGPonderPlugin;
 import net.createmod.ponder.foundation.PonderIndex;
 import net.minecraft.client.Minecraft;
 

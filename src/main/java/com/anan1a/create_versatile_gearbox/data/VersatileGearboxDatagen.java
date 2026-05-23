@@ -6,7 +6,7 @@ import java.util.Map.Entry;
 import java.util.function.BiConsumer;
 
 import com.anan1a.create_versatile_gearbox.Registers;
-import com.anan1a.create_versatile_gearbox.ponder.CVGPonderPlugin;
+import com.anan1a.create_versatile_gearbox.CVGPonderPlugin;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.simibubi.create.foundation.utility.FilesHelper;
