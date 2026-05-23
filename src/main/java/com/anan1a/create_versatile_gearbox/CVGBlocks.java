@@ -142,7 +142,7 @@ public class CVGBlocks {
 
 			// ========== 扳手黑名单配置 ==========
 			// 将 VersatileGearbox 添加到扳手旋转菜单黑名单，禁止旋转整个方块
-			.onRegister(block -> RadialWrenchMenu.registerBlacklistedBlock(BuiltInRegistries.BLOCK.getKey(block)))
+//			.onRegister(block -> RadialWrenchMenu.registerBlacklistedBlock(BuiltInRegistries.BLOCK.getKey(block)))
 			
 			// ========== Blockstate 生成 ==========
 			// 使用简单 blockstate 避免生成大量 variants（3轴 × 3⁶面状态 = 2187个）
