@@ -1,5 +1,6 @@
 package com.anan1a.create_versatile_gearbox;
 
+import net.createmod.ponder.foundation.PonderIndex;
 import net.minecraft.client.Minecraft;
 
 import net.neoforged.api.distmarker.Dist;
@@ -24,7 +25,7 @@ import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
  * 仅订阅客户端事件（value = Dist.CLIENT）
  */
 @EventBusSubscriber(modid = CreateVersatileGearbox.MODID, value = Dist.CLIENT)
-public class ExampleModClient {
+public class CreateVersatileGearboxClient {
 
     /**
      * 客户端模组构造函数 - 在客户端模组加载时执行
@@ -33,11 +34,14 @@ public class ExampleModClient {
      *
      * @param container 模组容器，用于注册配置屏幕等扩展点
      */
-    public ExampleModClient(ModContainer container) {
+    public CreateVersatileGearboxClient(ModContainer container) {
         // 允许 NeoForge 为此模组的配置创建一个配置屏幕。
         // 配置屏幕的访问方式：进入模组屏幕 > 点击你的模组 > 点击配置。
         // 不要忘记在 en_us.json 文件中为你的配置选项添加翻译。
         container.registerExtensionPoint(IConfigScreenFactory.class, ConfigurationScreen::new);
+        
+        // 注册 Ponder 插件，为多功能齿轮箱提供思索场景
+        PonderIndex.addPlugin(new CVGPonderPlugin());
     }
 
     /**

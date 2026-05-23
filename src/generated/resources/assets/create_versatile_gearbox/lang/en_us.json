@@ -11,5 +11,16 @@
   "create_versatile_gearbox.configuration.section.create_versatile_gearbox.common.toml": "Common Configuration",
   "create_versatile_gearbox.configuration.section.create_versatile_gearbox.common.toml.title": "Common Configuration",
   "create_versatile_gearbox.configuration.title": "Versatile Gearbox Configuration",
+  "create_versatile_gearbox.ponder.versatile_gearbox_shaft_control.header": "Independent Shaft Control",
+  "create_versatile_gearbox.ponder.versatile_gearbox_shaft_control.text_1": "All shafts are active by default",
+  "create_versatile_gearbox.ponder.versatile_gearbox_shaft_control.text_2": "Right-click with a wrench to deactivate a shaft",
+  "create_versatile_gearbox.ponder.versatile_gearbox_shaft_control.text_3": "After deactivation, this face no longer transmits power",
+  "create_versatile_gearbox.ponder.versatile_gearbox_shaft_control.text_4": "Click again to reactivate the shaft",
+  "create_versatile_gearbox.ponder.versatile_gearbox_shaft_control.text_5": "Shaft reactivated, power transmission restored",
+  "create_versatile_gearbox.ponder.versatile_gearbox_usage.header": "Power Transmission of Versatile Gearbox",
+  "create_versatile_gearbox.ponder.versatile_gearbox_usage.text_1": "Versatile Gearbox can transmit power and independently control each face's shaft",
+  "create_versatile_gearbox.ponder.versatile_gearbox_usage.text_2": "Gearbox can receive power input from any face",
+  "create_versatile_gearbox.ponder.versatile_gearbox_usage.text_3": "And transmit power to all other faces",
+  "create_versatile_gearbox.ponder.versatile_gearbox_usage.text_4": "Right-click a face with a wrench to toggle shaft state",
   "itemGroup.create_versatile_gearbox.versatile_gearbox_tab": "Versatile Gearbox"
 }

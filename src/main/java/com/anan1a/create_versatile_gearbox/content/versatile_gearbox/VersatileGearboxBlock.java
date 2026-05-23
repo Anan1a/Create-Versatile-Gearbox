@@ -3,8 +3,8 @@ package com.anan1a.create_versatile_gearbox.content.versatile_gearbox;
 import java.util.List;
 
 import com.anan1a.create_versatile_gearbox.CVGBlockEntityTypes;
+import com.simibubi.create.content.kinetics.base.KineticBlock;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
-import com.simibubi.create.content.kinetics.base.RotatedPillarKineticBlock;
 import com.simibubi.create.foundation.block.IBE;
 
 import net.minecraft.core.BlockPos;
@@ -13,11 +13,12 @@ import net.minecraft.core.Direction.Axis;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Mirror;
+import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
@@ -31,8 +32,10 @@ import net.minecraft.world.phys.HitResult;
  * <p>
  * 支持六个面全部连接传动轴，实现全方位动力传输。
  * 每个面可独立翻转旋转方向（通过扳手切换）。
+ * <p>
+ * 【蓝图兼容性】方块没有方向属性，放置时永远保持相同朝向。
  */
-public class VersatileGearboxBlock extends RotatedPillarKineticBlock implements IBE<VersatileGearboxBlockEntity> {
+public class VersatileGearboxBlock extends KineticBlock implements IBE<VersatileGearboxBlockEntity> {
 
     /**
      * 六个面的传动轴状态属性
@@ -47,6 +50,7 @@ public class VersatileGearboxBlock extends RotatedPillarKineticBlock implements 
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
+        // KineticBlock 没有方向属性，只需添加六个面的状态
         super.createBlockStateDefinition(builder);
         builder.add(DOWN_STATE, UP_STATE, NORTH_STATE, SOUTH_STATE, WEST_STATE, EAST_STATE);
     }
@@ -66,20 +70,6 @@ public class VersatileGearboxBlock extends RotatedPillarKineticBlock implements 
                 .setValue(WEST_STATE, ShaftState.FWD)
                 .setValue(EAST_STATE, ShaftState.FWD)
         );
-    }
-
-    /**
-     * 所有方向的列表缓存
-     * 顺序：DOWN, UP, NORTH, SOUTH, WEST, EAST
-     */
-    private static final List<Direction> DIRECTIONS = Direction.stream().toList();
-
-    /**
-     * 将方向转换为 Face ID（1-6）
-     * 顺序：DOWN(1), UP(2), NORTH(3), SOUTH(4), WEST(5), EAST(6)
-     */
-    public static int getFaceId(Direction face, Axis blockAxis) {
-        return DIRECTIONS.indexOf(face) + 1;
     }
 
     /**
@@ -196,20 +186,6 @@ public class VersatileGearboxBlock extends RotatedPillarKineticBlock implements 
     }
 
     /**
-     * 获取放置时的方块状态
-     * <p>
-     * 默认将朝向轴设置为垂直（Y轴），即方块垂直放置
-     * 玩家可以使用扳手改变朝向轴方向
-     *
-     * @param context 放置上下文
-     * @return 方块状态
-     */
-    @Override
-    public BlockState getStateForPlacement(BlockPlaceContext context) {
-        return defaultBlockState().setValue(AXIS, Axis.Y);
-    }
-
-    /**
      * 判断指定面是否有传动轴接口（六面轴版本）
      * <p>
      * 只有当该面状态不为 OFF 时才返回 true。
@@ -236,14 +212,108 @@ public class VersatileGearboxBlock extends RotatedPillarKineticBlock implements 
     }
 
     /**
-     * 获取方块的旋转轴（继承自父类）
+     * 获取方块的旋转轴（IRotate 接口要求）
      * <p>
-     * 六面轴版本中，此方法主要用于方块渲染朝向和动力系统兼容性。
-     * 实际传动轴的旋转轴由各面方向决定（如 EAST 面围绕 X 轴旋转）。
+     * 【蓝图兼容性】始终返回 Y 轴，使方块在任何情况下都保持相同的视觉朝向。
+     * 方块本身没有方向属性，所有面的功能通过绝对方向系统处理。
+     *
+     * @param state 方块状态
+     * @return 固定为 Y 轴
      */
     @Override
     public Axis getRotationAxis(BlockState state) {
-        return state.getValue(AXIS);
+        return Axis.Y;
+    }
+
+    /**
+     * 旋转方块状态（蓝图旋转支持）
+     * <p>
+     * 【蓝图兼容性】当蓝图旋转时，六个面的状态需要相应地旋转。
+     * 旋转规则：新位置的状态 = 旋转前在该位置的面的状态
+     * <p>
+     * 例如：绕 Y 轴顺时针旋转 90° 时：
+     * - 原来在 WEST 的面转到 NORTH 位置 → 新 NORTH = 旧 WEST
+     * - 原来在 NORTH 的面转到 EAST 位置 → 新 EAST = 旧 NORTH
+     * - 原来在 EAST 的面转到 SOUTH 位置 → 新 SOUTH = 旧 EAST
+     * - 原来在 SOUTH 的面转到 WEST 位置 → 新 WEST = 旧 SOUTH
+     *
+     * @param state  原始方块状态
+     * @param rotation 旋转方式
+     * @return 旋转后的方块状态
+     */
+    @Override
+    public BlockState rotate(BlockState state, Rotation rotation) {
+        // 获取当前六个面的状态
+        ShaftState down = state.getValue(DOWN_STATE);
+        ShaftState up = state.getValue(UP_STATE);
+        ShaftState north = state.getValue(NORTH_STATE);
+        ShaftState south = state.getValue(SOUTH_STATE);
+        ShaftState west = state.getValue(WEST_STATE);
+        ShaftState east = state.getValue(EAST_STATE);
+
+        // 根据旋转角度重新分配水平方向的状态
+        return switch (rotation) {
+            case NONE -> state; // 不旋转
+            case CLOCKWISE_90 -> state.setValue(DOWN_STATE, down)
+                    .setValue(UP_STATE, up)
+                    .setValue(NORTH_STATE, west)   // 新 NORTH = 旧 WEST（WEST→NORTH）
+                    .setValue(SOUTH_STATE, east)   // 新 SOUTH = 旧 EAST（EAST→SOUTH）
+                    .setValue(WEST_STATE, south)   // 新 WEST = 旧 SOUTH（SOUTH→WEST）
+                    .setValue(EAST_STATE, north);  // 新 EAST = 旧 NORTH（NORTH→EAST）
+            case CLOCKWISE_180 -> state.setValue(DOWN_STATE, down)
+                    .setValue(UP_STATE, up)
+                    .setValue(NORTH_STATE, south)  // 新 NORTH = 旧 SOUTH（SOUTH→NORTH）
+                    .setValue(SOUTH_STATE, north)  // 新 SOUTH = 旧 NORTH（NORTH→SOUTH）
+                    .setValue(WEST_STATE, east)    // 新 WEST = 旧 EAST（EAST→WEST）
+                    .setValue(EAST_STATE, west);   // 新 EAST = 旧 WEST（WEST→EAST）
+            case COUNTERCLOCKWISE_90 -> state.setValue(DOWN_STATE, down)
+                    .setValue(UP_STATE, up)
+                    .setValue(NORTH_STATE, east)   // 新 NORTH = 旧 EAST（EAST→NORTH）
+                    .setValue(SOUTH_STATE, west)   // 新 SOUTH = 旧 WEST（WEST→SOUTH）
+                    .setValue(WEST_STATE, north)   // 新 WEST = 旧 NORTH（NORTH→WEST）
+                    .setValue(EAST_STATE, south);  // 新 EAST = 旧 SOUTH（SOUTH→EAST）
+        };
+    }
+
+    /**
+     * 镜像方块状态（蓝图镜像支持）
+     * <p>
+     * 【蓝图兼容性】当蓝图镜像时，六个面的状态需要相应地翻转。
+     * <p>
+     * Minecraft 镜像规则：
+     * - LEFT_RIGHT: 左右镜像 → NORTH ↔ SOUTH 交换
+     * - FRONT_BACK: 前后镜像 → WEST ↔ EAST 交换
+     *
+     * @param state  原始方块状态
+     * @param mirror 镜像方式
+     * @return 镜像后的方块状态
+     */
+    @Override
+    public BlockState mirror(BlockState state, Mirror mirror) {
+        // 获取当前六个面的状态
+        ShaftState down = state.getValue(DOWN_STATE);
+        ShaftState up = state.getValue(UP_STATE);
+        ShaftState north = state.getValue(NORTH_STATE);
+        ShaftState south = state.getValue(SOUTH_STATE);
+        ShaftState west = state.getValue(WEST_STATE);
+        ShaftState east = state.getValue(EAST_STATE);
+
+        // 根据镜像方式重新分配状态
+        return switch (mirror) {
+            case NONE -> state; // 不镜像
+            case LEFT_RIGHT -> state.setValue(DOWN_STATE, down)
+                    .setValue(UP_STATE, up)
+                    .setValue(NORTH_STATE, south)  // 新 NORTH = 旧 SOUTH（左右镜像时南北交换）
+                    .setValue(SOUTH_STATE, north)  // 新 SOUTH = 旧 NORTH
+                    .setValue(WEST_STATE, west)    // WEST/EAST 不变
+                    .setValue(EAST_STATE, east);
+            case FRONT_BACK -> state.setValue(DOWN_STATE, down)
+                    .setValue(UP_STATE, up)
+                    .setValue(NORTH_STATE, north)  // NORTH/SOUTH 不变
+                    .setValue(SOUTH_STATE, south)
+                    .setValue(WEST_STATE, east)    // 新 WEST = 旧 EAST（前后镜像时东西交换）
+                    .setValue(EAST_STATE, west);   // 新 EAST = 旧 WEST
+        };
     }
 
     /**

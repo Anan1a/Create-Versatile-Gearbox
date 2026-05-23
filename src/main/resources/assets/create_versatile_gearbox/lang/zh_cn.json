@@ -16,5 +16,17 @@
   "create_versatile_gearbox.configuration.magicNumberIntroduction.tooltip": "你希望魔法数字的介绍信息是什么",
 
   "create_versatile_gearbox.configuration.items": "物品列表",
-  "create_versatile_gearbox.configuration.items.tooltip": "要在通用设置阶段记录的物品列表"
+  "create_versatile_gearbox.configuration.items.tooltip": "要在通用设置阶段记录的物品列表",
+
+  "create_versatile_gearbox.ponder.versatile_gearbox_usage.header": "多功能齿轮箱的动力传输",
+  "create_versatile_gearbox.ponder.versatile_gearbox_usage.text_1": "多功能齿轮箱可以传输动力并独立控制每个面的轴",
+  "create_versatile_gearbox.ponder.versatile_gearbox_usage.text_2": "齿轮箱可以从任意面输入动力",
+  "create_versatile_gearbox.ponder.versatile_gearbox_usage.text_3": "并将动力传输到其他所有面",
+  "create_versatile_gearbox.ponder.versatile_gearbox_usage.text_4": "使用扳手右键点击面来切换轴状态",
+  "create_versatile_gearbox.ponder.versatile_gearbox_shaft_control.header": "独立轴状态控制",
+  "create_versatile_gearbox.ponder.versatile_gearbox_shaft_control.text_1": "所有轴默认都是激活状态",
+  "create_versatile_gearbox.ponder.versatile_gearbox_shaft_control.text_2": "使用扳手点击可以将轴切换为停用状态",
+  "create_versatile_gearbox.ponder.versatile_gearbox_shaft_control.text_3": "停用后，该面不再传输动力",
+  "create_versatile_gearbox.ponder.versatile_gearbox_shaft_control.text_4": "再次点击可以重新激活该面",
+  "create_versatile_gearbox.ponder.versatile_gearbox_shaft_control.text_5": "轴被重新激活，恢复动力传输"
 }
