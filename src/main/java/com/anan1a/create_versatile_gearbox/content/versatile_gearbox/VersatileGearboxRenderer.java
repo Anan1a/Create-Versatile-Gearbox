@@ -23,10 +23,34 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
  */
 public class VersatileGearboxRenderer extends KineticBlockEntityRenderer<VersatileGearboxBlockEntity> {
 
+    /**
+     * 构造函数
+     *
+     * @param context 渲染器提供者上下文
+     */
     public VersatileGearboxRenderer(BlockEntityRendererProvider.Context context) {
         super(context);
     }
 
+    /**
+     * 安全渲染万能变速箱的所有半轴
+     * <p>
+     * 【渲染策略】
+     * - Flywheel优化：如果启用了Flywheel可视化，则跳过此渲染器，由Flywheel接管
+     * - 六面轴渲染：遍历所有6个方向，根据BlockState判断是否渲染该方向的半轴
+     * - 独立旋转：每个半轴根据其方向的动力传输状态独立计算旋转角度
+     * <p>
+     * 【关键修复】
+     * - 优先从BlockState读取状态，确保与Ponder场景中的modifyBlock同步
+     * - OFF状态的半轴不渲染，FWD/REV状态的半轴正常渲染
+     *
+     * @param be          方块实体，包含动力网络和状态信息
+     * @param partialTicks 部分tick值，用于平滑动画插值
+     * @param ms           姿态栈，包含位置、旋转等变换矩阵
+     * @param buffer       多重缓冲区源，用于获取不同类型的渲染缓冲区
+     * @param light        光照值，包含天空光照和方块光照
+     * @param overlay      覆盖层纹理坐标（通常不使用）
+     */
     @Override
     protected void renderSafe(VersatileGearboxBlockEntity be, float partialTicks, PoseStack ms, MultiBufferSource buffer,
                               int light, int overlay) {
@@ -38,6 +62,7 @@ public class VersatileGearboxRenderer extends KineticBlockEntityRenderer<Versati
 
         // 遍历所有6个方向（六面轴版本：所有面都有传动轴）
         for (Direction direction : Iterate.directions) {
+            // 检查是否应该渲染该方向的半轴（OFF状态不渲染）
             if (!shouldRenderShaftHalf(be, direction))
                 continue;
 
@@ -104,12 +129,12 @@ public class VersatileGearboxRenderer extends KineticBlockEntityRenderer<Versati
 
         // 4. 应用旋转并渲染（Create API）
         kineticRotationTransform(shaftBuffer, be, shaftAxis, angle, light);
-        
-        // 对于 Y 轴方向的半轴，需要额外旋转 90 度以对齐纹理
-        if (shaftAxis == Direction.Axis.Y) {
-            shaftBuffer.rotateCentered((float) Math.PI / 2, Direction.UP);
-        }
-        
+
+        // 5. 将半轴模型渲染到屏幕
+        // renderInto: 将已变换的模型缓冲区内容绘制到渲染目标
+        // - ms (PoseStack): 包含位置、旋转、缩放等变换信息的矩阵栈
+        // - buffer.getBuffer(RenderType.solid()): 获取实体渲染类型的顶点缓冲区
+        //   RenderType.solid() 用于不透明的固体方块渲染，支持光照和纹理
         shaftBuffer.renderInto(ms, buffer.getBuffer(RenderType.solid()));
     }
 
