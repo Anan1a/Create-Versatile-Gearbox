@@ -6,15 +6,12 @@ import com.simibubi.create.content.kinetics.base.RotatingInstance;
 import com.simibubi.create.foundation.render.AllInstanceTypes;
 import dev.engine_room.flywheel.api.instance.Instance;
 import dev.engine_room.flywheel.api.visualization.VisualizationContext;
-import dev.engine_room.flywheel.lib.instance.AbstractInstance;
 import dev.engine_room.flywheel.lib.instance.FlatLit;
 import dev.engine_room.flywheel.lib.model.Models;
 import net.createmod.catnip.data.Iterate;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 
-import java.util.EnumMap;
-import java.util.Map;
 import java.util.function.Consumer;
 
 /**
@@ -25,12 +22,21 @@ import java.util.function.Consumer;
 public class VersatileGearboxVisual extends KineticBlockEntityVisual<VersatileGearboxBlockEntity> {
 
     /**
-     * 存储每个方向的旋转实例
+     * 方向枚举到索引的映射表（优化查找性能）
      * <p>
-     * Key: 方向（NORTH, SOUTH, EAST, WEST, UP, DOWN）
-     * Value: 该方向的旋转实例
+     * 使用数组索引替代 Direction.fromOrdinal() 方法调用
      */
-    protected final EnumMap<Direction, RotatingInstance> keys = new EnumMap<>(Direction.class);
+    private static final Direction[] DIRECTIONS = {
+            Direction.DOWN, Direction.UP, Direction.NORTH,
+            Direction.SOUTH, Direction.WEST, Direction.EAST
+    };
+
+    /**
+     * 存储每个方向的旋转实例（数组形式，优化访问速度）
+     * <p>
+     * 索引 0-5 对应 DOWN, UP, NORTH, SOUTH, WEST, EAST
+     */
+    protected final RotatingInstance[] keys = new RotatingInstance[6];
 
     /**
      * 当前动力源面的朝向
@@ -40,34 +46,44 @@ public class VersatileGearboxVisual extends KineticBlockEntityVisual<VersatileGe
      */
     protected Direction sourceFacing;
 
+    /**
+     * 脏标记，用于优化状态检查频率
+     * <p>
+     * true 表示需要检查并更新半轴实例
+     */
+    protected boolean dirty = true;
+
+    /**
+     * 构造函数
+     *
+     * @param context     可视化上下文
+     * @param blockEntity 方块实体
+     * @param partialTick 部分tick值（用于插值）
+     */
     public VersatileGearboxVisual(VisualizationContext context, VersatileGearboxBlockEntity blockEntity, float partialTick) {
         super(context, blockEntity, partialTick);
 
-        // 初始化动力源朝向（在 update() 中会再次更新，确保最新状态）
         updateSourceFacing();
+        initShaftInstances();
+    }
 
-        // 创建旋转实例的instancer
+    /**
+     * 初始化半轴实例
+     * <p>
+     * 根据方块状态创建非OFF状态的半轴旋转实例
+     */
+    private void initShaftInstances() {
         var instancer = instancerProvider().instancer(AllInstanceTypes.ROTATING, Models.partial(AllPartialModels.SHAFT_HALF));
-
-        // 遍历所有6个方向（六面轴版本：所有面都有传动轴）
         for (Direction direction : Iterate.directions) {
-            // OFF状态的半轴不渲染
             if (VersatileGearboxBlock.getShaftState(direction, blockState) == ShaftState.OFF)
                 continue;
 
-            final Direction.Axis axis = direction.getAxis();
-
-            // 为该方向创建旋转实例
             RotatingInstance instance = instancer.createInstance();
-
-            // 设置实例属性
-            instance.setup(blockEntity, axis, getSpeed(direction))
+            instance.setup(blockEntity, direction.getAxis(), getSpeed(direction))
                     .setPosition(getVisualPosition())
                     .rotateToFace(Direction.SOUTH, direction)
                     .setChanged();
-
-            // 存储到Map中
-            keys.put(direction, instance);
+            keys[direction.ordinal()] = instance;
         }
     }
 
@@ -83,19 +99,9 @@ public class VersatileGearboxVisual extends KineticBlockEntityVisual<VersatileGe
      * @return 该方向的旋转速度（可为负数表示反转）
      */
     private float getSpeed(Direction direction) {
-        // 获取方块实体的基本速度
         float speed = blockEntity.getSpeed();
-
-        // 如果有动力源且速度不为零，应用旋转方向Modifier
         if (speed != 0 && sourceFacing != null) {
-            try {
-                speed *= VersatileGearboxBlockEntity.getRotationSpeedModifier(direction, sourceFacing, blockState);
-            } catch (Exception e) {
-                // 防止计算异常导致渲染崩溃
-                com.anan1a.create_versatile_gearbox.CreateVersatileGearbox.LOGGER.error(
-                    "Error calculating rotation speed for direction {}: {}", direction, e.getMessage());
-                return 0;
-            }
+            speed *= VersatileGearboxBlockEntity.getRotationSpeedModifier(direction, sourceFacing, blockState);
         }
         return speed;
     }
@@ -122,28 +128,28 @@ public class VersatileGearboxVisual extends KineticBlockEntityVisual<VersatileGe
      * <p>
      * 更新内容：
      * - 重新计算动力源朝向（因为连接状态可能改变）
-     * - 动态添加/删除半轴实例（根据状态变化）
+     * - 动态添加/删除半轴实例（根据状态变化，仅在dirty=true时执行）
      * - 为每个旋转实例更新速度和状态
+     * <p>
+     * 【性能优化】使用dirty标记减少不必要的状态检查
      *
      * @param partialTick 部分tick值（用于插值）
      */
     @Override
     public void update(float partialTick) {
-        // 先更新动力源朝向
         updateSourceFacing();
 
-        // 检查是否有半轴需要添加或删除
-        updateShaftInstances();
+        if (dirty) {
+            updateShaftInstances();
+            dirty = false;
+        }
 
-        // 更新每个方向的旋转实例
-        for (Map.Entry<Direction, RotatingInstance> key : keys.entrySet()) {
-            Direction direction = key.getKey();
-            Direction.Axis axis = direction.getAxis();
-
-            // 重新设置实例：更新关联的方块实体、轴方向、速度
-            key.getValue()
-                    .setup(blockEntity, axis, getSpeed(direction))
-                    .setChanged();
+        for (int i = 0; i < 6; i++) {
+            RotatingInstance instance = keys[i];
+            if (instance != null) {
+                Direction direction = DIRECTIONS[i];
+                instance.setup(blockEntity, direction.getAxis(), getSpeed(direction)).setChanged();
+            }
         }
     }
 
@@ -156,32 +162,21 @@ public class VersatileGearboxVisual extends KineticBlockEntityVisual<VersatileGe
      */
     protected void updateShaftInstances() {
         var instancer = instancerProvider().instancer(AllInstanceTypes.ROTATING, Models.partial(AllPartialModels.SHAFT_HALF));
-
         for (Direction direction : Iterate.directions) {
-            ShaftState state;
-            try {
-                state = VersatileGearboxBlock.getShaftState(direction, blockState);
-            } catch (Exception e) {
-                // 防止状态读取异常
-                com.anan1a.create_versatile_gearbox.CreateVersatileGearbox.LOGGER.error(
-                    "Error getting shaft state for direction {}: {}", direction, e.getMessage());
-                continue;
-            }
-            
-            boolean hasInstance = keys.containsKey(direction);
+            int idx = direction.ordinal();
+            ShaftState state = VersatileGearboxBlock.getShaftState(direction, blockState);
+            RotatingInstance existing = keys[idx];
 
-            // OFF状态且有实例 → 删除实例
-            if (state == ShaftState.OFF && hasInstance) {
-                keys.remove(direction).delete();
-            }
-            // 非OFF状态且无实例 → 创建实例
-            else if (state != ShaftState.OFF && !hasInstance) {
+            if (state == ShaftState.OFF && existing != null) {
+                keys[idx] = null;
+                existing.delete();
+            } else if (state != ShaftState.OFF && existing == null) {
                 RotatingInstance instance = instancer.createInstance();
                 instance.setup(blockEntity, direction.getAxis(), getSpeed(direction))
                         .setPosition(getVisualPosition())
                         .rotateToFace(Direction.SOUTH, direction)
                         .setChanged();
-                keys.put(direction, instance);
+                keys[idx] = instance;
             }
         }
     }
@@ -193,20 +188,38 @@ public class VersatileGearboxVisual extends KineticBlockEntityVisual<VersatileGe
      */
     @Override
     public void updateLight(float partialTick) {
-        // 使用FlatLit将光照更新应用到所有旋转实例
-        relight(keys.values().toArray(FlatLit[]::new));
+        FlatLit[] instances = new FlatLit[6];
+        int count = 0;
+        for (RotatingInstance instance : keys) {
+            if (instance != null) {
+                instances[count++] = instance;
+            }
+        }
+        relight(instances);
+    }
+
+    /**
+     * 标记状态缓存失效
+     * <p>
+     * 当方块状态改变时调用此方法，触发下一帧的实例状态检查
+     */
+    public void invalidateCache() {
+        this.dirty = true;
     }
 
     /**
      * 清理资源
      * <p>
-     * 删除所有旋转实例并清空Map
+     * 删除所有旋转实例
      * 当可视化被移除时调用
      */
     @Override
     protected void _delete() {
-        keys.values().forEach(AbstractInstance::delete);
-        keys.clear();
+        for (RotatingInstance instance : keys) {
+            if (instance != null) {
+                instance.delete();
+            }
+        }
     }
 
     /**
@@ -219,7 +232,10 @@ public class VersatileGearboxVisual extends KineticBlockEntityVisual<VersatileGe
      */
     @Override
     public void collectCrumblingInstances(Consumer<Instance> consumer) {
-        keys.values()
-                .forEach(consumer);
+        for (RotatingInstance instance : keys) {
+            if (instance != null) {
+                consumer.accept(instance);
+            }
+        }
     }
 }
