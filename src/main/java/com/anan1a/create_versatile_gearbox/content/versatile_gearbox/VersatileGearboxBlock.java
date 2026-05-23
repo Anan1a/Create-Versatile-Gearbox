@@ -101,41 +101,21 @@ public class VersatileGearboxBlock extends HorizontalKineticBlock implements IBE
      * @return 相对面ID (1-6)
      */
     public static int getFaceId(Direction face, Direction blockFacing) {
-        return switch (blockFacing) {
-            case NORTH -> switch (face) {
-                case DOWN -> 1;
-                case UP -> 2;
-                case NORTH -> 3;
-                case SOUTH -> 4;
-                case WEST -> 5;
-                case EAST -> 6;
-            };
-            case SOUTH -> switch (face) {
-                case DOWN -> 1;
-                case UP -> 2;
-                case SOUTH -> 3;
-                case NORTH -> 4;
-                case EAST -> 5;
-                case WEST -> 6;
-            };
-            case EAST -> switch (face) {
-                case DOWN -> 1;
-                case UP -> 2;
-                case EAST -> 3;
-                case WEST -> 4;
-                case SOUTH -> 5;
-                case NORTH -> 6;
-            };
-            case WEST -> switch (face) {
-                case DOWN -> 1;
-                case UP -> 2;
-                case WEST -> 3;
-                case EAST -> 4;
-                case NORTH -> 5;
-                case SOUTH -> 6;
-            };
+        if (face == Direction.DOWN) return 1;
+        if (face == Direction.UP) return 2;
+        
+        // 水平方向的映射关系
+        // NORTH=0, SOUTH=1, EAST=2, WEST=3
+        // 根据blockFacing确定起始位置，然后按顺时针排列
+        int[] faceIds = switch (blockFacing) {
+            case NORTH -> new int[]{3, 4, 6, 5}; // N,S,E,W -> 3,4,6,5
+            case SOUTH -> new int[]{4, 3, 5, 6}; // S,N,W,E -> 4,3,5,6
+            case EAST -> new int[]{5, 6, 4, 3};  // E,W,N,S -> 5,6,4,3
+            case WEST -> new int[]{6, 5, 3, 4};  // W,E,S,N -> 6,5,3,4
             default -> throw new IllegalArgumentException("Unsupported facing: " + blockFacing);
         };
+        
+        return faceIds[face.ordinal() - 2]; // Direction.NORTH.ordinal()=2, 所以减去2
     }
 
     /**
@@ -146,45 +126,24 @@ public class VersatileGearboxBlock extends HorizontalKineticBlock implements IBE
      * @return 绝对方向
      */
     public static Direction getDirectionFromFaceId(int faceId, Direction blockFacing) {
-        return switch (blockFacing) {
-            case NORTH -> switch (faceId) {
-                case 1 -> Direction.DOWN;
-                case 2 -> Direction.UP;
-                case 3 -> Direction.NORTH;
-                case 4 -> Direction.SOUTH;
-                case 5 -> Direction.WEST;
-                case 6 -> Direction.EAST;
-                default -> throw new IllegalArgumentException("Invalid face ID: " + faceId);
-            };
-            case SOUTH -> switch (faceId) {
-                case 1 -> Direction.DOWN;
-                case 2 -> Direction.UP;
-                case 3 -> Direction.SOUTH;
-                case 4 -> Direction.NORTH;
-                case 5 -> Direction.EAST;
-                case 6 -> Direction.WEST;
-                default -> throw new IllegalArgumentException("Invalid face ID: " + faceId);
-            };
-            case EAST -> switch (faceId) {
-                case 1 -> Direction.DOWN;
-                case 2 -> Direction.UP;
-                case 3 -> Direction.EAST;
-                case 4 -> Direction.WEST;
-                case 5 -> Direction.SOUTH;
-                case 6 -> Direction.NORTH;
-                default -> throw new IllegalArgumentException("Invalid face ID: " + faceId);
-            };
-            case WEST -> switch (faceId) {
-                case 1 -> Direction.DOWN;
-                case 2 -> Direction.UP;
-                case 3 -> Direction.WEST;
-                case 4 -> Direction.EAST;
-                case 5 -> Direction.NORTH;
-                case 6 -> Direction.SOUTH;
-                default -> throw new IllegalArgumentException("Invalid face ID: " + faceId);
-            };
+        if (faceId == 1) return Direction.DOWN;
+        if (faceId == 2) return Direction.UP;
+        
+        // 使用预定义的映射表进行O(1)查找
+        // 索引: faceId-3 (0-3对应faceId 3-6)
+        Direction[] directions = switch (blockFacing) {
+            case NORTH -> new Direction[]{Direction.NORTH, Direction.SOUTH, Direction.EAST, Direction.WEST};
+            case SOUTH -> new Direction[]{Direction.SOUTH, Direction.NORTH, Direction.WEST, Direction.EAST};
+            case EAST -> new Direction[]{Direction.EAST, Direction.WEST, Direction.SOUTH, Direction.NORTH};
+            case WEST -> new Direction[]{Direction.WEST, Direction.EAST, Direction.NORTH, Direction.SOUTH};
             default -> throw new IllegalArgumentException("Unsupported facing: " + blockFacing);
         };
+        
+        // 处理水平方向的相对面ID (3-6)，通过数组索引直接获取对应的绝对方向
+        if (faceId <= 6) {
+            return directions[faceId - 3];
+        }
+        throw new IllegalArgumentException("Invalid face ID: " + faceId);
     }
 
     /**
