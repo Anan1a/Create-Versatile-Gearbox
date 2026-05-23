@@ -3,7 +3,7 @@ package com.anan1a.create_versatile_gearbox.content.versatile_gearbox;
 import java.util.List;
 
 import com.anan1a.create_versatile_gearbox.CVGBlockEntityTypes;
-import com.simibubi.create.content.kinetics.base.HorizontalKineticBlock;
+import com.simibubi.create.content.kinetics.base.KineticBlock;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
 import com.simibubi.create.foundation.block.IBE;
 
@@ -13,16 +13,15 @@ import net.minecraft.core.Direction.Axis;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Mirror;
+import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
-import net.minecraft.world.level.block.state.properties.BlockStateProperties;
-import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.material.PushReaction;
 import net.minecraft.world.level.storage.loot.LootParams;
@@ -34,39 +33,26 @@ import net.minecraft.world.phys.HitResult;
  * 支持六个面全部连接传动轴，实现全方位动力传输。
  * 每个面可独立翻转旋转方向（通过扳手切换）。
  * <p>
- * 【朝向系统】
- * - 继承自 HorizontalKineticBlock，使用 HORIZONTAL_FACING 属性
- * - 旋转菜单仅显示四个水平朝向（NORTH/SOUTH/EAST/WEST）
- * - 使用 FACE_1-6 存储相对面状态，跟随方块旋转
+ * 【蓝图兼容性】方块没有方向属性，放置时永远保持相同朝向。
  */
-public class VersatileGearboxBlock extends HorizontalKineticBlock implements IBE<VersatileGearboxBlockEntity> {
-
-
+public class VersatileGearboxBlock extends KineticBlock implements IBE<VersatileGearboxBlockEntity> {
 
     /**
-     * 六个面的传动轴状态属性（使用相对朝向）
-     * <p>
-     * 【相对朝向系统】
-     * - FACE_1/2: 沿主轴的两个面（如 Y 轴时为 DOWN/UP）
-     * - FACE_3/4: 沿次轴的两个面（如 Y 轴时为 NORTH/SOUTH）
-     * - FACE_5/6: 沿第三轴的两个面（如 Y 轴时为 WEST/EAST）
-     * <p>
-     * 【优势】
-     * - 方块旋转时，状态跟随方块一起旋转
-     * - 玩家配置的面状态不会因方块朝向改变而错乱
+     * 六个面的传动轴状态属性
+     * 支持三种状态：OFF(关闭), SAME(同向), OPPOSITE(反向)
      */
-    public static final EnumProperty<ShaftState> FACE_1 = EnumProperty.create("face_1", ShaftState.class);
-    public static final EnumProperty<ShaftState> FACE_2 = EnumProperty.create("face_2", ShaftState.class);
-    public static final EnumProperty<ShaftState> FACE_3 = EnumProperty.create("face_3", ShaftState.class);
-    public static final EnumProperty<ShaftState> FACE_4 = EnumProperty.create("face_4", ShaftState.class);
-    public static final EnumProperty<ShaftState> FACE_5 = EnumProperty.create("face_5", ShaftState.class);
-    public static final EnumProperty<ShaftState> FACE_6 = EnumProperty.create("face_6", ShaftState.class);
+    public static final EnumProperty<ShaftState> DOWN_STATE = EnumProperty.create("down_state", ShaftState.class);
+    public static final EnumProperty<ShaftState> UP_STATE = EnumProperty.create("up_state", ShaftState.class);
+    public static final EnumProperty<ShaftState> NORTH_STATE = EnumProperty.create("north_state", ShaftState.class);
+    public static final EnumProperty<ShaftState> SOUTH_STATE = EnumProperty.create("south_state", ShaftState.class);
+    public static final EnumProperty<ShaftState> WEST_STATE = EnumProperty.create("west_state", ShaftState.class);
+    public static final EnumProperty<ShaftState> EAST_STATE = EnumProperty.create("east_state", ShaftState.class);
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        // HorizontalKineticBlock 已经添加了 HORIZONTAL_FACING，只需添加 FACE_1-6
+        // KineticBlock 没有方向属性，只需添加六个面的状态
         super.createBlockStateDefinition(builder);
-        builder.add(FACE_1, FACE_2, FACE_3, FACE_4, FACE_5, FACE_6);
+        builder.add(DOWN_STATE, UP_STATE, NORTH_STATE, SOUTH_STATE, WEST_STATE, EAST_STATE);
     }
 
     /**
@@ -75,140 +61,42 @@ public class VersatileGearboxBlock extends HorizontalKineticBlock implements IBE
      */
     public VersatileGearboxBlock(Properties properties) {
         super(properties);
-        // 初始化默认状态：所有面同向旋转，默认朝向北方
+        // 初始化默认状态：所有面同向旋转
         this.registerDefaultState(this.defaultBlockState()
-                .setValue(HORIZONTAL_FACING, Direction.NORTH)
-                .setValue(FACE_1, ShaftState.FWD)
-                .setValue(FACE_2, ShaftState.FWD)
-                .setValue(FACE_3, ShaftState.FWD)
-                .setValue(FACE_4, ShaftState.FWD)
-                .setValue(FACE_5, ShaftState.FWD)
-                .setValue(FACE_6, ShaftState.FWD)
+                .setValue(DOWN_STATE, ShaftState.FWD)
+                .setValue(UP_STATE, ShaftState.FWD)
+                .setValue(NORTH_STATE, ShaftState.FWD)
+                .setValue(SOUTH_STATE, ShaftState.FWD)
+                .setValue(WEST_STATE, ShaftState.FWD)
+                .setValue(EAST_STATE, ShaftState.FWD)
         );
     }
 
     /**
-     * 将绝对方向转换为相对面ID（1-6）
-     * <p>
-     * 【转换规则】基于方块的 HORIZONTAL_FACING 属性：
-     * - FACING=NORTH: FACE_1=DOWN, FACE_2=UP, FACE_3=NORTH, FACE_4=SOUTH, FACE_5=WEST, FACE_6=EAST
-     * - FACING=SOUTH: FACE_1=DOWN, FACE_2=UP, FACE_3=SOUTH, FACE_4=NORTH, FACE_5=EAST, FACE_6=WEST
-     * - FACING=EAST:  FACE_1=DOWN, FACE_2=UP, FACE_3=EAST, FACE_4=WEST, FACE_5=SOUTH, FACE_6=NORTH
-     * - FACING=WEST:  FACE_1=DOWN, FACE_2=UP, FACE_3=WEST, FACE_4=EAST, FACE_5=NORTH, FACE_6=SOUTH
-     *
-     * @param face       绝对方向
-     * @param blockFacing 方块的水平朝向
-     * @return 相对面ID (1-6)
-     */
-    public static int getFaceId(Direction face, Direction blockFacing) {
-        if (face == Direction.DOWN) return 1;
-        if (face == Direction.UP) return 2;
-        
-        // 水平方向的映射关系
-        // NORTH=0, SOUTH=1, EAST=2, WEST=3
-        // 根据blockFacing确定起始位置，然后按顺时针排列
-        int[] faceIds = switch (blockFacing) {
-            case NORTH -> new int[]{3, 4, 6, 5}; // N,S,E,W -> 3,4,6,5
-            case SOUTH -> new int[]{4, 3, 5, 6}; // S,N,W,E -> 4,3,5,6
-            case EAST -> new int[]{5, 6, 4, 3};  // E,W,N,S -> 5,6,4,3
-            case WEST -> new int[]{6, 5, 3, 4};  // W,E,S,N -> 6,5,3,4
-            default -> throw new IllegalArgumentException("Unsupported facing: " + blockFacing);
-        };
-        
-        return faceIds[face.ordinal() - 2]; // Direction.NORTH.ordinal()=2, 所以减去2
-    }
-
-    /**
-     * 将相对面ID转换为绝对方向
-     *
-     * @param faceId      相对面ID (1-6)
-     * @param blockFacing 方块的水平朝向
-     * @return 绝对方向
-     */
-    public static Direction getDirectionFromFaceId(int faceId, Direction blockFacing) {
-        if (faceId == 1) return Direction.DOWN;
-        if (faceId == 2) return Direction.UP;
-        
-        // 使用预定义的映射表进行O(1)查找
-        // 索引: faceId-3 (0-3对应faceId 3-6)
-        Direction[] directions = switch (blockFacing) {
-            case NORTH -> new Direction[]{Direction.NORTH, Direction.SOUTH, Direction.EAST, Direction.WEST};
-            case SOUTH -> new Direction[]{Direction.SOUTH, Direction.NORTH, Direction.WEST, Direction.EAST};
-            case EAST -> new Direction[]{Direction.EAST, Direction.WEST, Direction.SOUTH, Direction.NORTH};
-            case WEST -> new Direction[]{Direction.WEST, Direction.EAST, Direction.NORTH, Direction.SOUTH};
-            default -> throw new IllegalArgumentException("Unsupported facing: " + blockFacing);
-        };
-        
-        // 处理水平方向的相对面ID (3-6)，通过数组索引直接获取对应的绝对方向
-        if (faceId <= 6) {
-            return directions[faceId - 3];
-        }
-        throw new IllegalArgumentException("Invalid face ID: " + faceId);
-    }
-
-    /**
-     * 获取指定方向的传动轴状态（自动处理相对朝向转换）
-     *
-     * @param face  绝对方向
-     * @param state 方块状态
-     * @return 该方向的轴状态
+     * 获取指定方向的传动轴状态
      */
     public static ShaftState getShaftState(Direction face, BlockState state) {
-        Direction facing = state.getValue(HORIZONTAL_FACING);
-        int faceId = getFaceId(face, facing);
-        return getShaftStateByFaceId(faceId, state);
-    }
-
-    /**
-     * 根据相对面ID获取状态
-     *
-     * @param faceId 相对面ID (1-6)
-     * @param state  方块状态
-     * @return 该面的轴状态
-     */
-    public static ShaftState getShaftStateByFaceId(int faceId, BlockState state) {
-        return switch (faceId) {
-            case 1 -> state.getValue(FACE_1);
-            case 2 -> state.getValue(FACE_2);
-            case 3 -> state.getValue(FACE_3);
-            case 4 -> state.getValue(FACE_4);
-            case 5 -> state.getValue(FACE_5);
-            case 6 -> state.getValue(FACE_6);
-            default -> throw new IllegalArgumentException("Invalid face ID: " + faceId);
+        return switch (face) {
+            case DOWN -> state.getValue(DOWN_STATE);
+            case UP -> state.getValue(UP_STATE);
+            case NORTH -> state.getValue(NORTH_STATE);
+            case SOUTH -> state.getValue(SOUTH_STATE);
+            case WEST -> state.getValue(WEST_STATE);
+            case EAST -> state.getValue(EAST_STATE);
         };
     }
 
     /**
-     * 设置指定方向的传动轴状态（自动处理相对朝向转换）
-     *
-     * @param face      绝对方向
-     * @param state     方块状态
-     * @param shaftState 新的轴状态
-     * @return 更新后的方块状态
+     * 设置指定方向的传动轴状态
      */
     public static BlockState setShaftState(Direction face, BlockState state, ShaftState shaftState) {
-        Direction facing = state.getValue(HORIZONTAL_FACING);
-        int faceId = getFaceId(face, facing);
-        return setShaftStateByFaceId(faceId, state, shaftState);
-    }
-
-    /**
-     * 根据相对面ID设置状态
-     *
-     * @param faceId     相对面ID (1-6)
-     * @param state      方块状态
-     * @param shaftState 新的轴状态
-     * @return 更新后的方块状态
-     */
-    public static BlockState setShaftStateByFaceId(int faceId, BlockState state, ShaftState shaftState) {
-        return switch (faceId) {
-            case 1 -> state.setValue(FACE_1, shaftState);
-            case 2 -> state.setValue(FACE_2, shaftState);
-            case 3 -> state.setValue(FACE_3, shaftState);
-            case 4 -> state.setValue(FACE_4, shaftState);
-            case 5 -> state.setValue(FACE_5, shaftState);
-            case 6 -> state.setValue(FACE_6, shaftState);
-            default -> throw new IllegalArgumentException("Invalid face ID: " + faceId);
+        return switch (face) {
+            case DOWN -> state.setValue(DOWN_STATE, shaftState);
+            case UP -> state.setValue(UP_STATE, shaftState);
+            case NORTH -> state.setValue(NORTH_STATE, shaftState);
+            case SOUTH -> state.setValue(SOUTH_STATE, shaftState);
+            case WEST -> state.setValue(WEST_STATE, shaftState);
+            case EAST -> state.setValue(EAST_STATE, shaftState);
         };
     }
 
@@ -225,43 +113,16 @@ public class VersatileGearboxBlock extends HorizontalKineticBlock implements IBE
     }
 
     /**
-     * 获取指定方向对应的状态属性（自动处理相对朝向转换）
-     *
-     * @param face 绝对方向
-     * @return 对应的 EnumProperty
+     * 获取指定方向对应的状态属性
      */
     public static EnumProperty<ShaftState> getStateProperty(Direction face) {
-        // 注意：这个方法需要 BlockState 来确定 AXIS，所以提供一个重载版本
-        throw new UnsupportedOperationException("Use getStateProperty(face, axis) instead");
-    }
-
-    /**
-     * 获取指定方向和朝向对应的状态属性
-     *
-     * @param face   绝对方向
-     * @param facing 方块朝向
-     * @return 对应的 EnumProperty
-     */
-    public static EnumProperty<ShaftState> getStateProperty(Direction face, Direction facing) {
-        int faceId = getFaceId(face, facing);
-        return getStatePropertyByFaceId(faceId);
-    }
-
-    /**
-     * 根据相对面ID获取状态属性
-     *
-     * @param faceId 相对面ID (1-6)
-     * @return 对应的 EnumProperty
-     */
-    public static EnumProperty<ShaftState> getStatePropertyByFaceId(int faceId) {
-        return switch (faceId) {
-            case 1 -> FACE_1;
-            case 2 -> FACE_2;
-            case 3 -> FACE_3;
-            case 4 -> FACE_4;
-            case 5 -> FACE_5;
-            case 6 -> FACE_6;
-            default -> throw new IllegalArgumentException("Invalid face ID: " + faceId);
+        return switch (face) {
+            case DOWN -> DOWN_STATE;
+            case UP -> UP_STATE;
+            case NORTH -> NORTH_STATE;
+            case SOUTH -> SOUTH_STATE;
+            case WEST -> WEST_STATE;
+            case EAST -> EAST_STATE;
         };
     }
 
@@ -325,20 +186,6 @@ public class VersatileGearboxBlock extends HorizontalKineticBlock implements IBE
     }
 
     /**
-     * 获取放置时的方块状态
-     * <p>
-     * 【蓝图兼容性】始终返回固定朝向（NORTH），确保蓝图粘贴时方块朝向一致。
-     * 方块本身没有方向性，所有面的功能通过相对面ID系统处理。
-     *
-     * @param context 放置上下文
-     * @return 方块状态（固定朝向为 NORTH）
-     */
-    @Override
-    public BlockState getStateForPlacement(BlockPlaceContext context) {
-        return defaultBlockState().setValue(HORIZONTAL_FACING, Direction.NORTH);
-    }
-
-    /**
      * 判断指定面是否有传动轴接口（六面轴版本）
      * <p>
      * 只有当该面状态不为 OFF 时才返回 true。
@@ -355,27 +202,118 @@ public class VersatileGearboxBlock extends HorizontalKineticBlock implements IBE
      */
     @Override
     protected boolean areStatesKineticallyEquivalent(BlockState oldState, BlockState newState) {
-        return oldState.getValue(FACE_1) == newState.getValue(FACE_1)
-            && oldState.getValue(FACE_2) == newState.getValue(FACE_2)
-            && oldState.getValue(FACE_3) == newState.getValue(FACE_3)
-            && oldState.getValue(FACE_4) == newState.getValue(FACE_4)
-            && oldState.getValue(FACE_5) == newState.getValue(FACE_5)
-            && oldState.getValue(FACE_6) == newState.getValue(FACE_6)
+        return oldState.getValue(DOWN_STATE) == newState.getValue(DOWN_STATE)
+            && oldState.getValue(UP_STATE) == newState.getValue(UP_STATE)
+            && oldState.getValue(NORTH_STATE) == newState.getValue(NORTH_STATE)
+            && oldState.getValue(SOUTH_STATE) == newState.getValue(SOUTH_STATE)
+            && oldState.getValue(WEST_STATE) == newState.getValue(WEST_STATE)
+            && oldState.getValue(EAST_STATE) == newState.getValue(EAST_STATE)
             && super.areStatesKineticallyEquivalent(oldState, newState);
     }
 
     /**
      * 获取方块的旋转轴（IRotate 接口要求）
      * <p>
-     * 【关键】返回 HORIZONTAL_FACING 的轴向，与动力冲压机一致。
-     * 这样旋转菜单会显示四个水平朝向，而不是三轴选择。
+     * 【蓝图兼容性】始终返回 Y 轴，使方块在任何情况下都保持相同的视觉朝向。
+     * 方块本身没有方向属性，所有面的功能通过绝对方向系统处理。
      *
      * @param state 方块状态
-     * @return 旋转轴（X 或 Z）
+     * @return 固定为 Y 轴
      */
     @Override
     public Axis getRotationAxis(BlockState state) {
-        return state.getValue(HORIZONTAL_FACING).getAxis();
+        return Axis.Y;
+    }
+
+    /**
+     * 旋转方块状态（蓝图旋转支持）
+     * <p>
+     * 【蓝图兼容性】当蓝图旋转时，六个面的状态需要相应地旋转。
+     * 旋转规则：新位置的状态 = 旋转前在该位置的面的状态
+     * <p>
+     * 例如：绕 Y 轴顺时针旋转 90° 时：
+     * - 原来在 WEST 的面转到 NORTH 位置 → 新 NORTH = 旧 WEST
+     * - 原来在 NORTH 的面转到 EAST 位置 → 新 EAST = 旧 NORTH
+     * - 原来在 EAST 的面转到 SOUTH 位置 → 新 SOUTH = 旧 EAST
+     * - 原来在 SOUTH 的面转到 WEST 位置 → 新 WEST = 旧 SOUTH
+     *
+     * @param state  原始方块状态
+     * @param rotation 旋转方式
+     * @return 旋转后的方块状态
+     */
+    @Override
+    public BlockState rotate(BlockState state, Rotation rotation) {
+        // 获取当前六个面的状态
+        ShaftState down = state.getValue(DOWN_STATE);
+        ShaftState up = state.getValue(UP_STATE);
+        ShaftState north = state.getValue(NORTH_STATE);
+        ShaftState south = state.getValue(SOUTH_STATE);
+        ShaftState west = state.getValue(WEST_STATE);
+        ShaftState east = state.getValue(EAST_STATE);
+
+        // 根据旋转角度重新分配水平方向的状态
+        return switch (rotation) {
+            case NONE -> state; // 不旋转
+            case CLOCKWISE_90 -> state.setValue(DOWN_STATE, down)
+                    .setValue(UP_STATE, up)
+                    .setValue(NORTH_STATE, west)   // 新 NORTH = 旧 WEST（WEST→NORTH）
+                    .setValue(SOUTH_STATE, east)   // 新 SOUTH = 旧 EAST（EAST→SOUTH）
+                    .setValue(WEST_STATE, south)   // 新 WEST = 旧 SOUTH（SOUTH→WEST）
+                    .setValue(EAST_STATE, north);  // 新 EAST = 旧 NORTH（NORTH→EAST）
+            case CLOCKWISE_180 -> state.setValue(DOWN_STATE, down)
+                    .setValue(UP_STATE, up)
+                    .setValue(NORTH_STATE, south)  // 新 NORTH = 旧 SOUTH（SOUTH→NORTH）
+                    .setValue(SOUTH_STATE, north)  // 新 SOUTH = 旧 NORTH（NORTH→SOUTH）
+                    .setValue(WEST_STATE, east)    // 新 WEST = 旧 EAST（EAST→WEST）
+                    .setValue(EAST_STATE, west);   // 新 EAST = 旧 WEST（WEST→EAST）
+            case COUNTERCLOCKWISE_90 -> state.setValue(DOWN_STATE, down)
+                    .setValue(UP_STATE, up)
+                    .setValue(NORTH_STATE, east)   // 新 NORTH = 旧 EAST（EAST→NORTH）
+                    .setValue(SOUTH_STATE, west)   // 新 SOUTH = 旧 WEST（WEST→SOUTH）
+                    .setValue(WEST_STATE, north)   // 新 WEST = 旧 NORTH（NORTH→WEST）
+                    .setValue(EAST_STATE, south);  // 新 EAST = 旧 SOUTH（SOUTH→EAST）
+        };
+    }
+
+    /**
+     * 镜像方块状态（蓝图镜像支持）
+     * <p>
+     * 【蓝图兼容性】当蓝图镜像时，六个面的状态需要相应地翻转。
+     * <p>
+     * Minecraft 镜像规则：
+     * - LEFT_RIGHT: 左右镜像 → NORTH ↔ SOUTH 交换
+     * - FRONT_BACK: 前后镜像 → WEST ↔ EAST 交换
+     *
+     * @param state  原始方块状态
+     * @param mirror 镜像方式
+     * @return 镜像后的方块状态
+     */
+    @Override
+    public BlockState mirror(BlockState state, Mirror mirror) {
+        // 获取当前六个面的状态
+        ShaftState down = state.getValue(DOWN_STATE);
+        ShaftState up = state.getValue(UP_STATE);
+        ShaftState north = state.getValue(NORTH_STATE);
+        ShaftState south = state.getValue(SOUTH_STATE);
+        ShaftState west = state.getValue(WEST_STATE);
+        ShaftState east = state.getValue(EAST_STATE);
+
+        // 根据镜像方式重新分配状态
+        return switch (mirror) {
+            case NONE -> state; // 不镜像
+            case LEFT_RIGHT -> state.setValue(DOWN_STATE, down)
+                    .setValue(UP_STATE, up)
+                    .setValue(NORTH_STATE, south)  // 新 NORTH = 旧 SOUTH（左右镜像时南北交换）
+                    .setValue(SOUTH_STATE, north)  // 新 SOUTH = 旧 NORTH
+                    .setValue(WEST_STATE, west)    // WEST/EAST 不变
+                    .setValue(EAST_STATE, east);
+            case FRONT_BACK -> state.setValue(DOWN_STATE, down)
+                    .setValue(UP_STATE, up)
+                    .setValue(NORTH_STATE, north)  // NORTH/SOUTH 不变
+                    .setValue(SOUTH_STATE, south)
+                    .setValue(WEST_STATE, east)    // 新 WEST = 旧 EAST（前后镜像时东西交换）
+                    .setValue(EAST_STATE, west);   // 新 EAST = 旧 WEST
+        };
     }
 
     /**
@@ -420,10 +358,9 @@ public class VersatileGearboxBlock extends HorizontalKineticBlock implements IBE
         // 获取点击的方向
         Direction clickedFace = context.getClickedFace();
 
-        // 使用 cycle 方法切换状态（自动处理相对朝向）
-        Direction facing = state.getValue(HORIZONTAL_FACING);
-        EnumProperty<ShaftState> property = getStateProperty(clickedFace, facing);
-        BlockState newState = state.cycle(property);
+        // 使用 cycle 方法切换状态，这会触发 areStatesKineticallyEquivalent 检查
+        // 从而自动重建动力网络
+        BlockState newState = state.cycle(getStateProperty(clickedFace));
         KineticBlockEntity.switchToBlockState(level, pos, newState);
 
         // 播放声音反馈

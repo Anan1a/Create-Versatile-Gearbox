@@ -106,9 +106,6 @@ public class VersatileGearboxBlockEntity extends SplitShaftBlockEntity {
      * 提供模型数据给渲染器
      * <p>
      * 返回六个面的状态，用于动态纹理替换和半轴显示控制
-     * <p>
-     * 【关键】按绝对方向顺序返回：DOWN, UP, NORTH, SOUTH, WEST, EAST
-     * 渲染器会根据这个顺序读取状态
      */
     @Override
     public ModelData getModelData() {
