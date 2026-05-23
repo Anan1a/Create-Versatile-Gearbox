@@ -58,8 +58,6 @@ public class VersatileGearboxRenderer extends KineticBlockEntityRenderer<Versati
         if (VisualizationManager.supportsVisualization(be.getLevel()))
             return;
 
-        final BlockPos pos = be.getBlockPos();
-
         // 遍历所有6个方向（六面轴版本：所有面都有传动轴）
         for (Direction direction : Iterate.directions) {
             // 检查是否应该渲染该方向的半轴（OFF状态不渲染）
@@ -113,15 +111,22 @@ public class VersatileGearboxRenderer extends KineticBlockEntityRenderer<Versati
         // 2. 计算该方向的实际速度（考虑翻转属性）
         float speedForDirection = be.getSpeed();
         if (speedForDirection != 0 && be.hasSource()) {
-            // 计算动力源方向
-            BlockPos source = be.source.subtract(pos);
-            Direction sourceFacing = Direction.getNearest(source.getX(), source.getY(), source.getZ());
-            
-            // 获取旋转速度修正系数（包含翻转属性）
-            float modifier = VersatileGearboxBlockEntity.getRotationSpeedModifier(direction, sourceFacing, be.getBlockState());
-            
-            // 应用修正到速度上
-            speedForDirection *= modifier;
+            try {
+                // 计算动力源方向
+                BlockPos source = be.source.subtract(pos);
+                Direction sourceFacing = Direction.getNearest(source.getX(), source.getY(), source.getZ());
+                
+                // 获取旋转速度修正系数（包含翻转属性）
+                float modifier = VersatileGearboxBlockEntity.getRotationSpeedModifier(direction, sourceFacing, be.getBlockState());
+                
+                // 应用修正到速度上
+                speedForDirection *= modifier;
+            } catch (Exception e) {
+                // 防止计算异常导致渲染崩溃
+                com.anan1a.create_versatile_gearbox.CreateVersatileGearbox.LOGGER.error(
+                    "Error calculating renderer speed for direction {}: {}", direction, e.getMessage());
+                speedForDirection = 0;
+            }
         }
         
         // 3. 使用修正后的速度计算旋转角度

@@ -43,7 +43,7 @@ public class VersatileGearboxVisual extends KineticBlockEntityVisual<VersatileGe
     public VersatileGearboxVisual(VisualizationContext context, VersatileGearboxBlockEntity blockEntity, float partialTick) {
         super(context, blockEntity, partialTick);
 
-        // 初始化动力源朝向
+        // 初始化动力源朝向（在 update() 中会再次更新，确保最新状态）
         updateSourceFacing();
 
         // 创建旋转实例的instancer
@@ -86,9 +86,16 @@ public class VersatileGearboxVisual extends KineticBlockEntityVisual<VersatileGe
         // 获取方块实体的基本速度
         float speed = blockEntity.getSpeed();
 
-        // 如果有动力源，应用旋转方向Modifier（三状态版本）
+        // 如果有动力源且速度不为零，应用旋转方向Modifier
         if (speed != 0 && sourceFacing != null) {
-            speed *= VersatileGearboxBlockEntity.getRotationSpeedModifier(direction, sourceFacing, blockState);
+            try {
+                speed *= VersatileGearboxBlockEntity.getRotationSpeedModifier(direction, sourceFacing, blockState);
+            } catch (Exception e) {
+                // 防止计算异常导致渲染崩溃
+                com.anan1a.create_versatile_gearbox.CreateVersatileGearbox.LOGGER.error(
+                    "Error calculating rotation speed for direction {}: {}", direction, e.getMessage());
+                return 0;
+            }
         }
         return speed;
     }
@@ -151,7 +158,16 @@ public class VersatileGearboxVisual extends KineticBlockEntityVisual<VersatileGe
         var instancer = instancerProvider().instancer(AllInstanceTypes.ROTATING, Models.partial(AllPartialModels.SHAFT_HALF));
 
         for (Direction direction : Iterate.directions) {
-            ShaftState state = VersatileGearboxBlock.getShaftState(direction, blockState);
+            ShaftState state;
+            try {
+                state = VersatileGearboxBlock.getShaftState(direction, blockState);
+            } catch (Exception e) {
+                // 防止状态读取异常
+                com.anan1a.create_versatile_gearbox.CreateVersatileGearbox.LOGGER.error(
+                    "Error getting shaft state for direction {}: {}", direction, e.getMessage());
+                continue;
+            }
+            
             boolean hasInstance = keys.containsKey(direction);
 
             // OFF状态且有实例 → 删除实例
