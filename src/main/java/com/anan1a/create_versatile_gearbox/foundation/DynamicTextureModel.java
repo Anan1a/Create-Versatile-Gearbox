@@ -1,6 +1,7 @@
 package com.anan1a.create_versatile_gearbox.foundation;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -41,6 +42,11 @@ import org.slf4j.LoggerFactory;
  * - 使用 HashSet 加速占位符查找（O(1)）
  * - 纹理缓存机制，减少运行时开销
  * - 渲染类型过滤，避免处理不需要的 quad
+ *
+ * <p>纹理替换机制（改进版）：
+ * - 保留原始归一化 UV 坐标（0-1），只替换 sprite 引用
+ * - 归一化 UV 直接表示纹理内的相对位置，与纹理图集位置无关
+ * - 兼容 Create 的纹理连接机制（CTM），正确支持跨面纹理连接
  *
  * @param <T> 状态类型（如 VersatileGearboxShaftState、Enum 等）
  */
@@ -266,24 +272,96 @@ public abstract class DynamicTextureModel<T> extends BakedModelWrapper<BakedMode
     }
 
     /**
-     * 克隆四边形并修改纹理坐标
+     * 克隆四边形并进行UV重映射以适配新纹理
+     * 
+     * <p>问题背景：
+     * Minecraft 将所有纹理打包到一个大图集中，每个纹理在图集中有不同的位置。
+     * BakedQuad 的顶点 UV 坐标存储的是纹理在图集中的绝对位置（0-1范围）。
+     * 当替换纹理时，需要将原纹理的UV坐标映射到新纹理的坐标空间。
+     * 
+     * <p>映射算法：
+     * 1. 计算原始UV在原纹理中的相对位置（0=左/上, 1=右/下）
+     * 2. 将相对位置应用到目标纹理在图集中的位置
+     * 
+     * <p>示例：
+     * - 原纹理在图集位置：U0=0.5, U1=0.6（宽度0.1）
+     * - 目标纹理在图集位置：U0=0.7, U1=0.8（宽度0.1）
+     * - 原始UV=0.55 → 相对位置=0.5 → 新UV=0.75
+     * 
+     * @param quad           原始四边形
+     * @param originalSprite 原占位符纹理（用于计算UV偏移）
+     * @param targetSprite   目标替换纹理
+     * @return 替换纹理后的新四边形
      */
     private BakedQuad cloneQuadWithTexture(BakedQuad quad, TextureAtlasSprite originalSprite, TextureAtlasSprite targetSprite) {
-        BakedQuad newQuad = BakedQuadHelper.clone(quad);
-        int[] vertexData = newQuad.getVertices();
-        float uOffset = targetSprite.getU0() - originalSprite.getU0();
-        float vOffset = targetSprite.getV0() - originalSprite.getV0();
-
-        if (uOffset != 0.0f || vOffset != 0.0f) {
-            for (int vertex = 0; vertex < 4; vertex++) {
-                BakedQuadHelper.setU(vertexData, vertex,
-                        BakedQuadHelper.getU(vertexData, vertex) + uOffset);
-                BakedQuadHelper.setV(vertexData, vertex,
-                        BakedQuadHelper.getV(vertexData, vertex) + vOffset);
-            }
+        // 相同纹理无需处理
+        if (originalSprite == targetSprite) {
+            return quad;
         }
 
-        return newQuad;
+        // 复制顶点数据（避免修改原数据）
+        int[] vertexData = Arrays.copyOf(quad.getVertices(), quad.getVertices().length);
+
+        // 获取原纹理在图集中的边界
+        float origMinU = originalSprite.getU0();
+        float origMaxU = originalSprite.getU1();
+        float origMinV = originalSprite.getV0();
+        float origMaxV = originalSprite.getV1();
+        
+        // 获取目标纹理在图集中的边界
+        float tgtMinU = targetSprite.getU0();
+        float tgtMaxU = targetSprite.getU1();
+        float tgtMinV = targetSprite.getV0();
+        float tgtMaxV = targetSprite.getV1();
+
+        // 计算纹理尺寸（防止除零）
+        float origWidth = origMaxU - origMinU;
+        float origHeight = origMaxV - origMinV;
+        float tgtWidth = tgtMaxU - tgtMinU;
+        float tgtHeight = tgtMaxV - tgtMinV;
+
+        // 边界检查：如果任一纹理尺寸无效，直接替换sprite（不修改UV）
+        if (origWidth <= 0 || origHeight <= 0 || tgtWidth <= 0 || tgtHeight <= 0) {
+            return new BakedQuad(vertexData, quad.getTintIndex(), quad.getDirection(), targetSprite, quad.isShade());
+        }
+
+        // 遍历四个顶点，逐一重新映射UV
+        for (int vertex = 0; vertex < 4; vertex++) {
+            // 获取原始UV（图集中的绝对坐标）
+            float srcU = BakedQuadHelper.getU(vertexData, vertex);
+            float srcV = BakedQuadHelper.getV(vertexData, vertex);
+
+            // 步骤1：计算在原纹理中的相对位置（0-1）
+            float relU = (srcU - origMinU) / origWidth;
+            float relV = (srcV - origMinV) / origHeight;
+            
+            // 安全裁剪：确保相对位置在有效范围内
+            relU = clamp(relU, 0f, 1f);
+            relV = clamp(relV, 0f, 1f);
+
+            // 步骤2：将相对位置映射到目标纹理的图集坐标
+            float newU = tgtMinU + relU * tgtWidth;
+            float newV = tgtMinV + relV * tgtHeight;
+
+            // 更新顶点UV
+            BakedQuadHelper.setU(vertexData, vertex, newU);
+            BakedQuadHelper.setV(vertexData, vertex, newV);
+        }
+
+        // 创建新四边形（使用新的sprite和更新后的UV）
+        return new BakedQuad(vertexData, quad.getTintIndex(), quad.getDirection(), targetSprite, quad.isShade());
+    }
+
+    /**
+     * 将值限制在指定范围内
+     * 
+     * @param value 输入值
+     * @param min   最小值
+     * @param max   最大值
+     * @return 裁剪后的值
+     */
+    private static float clamp(float value, float min, float max) {
+        return Math.max(min, Math.min(max, value));
     }
 
     /**
