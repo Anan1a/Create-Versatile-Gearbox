@@ -21,7 +21,7 @@ public class AllModSpriteShifts {
      */
     public static final CTSpriteShiftEntry VERSATILE_GEARBOX_OFF = CTSpriteShifter.getCT(
             AllCTTypes.OMNIDIRECTIONAL,
-            ResourceLocation.fromNamespaceAndPath(MODID, "block/versatile_gearbox/off"),
+            ResourceLocation.fromNamespaceAndPath(MODID, "block/versatile_gearbox/off_shell"),
             ResourceLocation.fromNamespaceAndPath("create", "block/andesite_casing_connected")
     );
 }

@@ -4,8 +4,8 @@
 	"parent": "block/block",
 	"textures": {
 		"0": "create:block/andesite_casing",
-		"1": "create_versatile_gearbox:block/versatile_gearbox/fwd",
-		"2": "create_versatile_gearbox:block/versatile_gearbox/off",
+		"1": "create_versatile_gearbox:block/versatile_gearbox/fwd_core",
+		"2": "create_versatile_gearbox:block/versatile_gearbox/off_shell",
 		"particle": "create:block/andesite_casing"
 	},
 	"elements": [

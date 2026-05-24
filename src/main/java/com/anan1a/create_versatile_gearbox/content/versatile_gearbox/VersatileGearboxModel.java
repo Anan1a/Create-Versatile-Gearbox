@@ -32,48 +32,55 @@ public class VersatileGearboxModel extends DynamicTextureModel<VersatileGearboxS
     public static final ModelProperty<VersatileGearboxShaftState[]> FACE_STATES = new ModelProperty<>();
 
     /**
+     * 纹理路径常量 - 安山机壳纹理
+     */
+    private static final ResourceLocation TEXTURE_ANDESITE_CASING = ResourceLocation.fromNamespaceAndPath("create", "block/andesite_casing");
+
+    /**
      * 纹理基础路径常量
      */
     private static final String TEXTURE_BASE = "block/versatile_gearbox/";
 
     /**
-     * 纹理路径常量 - FWD 状态纹理
+     * 纹理路径常量 - FWD 状态核心纹理
      */
-    private static final ResourceLocation TEXTURE_FWD = ResourceLocation.fromNamespaceAndPath(MODID, TEXTURE_BASE + "fwd");
+    private static final ResourceLocation TEXTURE_FWD_CORE = ResourceLocation.fromNamespaceAndPath(MODID, TEXTURE_BASE + "fwd_core");
 
     /**
-     * 纹理路径常量 - REV 状态纹理
+     * 纹理路径常量 - REV 状态核心纹理
      */
-    private static final ResourceLocation TEXTURE_REV = ResourceLocation.fromNamespaceAndPath(MODID, TEXTURE_BASE + "rev");
+    private static final ResourceLocation TEXTURE_REV_CORE = ResourceLocation.fromNamespaceAndPath(MODID, TEXTURE_BASE + "rev_core");
 
     /**
-     * 纹理路径常量 - OFF 状态纹理
+     * 纹理路径常量 - OFF 状态机壳纹理
      */
-    private static final ResourceLocation TEXTURE_OFF = ResourceLocation.fromNamespaceAndPath(MODID, TEXTURE_BASE + "off");
+    private static final ResourceLocation TEXTURE_OFF_CORE = ResourceLocation.fromNamespaceAndPath(MODID, TEXTURE_BASE + "off_shell");
+
+
 
     /**
-     * FWD/REV 状态的纹理条目
-     * - FWD 状态显示 fwd 纹理
-     * - REV 状态显示 rev 纹理
+     * 核心模型纹理条目（处理 FWD/REV 状态）
+     * - FWD 状态显示 fwd_core 纹理
+     * - REV 状态显示 rev_core 纹理
      * - OFF 状态不映射（自动隐藏）
      */
-    private static final TextureEntry<VersatileGearboxShaftState> FWD_REV_ENTRY = new TextureEntry<>(
-            TEXTURE_FWD,
+    private static final TextureEntry<VersatileGearboxShaftState> CORE_ENTRY = new TextureEntry<>(
+            TEXTURE_FWD_CORE,
             Map.of(
-                VersatileGearboxShaftState.FWD, TEXTURE_FWD,
-                VersatileGearboxShaftState.REV, TEXTURE_REV
+                VersatileGearboxShaftState.FWD, TEXTURE_FWD_CORE,
+                VersatileGearboxShaftState.REV, TEXTURE_REV_CORE
             )
     );
 
     /**
-     * OFF 状态的纹理条目
-     * - OFF 状态显示 off 纹理
+     * 外壳模型纹理条目（处理 OFF 状态）
+     * - OFF 状态显示 off_shell 纹理
      * - FWD/REV 状态不映射（自动隐藏）
      */
-    private static final TextureEntry<VersatileGearboxShaftState> OFF_ENTRY = new TextureEntry<>(
-            TEXTURE_OFF,
+    private static final TextureEntry<VersatileGearboxShaftState> SHELL_ENTRY = new TextureEntry<>(
+            TEXTURE_OFF_CORE,
             Map.of(
-                VersatileGearboxShaftState.OFF, TEXTURE_OFF
+                VersatileGearboxShaftState.OFF, TEXTURE_ANDESITE_CASING
             )
     );
 
@@ -81,8 +88,8 @@ public class VersatileGearboxModel extends DynamicTextureModel<VersatileGearboxS
      * 纹理条目列表
      */
     private static final List<TextureEntry<VersatileGearboxShaftState>> TEXTURE_ENTRIES = List.of(
-            FWD_REV_ENTRY,
-            OFF_ENTRY
+            CORE_ENTRY,
+            SHELL_ENTRY
     );
 
     /**
