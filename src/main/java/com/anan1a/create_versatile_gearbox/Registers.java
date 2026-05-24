@@ -2,6 +2,7 @@ package com.anan1a.create_versatile_gearbox;
 
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 
@@ -25,14 +26,23 @@ public class Registers {
     public static final String MODID = CreateVersatileGearbox.MODID;
 
     /**
+     * 主创造模式选项卡的 ResourceKey
+     * <p>
+     * 唯一标识符，用于在 Registrate 初始化时引用选项卡
+     * 确保即使选项卡还未注册也能安全使用
+     */
+    public static final ResourceKey<CreativeModeTab> VERSATILE_GEARBOX_TAB_KEY =
+        ResourceKey.create(Registries.CREATIVE_MODE_TAB, ResourceLocation.fromNamespaceAndPath(MODID, "versatile_gearbox_tab"));
+
+    /**
      * CreateRegistrate 实例
      * <p>
      * Create 模组提供的注册工具，简化方块、方块实体、物品等的注册流程
-     * 设置 defaultCreativeTab 为 null 是为了避免自动分配到未注册的选项卡导致崩溃
-     * 实际的选项卡关联通过 setCreativeTab() 方法在各个注册类中设置
+     * 直接设置 defaultCreativeTab 为 MAIN_TAB_KEY，实现自动关联
+     * 采用 Create 官方风格的注册流程
      */
     private static final CreateRegistrate REGISTRATE = CreateRegistrate.create(MODID)
-            .defaultCreativeTab((ResourceKey<CreativeModeTab>) null);
+            .defaultCreativeTab(VERSATILE_GEARBOX_TAB_KEY);
 
     /**
      * 创造模式选项卡的 DeferredRegister 实例

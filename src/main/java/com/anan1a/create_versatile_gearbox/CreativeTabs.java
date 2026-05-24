@@ -18,7 +18,8 @@ import com.tterrag.registrate.util.entry.ItemProviderEntry;
 /**
  * 创造模式选项卡注册类
  * <p>
- * 使用手动注册列表的方式，参考 create_connected 模组
+ * 使用 Create 官方风格的注册方式
+ * 通过 ResourceKey 与 Registrate 自动关联
  */
 public class CreativeTabs {
     private static final DeferredRegister<CreativeModeTab> REGISTER = Registers.creativeModeTabs();
@@ -29,22 +30,24 @@ public class CreativeTabs {
      * 按顺序列出所有需要显示在选项卡中的物品/方块
      * 方块使用 XXBlocks.XX.asStack()，物品使用 XXItems.XX
      */
-    public static final List<ItemProviderEntry<?, ?>> ITEMS = List.of(
-            // 示例方块
-//            CVGBlocks.EXAMPLE_BLOCK,
-            // 示例物品
-//            CVGItems.EXAMPLE_ITEM,
-            
-            // 多功能传动箱相关
-            CVGBlocks.VERSATILE_GEARBOX
-    );
+//    public static final List<ItemProviderEntry<?, ?>> ITEMS = List.of(
+//            // 多功能传动箱相关
+////            CVGBlocks.VERSATILE_GEARBOX
+//    );
 
-    public static final DeferredHolder<CreativeModeTab, CreativeModeTab> EXAMPLE_TAB = REGISTER.register("versatile_gearbox_tab",
+    /**
+     * 主创造模式选项卡
+     * <p>
+     * 注册 ID: create_versatile_gearbox:versatile_gearbox_tab
+     * 使用 Registers.MAIN_TAB_KEY 中定义的 ResourceKey 保持一致
+     * 实现与 Registrate 的自动关联
+     */
+    public static final DeferredHolder<CreativeModeTab, CreativeModeTab> VERSATILE_GEARBOX_TAB = REGISTER.register("versatile_gearbox_tab",
             () -> CreativeModeTab.builder()
                     .title(Component.translatable("itemGroup." + MODID + ".versatile_gearbox_tab"))
                     .withTabsBefore(CreativeModeTabs.COMBAT)
-                    .icon(() -> CVGBlocks.VERSATILE_GEARBOX.asStack())
-                    .displayItems(new SimpleDisplayItemsGenerator(ITEMS))
+                    .icon(CVGBlocks.VERSATILE_GEARBOX::asStack)
+//                    .displayItems(new SimpleDisplayItemsGenerator(ITEMS))
                     .build());
 
     public static void register(IEventBus modEventBus) {
