@@ -106,23 +106,17 @@ public class Registers {
      * @param modEventBus 模组事件总线
      */
     public static void registerAll(IEventBus modEventBus) {
-        // 步骤1：注册创造模式选项卡
-        // 必须先注册选项卡，否则方块/物品无法关联到正确的选项卡
-        // 使用 DeferredRegister 延迟注册，lambda 表达式不会立即执行
-        CreativeTabs.register(modEventBus);
-
-        // 步骤2：注册 Registrate 的事件监听器
-        // 这会处理数据生成、模型注册等后续逻辑
+        // 步骤1：注册 Registrate 事件监听器
+        // 必须在选项卡和方块注册之前
         REGISTRATE.registerEventListeners(modEventBus);
 
+        // 步骤2：注册创造模式选项卡
+        CreativeTabs.register(modEventBus);
+
         // 步骤3：触发方块类加载
-        // 调用空的 register() 方法会触发类加载，从而执行静态初始化块
-        // 静态块中的 setCreativeTab() 和实际注册代码会在此执行
         CVGBlocks.register();
 
         // 步骤4：注册方块实体类型
-        // 必须在方块注册之后（类加载完成）才能注册，因为需要引用方块实例
-        // 通过 Registers 统一注册
         CVGBlockEntityTypes.register();
 
         // 步骤5：触发物品类加载

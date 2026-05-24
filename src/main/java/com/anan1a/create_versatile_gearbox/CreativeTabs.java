@@ -24,17 +24,33 @@ import com.tterrag.registrate.util.entry.ItemProviderEntry;
 public class CreativeTabs {
     private static final DeferredRegister<CreativeModeTab> REGISTER = Registers.creativeModeTabs();
 
-    /**
-     * 手动注册的物品列表
-     * <p>
-     * 按顺序列出所有需要显示在选项卡中的物品/方块
-     * 方块使用 XXBlocks.XX.asStack()，物品使用 XXItems.XX
-     */
+//    /**
+//     * 手动注册的物品列表
+//     * <p>
+//     * 按顺序列出所有需要显示在选项卡中的物品/方块
+//     * 方块使用 XXBlocks.XX.asStack()，物品使用 XXItems.XX
+//     */
 //    public static final List<ItemProviderEntry<?, ?>> ITEMS = List.of(
 //            // 多功能传动箱相关
-////            CVGBlocks.VERSATILE_GEARBOX
+//            CVGBlocks.VERSATILE_GEARBOX
 //    );
 
+//    /**
+//     * 简单的物品显示生成器
+//     * <p>
+//     * 遍历 ITEMS 列表并输出到选项卡
+//     */
+//    private record SimpleDisplayItemsGenerator(
+//            List<ItemProviderEntry<?, ?>> items
+//    ) implements DisplayItemsGenerator {
+//
+//        @Override
+//        public void accept(CreativeModeTab.ItemDisplayParameters params, CreativeModeTab.Output output) {
+//            for (ItemProviderEntry<?, ?> item : items) {
+//                output.accept(item);
+//            }
+//        }
+//    }
     /**
      * 主创造模式选项卡
      * <p>
@@ -52,22 +68,5 @@ public class CreativeTabs {
 
     public static void register(IEventBus modEventBus) {
         REGISTER.register(modEventBus);
-    }
-
-    /**
-     * 简单的物品显示生成器
-     * <p>
-     * 遍历 ITEMS 列表并输出到选项卡
-     */
-    private record SimpleDisplayItemsGenerator(
-            List<ItemProviderEntry<?, ?>> items
-    ) implements DisplayItemsGenerator {
-
-        @Override
-        public void accept(CreativeModeTab.ItemDisplayParameters params, CreativeModeTab.Output output) {
-            for (ItemProviderEntry<?, ?> item : items) {
-                output.accept(item);
-            }
-        }
     }
 }
