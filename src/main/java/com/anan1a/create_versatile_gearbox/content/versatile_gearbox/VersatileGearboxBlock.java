@@ -38,15 +38,28 @@ import net.minecraft.world.phys.HitResult;
 public class VersatileGearboxBlock extends KineticBlock implements IBE<VersatileGearboxBlockEntity> {
 
     /**
-     * 六个面的传动轴状态属性
-     * 支持三种状态：OFF(关闭), SAME(同向), OPPOSITE(反向)
+     * 六个面的传动轴状态属性数组
+     * <p>
+     * 索引顺序：DOWN=0, UP=1, NORTH=2, SOUTH=3, WEST=4, EAST=5
+     * 与 Direction.get3DDataValue() 返回值一致
      */
-    public static final EnumProperty<VersatileGearboxShaftState> DOWN_STATE = EnumProperty.create("down_state", VersatileGearboxShaftState.class);
-    public static final EnumProperty<VersatileGearboxShaftState> UP_STATE = EnumProperty.create("up_state", VersatileGearboxShaftState.class);
-    public static final EnumProperty<VersatileGearboxShaftState> NORTH_STATE = EnumProperty.create("north_state", VersatileGearboxShaftState.class);
-    public static final EnumProperty<VersatileGearboxShaftState> SOUTH_STATE = EnumProperty.create("south_state", VersatileGearboxShaftState.class);
-    public static final EnumProperty<VersatileGearboxShaftState> WEST_STATE = EnumProperty.create("west_state", VersatileGearboxShaftState.class);
-    public static final EnumProperty<VersatileGearboxShaftState> EAST_STATE = EnumProperty.create("east_state", VersatileGearboxShaftState.class);
+    @SuppressWarnings("unchecked")
+    private static final EnumProperty<VersatileGearboxShaftState>[] STATE_PROPERTIES = new EnumProperty[]{
+            EnumProperty.create("down_state", VersatileGearboxShaftState.class),
+            EnumProperty.create("up_state", VersatileGearboxShaftState.class),
+            EnumProperty.create("north_state", VersatileGearboxShaftState.class),
+            EnumProperty.create("south_state", VersatileGearboxShaftState.class),
+            EnumProperty.create("west_state", VersatileGearboxShaftState.class),
+            EnumProperty.create("east_state", VersatileGearboxShaftState.class)
+    };
+
+    // 便捷访问常量（保持向后兼容）
+    public static final EnumProperty<VersatileGearboxShaftState> DOWN_STATE = STATE_PROPERTIES[0];
+    public static final EnumProperty<VersatileGearboxShaftState> UP_STATE = STATE_PROPERTIES[1];
+    public static final EnumProperty<VersatileGearboxShaftState> NORTH_STATE = STATE_PROPERTIES[2];
+    public static final EnumProperty<VersatileGearboxShaftState> SOUTH_STATE = STATE_PROPERTIES[3];
+    public static final EnumProperty<VersatileGearboxShaftState> WEST_STATE = STATE_PROPERTIES[4];
+    public static final EnumProperty<VersatileGearboxShaftState> EAST_STATE = STATE_PROPERTIES[5];
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
@@ -74,35 +87,23 @@ public class VersatileGearboxBlock extends KineticBlock implements IBE<Versatile
 
     /**
      * 获取指定方向的传动轴状态
+     * <p>优化说明：使用 Direction.get3DDataValue() 作为数组索引，避免 switch 分支
      */
     public static VersatileGearboxShaftState getShaftState(Direction face, BlockState state) {
-        return switch (face) {
-            case DOWN -> state.getValue(DOWN_STATE);
-            case UP -> state.getValue(UP_STATE);
-            case NORTH -> state.getValue(NORTH_STATE);
-            case SOUTH -> state.getValue(SOUTH_STATE);
-            case WEST -> state.getValue(WEST_STATE);
-            case EAST -> state.getValue(EAST_STATE);
-        };
+        return state.getValue(STATE_PROPERTIES[face.get3DDataValue()]);
     }
 
     /**
      * 设置指定方向的传动轴状态
+     * <p>优化说明：使用 Direction.get3DDataValue() 作为数组索引，避免 switch 分支
      */
     public static BlockState setShaftState(Direction face, BlockState state, VersatileGearboxShaftState shaftState) {
-        return switch (face) {
-            case DOWN -> state.setValue(DOWN_STATE, shaftState);
-            case UP -> state.setValue(UP_STATE, shaftState);
-            case NORTH -> state.setValue(NORTH_STATE, shaftState);
-            case SOUTH -> state.setValue(SOUTH_STATE, shaftState);
-            case WEST -> state.setValue(WEST_STATE, shaftState);
-            case EAST -> state.setValue(EAST_STATE, shaftState);
-        };
+        return state.setValue(STATE_PROPERTIES[face.get3DDataValue()], shaftState);
     }
 
     /**
      * 获取下一个状态（循环切换）
-     * OFF → SAME → OPPOSITE → OFF
+     * OFF → FWD → REV → OFF
      */
     public static VersatileGearboxShaftState getNextState(VersatileGearboxShaftState current) {
         return switch (current) {
@@ -114,16 +115,10 @@ public class VersatileGearboxBlock extends KineticBlock implements IBE<Versatile
 
     /**
      * 获取指定方向对应的状态属性
+     * <p>优化说明：使用 Direction.get3DDataValue() 作为数组索引，避免 switch 分支
      */
     public static EnumProperty<VersatileGearboxShaftState> getStateProperty(Direction face) {
-        return switch (face) {
-            case DOWN -> DOWN_STATE;
-            case UP -> UP_STATE;
-            case NORTH -> NORTH_STATE;
-            case SOUTH -> SOUTH_STATE;
-            case WEST -> WEST_STATE;
-            case EAST -> EAST_STATE;
-        };
+        return STATE_PROPERTIES[face.get3DDataValue()];
     }
 
     /**
@@ -141,17 +136,12 @@ public class VersatileGearboxBlock extends KineticBlock implements IBE<Versatile
     /**
      * 获取方块破坏时的掉落物
      * <p>
-     * 【实际破坏场景】当玩家破坏方块时调用此方法，决定实际获得的物品：
-     * - 当前实现委托给父类方法，使用默认掉落逻辑
-     * - 可根据需要重写此方法，实现基于方块状态的自定义掉落
-     * <p>
-     * 【掉落逻辑】
-     * - 玩家使用精准采集附魔的镐子时，如果此方法返回空列表，方块不会被破坏
-     * - 此方法的返回值受 LootParams 参数影响（可被战利品表修改）
+     * 当前使用默认掉落逻辑，由战利品表控制。
+     * 可根据需要重写此方法，实现基于方块状态的自定义掉落。
      *
-     * @param state    方块当前状态（包含朝向轴信息）
-     * @param builder  战利品参数构建器（可用于查询破坏工具等信息）
-     * @return         物品栈列表，返回空列表表示不掉落任何物品
+     * @param state   方块当前状态
+     * @param builder 战利品参数构建器
+     * @return        物品栈列表
      */
     @SuppressWarnings("deprecation")
     @Override
@@ -162,22 +152,15 @@ public class VersatileGearboxBlock extends KineticBlock implements IBE<Versatile
     /**
      * 获取创造模式/UI显示用的物品栈
      * <p>
-     * 【非破坏场景】此方法不会破坏方块，仅返回表示该方块的物品栈，用于：
-     * - 创造模式物品栏中显示的物品
-     * - 玩家按住 Shift 点击方块时显示的提示物品
-     * - 某些mod的方块复制功能
-     * <p>
-     * 【与 getDrops() 的区别】
-     * - getDrops() 在方块实际被破坏时调用
-     * - getCloneItemStack() 仅用于显示/复制，不涉及破坏
-     * - 此方法的返回值不受战利品表影响，直接返回表示方块的物品
+     * 此方法不破坏方块，仅返回表示该方块的物品栈，用于创造模式物品栏和提示显示。
+     * 返回值不受战利品表影响，直接返回表示方块的物品。
      *
-     * @param state   方块当前状态
-     * @param target  玩家瞄准的位置（可用于区分点击的具体面）
-     * @param level   世界实例
-     * @param pos     方块位置
-     * @param player  交互的玩家（可用于检查玩家状态）
-     * @return        表示该方块的物品栈，用于显示
+     * @param state  方块当前状态
+     * @param target 玩家瞄准的位置
+     * @param level  世界实例
+     * @param pos    方块位置
+     * @param player 交互的玩家
+     * @return       表示该方块的物品栈
      */
     @Override
     public ItemStack getCloneItemStack(BlockState state, HitResult target, LevelReader level, BlockPos pos,
@@ -237,41 +220,35 @@ public class VersatileGearboxBlock extends KineticBlock implements IBE<Versatile
      * - 原来在 EAST 的面转到 SOUTH 位置 → 新 SOUTH = 旧 EAST
      * - 原来在 SOUTH 的面转到 WEST 位置 → 新 WEST = 旧 SOUTH
      *
-     * @param state  原始方块状态
+     * @param state    原始方块状态
      * @param rotation 旋转方式
      * @return 旋转后的方块状态
      */
     @Override
     public BlockState rotate(BlockState state, Rotation rotation) {
-        // 获取当前六个面的状态
-        VersatileGearboxShaftState down = state.getValue(DOWN_STATE);
-        VersatileGearboxShaftState up = state.getValue(UP_STATE);
+        if (rotation == Rotation.NONE) return state;
+
         VersatileGearboxShaftState north = state.getValue(NORTH_STATE);
         VersatileGearboxShaftState south = state.getValue(SOUTH_STATE);
         VersatileGearboxShaftState west = state.getValue(WEST_STATE);
         VersatileGearboxShaftState east = state.getValue(EAST_STATE);
 
-        // 根据旋转角度重新分配水平方向的状态
         return switch (rotation) {
-            case NONE -> state; // 不旋转
-            case CLOCKWISE_90 -> state.setValue(DOWN_STATE, down)
-                    .setValue(UP_STATE, up)
-                    .setValue(NORTH_STATE, west)   // 新 NORTH = 旧 WEST（WEST→NORTH）
-                    .setValue(SOUTH_STATE, east)   // 新 SOUTH = 旧 EAST（EAST→SOUTH）
-                    .setValue(WEST_STATE, south)   // 新 WEST = 旧 SOUTH（SOUTH→WEST）
-                    .setValue(EAST_STATE, north);  // 新 EAST = 旧 NORTH（NORTH→EAST）
-            case CLOCKWISE_180 -> state.setValue(DOWN_STATE, down)
-                    .setValue(UP_STATE, up)
-                    .setValue(NORTH_STATE, south)  // 新 NORTH = 旧 SOUTH（SOUTH→NORTH）
-                    .setValue(SOUTH_STATE, north)  // 新 SOUTH = 旧 NORTH（NORTH→SOUTH）
-                    .setValue(WEST_STATE, east)    // 新 WEST = 旧 EAST（EAST→WEST）
-                    .setValue(EAST_STATE, west);   // 新 EAST = 旧 WEST（WEST→EAST）
-            case COUNTERCLOCKWISE_90 -> state.setValue(DOWN_STATE, down)
-                    .setValue(UP_STATE, up)
-                    .setValue(NORTH_STATE, east)   // 新 NORTH = 旧 EAST（EAST→NORTH）
-                    .setValue(SOUTH_STATE, west)   // 新 SOUTH = 旧 WEST（WEST→SOUTH）
-                    .setValue(WEST_STATE, north)   // 新 WEST = 旧 NORTH（NORTH→WEST）
-                    .setValue(EAST_STATE, south);  // 新 EAST = 旧 SOUTH（SOUTH→EAST）
+            case CLOCKWISE_90 -> state
+                    .setValue(NORTH_STATE, west)
+                    .setValue(SOUTH_STATE, east)
+                    .setValue(WEST_STATE, south)
+                    .setValue(EAST_STATE, north);
+            case CLOCKWISE_180 -> state
+                    .setValue(NORTH_STATE, south)
+                    .setValue(SOUTH_STATE, north)
+                    .setValue(WEST_STATE, east)
+                    .setValue(EAST_STATE, west);
+            default -> state
+                    .setValue(NORTH_STATE, east)
+                    .setValue(SOUTH_STATE, west)
+                    .setValue(WEST_STATE, north)
+                    .setValue(EAST_STATE, south);
         };
     }
 
@@ -290,38 +267,28 @@ public class VersatileGearboxBlock extends KineticBlock implements IBE<Versatile
      */
     @Override
     public BlockState mirror(BlockState state, Mirror mirror) {
-        // 获取当前六个面的状态
-        VersatileGearboxShaftState down = state.getValue(DOWN_STATE);
-        VersatileGearboxShaftState up = state.getValue(UP_STATE);
-        VersatileGearboxShaftState north = state.getValue(NORTH_STATE);
-        VersatileGearboxShaftState south = state.getValue(SOUTH_STATE);
-        VersatileGearboxShaftState west = state.getValue(WEST_STATE);
-        VersatileGearboxShaftState east = state.getValue(EAST_STATE);
-
-        // 根据镜像方式重新分配状态
-        return switch (mirror) {
-            case NONE -> state; // 不镜像
-            case LEFT_RIGHT -> state.setValue(DOWN_STATE, down)
-                    .setValue(UP_STATE, up)
-                    .setValue(NORTH_STATE, south)  // 新 NORTH = 旧 SOUTH（左右镜像时南北交换）
-                    .setValue(SOUTH_STATE, north)  // 新 SOUTH = 旧 NORTH
-                    .setValue(WEST_STATE, west)    // WEST/EAST 不变
-                    .setValue(EAST_STATE, east);
-            case FRONT_BACK -> state.setValue(DOWN_STATE, down)
-                    .setValue(UP_STATE, up)
-                    .setValue(NORTH_STATE, north)  // NORTH/SOUTH 不变
-                    .setValue(SOUTH_STATE, south)
-                    .setValue(WEST_STATE, east)    // 新 WEST = 旧 EAST（前后镜像时东西交换）
-                    .setValue(EAST_STATE, west);   // 新 EAST = 旧 WEST
-        };
+        if (mirror == Mirror.LEFT_RIGHT) {
+            VersatileGearboxShaftState north = state.getValue(NORTH_STATE);
+            VersatileGearboxShaftState south = state.getValue(SOUTH_STATE);
+            return state
+                    .setValue(NORTH_STATE, south)
+                    .setValue(SOUTH_STATE, north);
+        }
+        if (mirror == Mirror.FRONT_BACK) {
+            VersatileGearboxShaftState west = state.getValue(WEST_STATE);
+            VersatileGearboxShaftState east = state.getValue(EAST_STATE);
+            return state
+                    .setValue(WEST_STATE, east)
+                    .setValue(EAST_STATE, west);
+        }
+        return state;
     }
 
     /**
      * 扳手交互处理
      * <p>
-     * 【交互逻辑】
      * - Shift+右键（潜行）：执行快速拆除（调用父类方法）
-     * - 右键（非潜行）：切换点击面的传动轴旋转方向
+     * - 右键（非潜行）：循环切换点击面传动轴的状态
      *
      * @param state   方块状态
      * @param context 使用上下文
@@ -330,18 +297,16 @@ public class VersatileGearboxBlock extends KineticBlock implements IBE<Versatile
     @Override
     public InteractionResult onWrenched(BlockState state, UseOnContext context) {
         if (context.getPlayer() != null && context.getPlayer().isShiftKeyDown()) {
-            // Shift+右键：执行快速拆除
             return super.onWrenched(state, context);
         }
-        // 右键（非潜行）：调用自定义交互方法
         return onWrenchRightClick(state, context);
     }
 
     /**
      * 自定义扳手右键交互（非潜行）
      * <p>
-     * 【功能】切换点击面的传动轴旋转方向
-     * 当玩家用扳手右键点击某个面时，翻转该面的旋转方向
+     * 循环切换点击面传动轴的状态：FWD → REV → OFF → FWD
+     * 当玩家用扳手右键点击某个面时，依次改变该面的轴状态。
      *
      * @param state   方块状态
      * @param context 使用上下文
@@ -354,19 +319,14 @@ public class VersatileGearboxBlock extends KineticBlock implements IBE<Versatile
 
         BlockPos pos = context.getClickedPos();
         Player player = context.getPlayer();
-
-        // 获取点击的方向
         Direction clickedFace = context.getClickedFace();
 
-        // 使用 cycle 方法切换状态，这会触发 areStatesKineticallyEquivalent 检查
-        // 从而自动重建动力网络
+        // 使用 cycle 切换状态，触发 areStatesKineticallyEquivalent 检查并自动重建动力网络
         BlockState newState = state.cycle(getStateProperty(clickedFace));
         KineticBlockEntity.switchToBlockState(level, pos, newState);
 
-        // 播放声音反馈
         playRotateSound(level, pos);
 
-        // 播放玩家手臂挥动动画
         if (player != null) {
             player.swing(context.getHand());
         }

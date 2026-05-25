@@ -22,19 +22,9 @@ import java.util.function.Consumer;
 public class VersatileGearboxVisual extends KineticBlockEntityVisual<VersatileGearboxBlockEntity> {
 
     /**
-     * 方向枚举到索引的映射表（优化查找性能）
-     * <p>
-     * 使用数组索引替代 Direction.fromOrdinal() 方法调用
-     */
-    private static final Direction[] DIRECTIONS = {
-            Direction.DOWN, Direction.UP, Direction.NORTH,
-            Direction.SOUTH, Direction.WEST, Direction.EAST
-    };
-
-    /**
      * 存储每个方向的旋转实例（数组形式，优化访问速度）
      * <p>
-     * 索引 0-5 对应 DOWN, UP, NORTH, SOUTH, WEST, EAST
+     * 索引 0-5 对应 DOWN, UP, NORTH, SOUTH, WEST, EAST（与 Direction.values() 顺序一致）
      */
     protected final RotatingInstance[] keys = new RotatingInstance[6];
 
@@ -147,7 +137,7 @@ public class VersatileGearboxVisual extends KineticBlockEntityVisual<VersatileGe
         for (int i = 0; i < 6; i++) {
             RotatingInstance instance = keys[i];
             if (instance != null) {
-                Direction direction = DIRECTIONS[i];
+                Direction direction = Direction.values()[i];
                 instance.setup(blockEntity, direction.getAxis(), getSpeed(direction)).setChanged();
             }
         }
