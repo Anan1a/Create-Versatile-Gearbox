@@ -15,177 +15,96 @@ import net.neoforged.neoforge.client.model.data.ModelProperty;
 
 /**
  * 多功能齿轮箱模型
- * <p>
- * 根据六个面的轴状态动态渲染不同的纹理。
- * 参考 CopycatModelCore 的设计模式，采用结构化的纹理配置方式。
  *
- * <p>性能优化：
- * - 使用静态 final 纹理常量，避免重复创建 ResourceLocation
- * - HashSet 加速占位符查找（基类实现）
- * - 纹理缓存机制，减少运行时开销（基类实现）
+ * <p>功能说明：
+ * 根据六个面的轴状态（FWD/REV/OFF）动态渲染不同的纹理。
+ * - FWD: 轴正向旋转 → 显示 fwd_core 纹理
+ * - REV: 轴反向旋转 → 显示 rev_core 纹理
+ * - OFF: 无轴或关闭 → 显示 off_shell 或 Andesite 机壳纹理
+ *
+ * <p>面状态顺序：[DOWN, UP, NORTH, SOUTH, WEST, EAST]
  */
 public class VersatileGearboxModel extends DynamicTextureModel<VersatileGearboxShaftState> {
 
-    /**
-     * 状态属性：存储六个面的轴状态
-     */
+    /** 存储六个面轴状态的属性 */
     public static final ModelProperty<VersatileGearboxShaftState[]> FACE_STATES = new ModelProperty<>();
 
-    /**
-     * 纹理路径常量 - 安山机壳纹理
-     */
-    private static final ResourceLocation TEXTURE_ANDESITE_CASING = ResourceLocation.fromNamespaceAndPath("create", "block/andesite_casing");
-
-    /**
-     * 纹理基础路径常量
-     */
     private static final String TEXTURE_BASE = "block/versatile_gearbox/";
 
-    /**
-     * 纹理路径常量 - FWD 状态核心纹理
-     */
-    private static final ResourceLocation TEXTURE_FWD_CORE = ResourceLocation.fromNamespaceAndPath(MODID, TEXTURE_BASE + "fwd_core");
+    // 纹理常量
+    private static final ResourceLocation TEXTURE_ANDESITE = ResourceLocation.fromNamespaceAndPath("create", "block/andesite_casing");
+    private static final ResourceLocation TEXTURE_FWD = ResourceLocation.fromNamespaceAndPath(MODID, TEXTURE_BASE + "fwd_core");
+    private static final ResourceLocation TEXTURE_REV = ResourceLocation.fromNamespaceAndPath(MODID, TEXTURE_BASE + "rev_core");
+    private static final ResourceLocation TEXTURE_OFF = ResourceLocation.fromNamespaceAndPath(MODID, TEXTURE_BASE + "off_shell");
 
-    /**
-     * 纹理路径常量 - REV 状态核心纹理
-     */
-    private static final ResourceLocation TEXTURE_REV_CORE = ResourceLocation.fromNamespaceAndPath(MODID, TEXTURE_BASE + "rev_core");
-
-    /**
-     * 纹理路径常量 - OFF 状态机壳纹理
-     */
-    private static final ResourceLocation TEXTURE_OFF_CORE = ResourceLocation.fromNamespaceAndPath(MODID, TEXTURE_BASE + "off_shell");
-
-
-
-    /**
-     * 核心模型纹理条目（处理 FWD/REV 状态）
-     * - FWD 状态显示 fwd_core 纹理
-     * - REV 状态显示 rev_core 纹理
-     * - OFF 状态不映射（自动隐藏）
-     */
+    // 纹理条目定义
+    // CORE_ENTRY: 旋转状态(FWD/REV)使用独立纹理
     private static final TextureEntry<VersatileGearboxShaftState> CORE_ENTRY = new TextureEntry<>(
-            TEXTURE_FWD_CORE,
+            TEXTURE_FWD,
             Map.of(
-                VersatileGearboxShaftState.FWD, TEXTURE_FWD_CORE,
-                VersatileGearboxShaftState.REV, TEXTURE_REV_CORE
+                VersatileGearboxShaftState.FWD, TEXTURE_FWD,
+                VersatileGearboxShaftState.REV, TEXTURE_REV
             )
     );
 
-    /**
-     * 外壳模型纹理条目（处理 OFF 状态）
-     * - OFF 状态显示 off_shell 纹理
-     * - FWD/REV 状态不映射（自动隐藏）
-     */
+    // SHELL_ENTRY: 关闭状态使用外壳纹理
     private static final TextureEntry<VersatileGearboxShaftState> SHELL_ENTRY = new TextureEntry<>(
-            TEXTURE_OFF_CORE,
-            Map.of(
-                VersatileGearboxShaftState.OFF, TEXTURE_ANDESITE_CASING
-            )
+            TEXTURE_OFF,
+            Map.of(VersatileGearboxShaftState.OFF, TEXTURE_ANDESITE)
     );
 
-    /**
-     * 纹理条目列表
-     */
-    private static final List<TextureEntry<VersatileGearboxShaftState>> TEXTURE_ENTRIES = List.of(
-            CORE_ENTRY,
-            SHELL_ENTRY
-    );
+    private static final List<TextureEntry<VersatileGearboxShaftState>> TEXTURE_ENTRIES = List.of(CORE_ENTRY, SHELL_ENTRY);
 
-    /**
-     * 构造函数
-     *
-     * @param template 原始烘焙模型
-     */
     public VersatileGearboxModel(BakedModel template) {
-        super(
-            template,
-            TEXTURE_ENTRIES,
-            VersatileGearboxModel::getFaceStatesFromBlock
-        );
+        super(template, TEXTURE_ENTRIES, VersatileGearboxModel::getStatesFromBlock);
     }
 
-    /**
-     * 从 ModelData 获取状态数组
-     *
-     * @param extraData 额外的数据
-     * @return 状态数组
-     */
     @Override
-    protected VersatileGearboxShaftState[] getStatesFromModelData(ModelData extraData) {
-        if (extraData != null && extraData.has(FACE_STATES)) {
-            VersatileGearboxShaftState[] states = extraData.get(FACE_STATES);
-            return validateStates(states);
-        }
-        return null;
-    }
-
-    /**
-     * 验证状态数组的有效性
-     *
-     * @param states 状态数组
-     * @return 有效的状态数组，如果无效则返回 null
-     */
-    private VersatileGearboxShaftState[] validateStates(VersatileGearboxShaftState[] states) {
-        if (states != null && states.length == 6) {
-            for (VersatileGearboxShaftState state : states) {
-                if (state == null) {
-                    return null;
+    protected VersatileGearboxShaftState[] getStatesFromModelData(ModelData data) {
+        if (data != null && data.has(FACE_STATES)) {
+            VersatileGearboxShaftState[] states = data.get(FACE_STATES);
+            // 验证状态数组有效性：必须长度为6且无null
+            if (states != null && states.length == 6) {
+                for (VersatileGearboxShaftState s : states) {
+                    if (s == null) return null;
                 }
+                return states;
             }
-            return states;
         }
         return null;
     }
 
-    /**
-     * 根据面方向获取对应的状态
-     *
-     * @param face   面方向
-     * @param states 状态数组
-     * @return 该面对应的状态
-     */
     @Override
     protected VersatileGearboxShaftState getStateForFace(Direction face, VersatileGearboxShaftState[] states) {
         if (states == null || states.length != 6) {
             return VersatileGearboxShaftState.OFF;
         }
-
-        int index = getDirectionIndex(face);
-        if (index < 0 || index >= states.length) {
-            return VersatileGearboxShaftState.OFF;
-        }
-
-        return states[index];
+        int index = directionToIndex(face);
+        return (index >= 0 && index < 6) ? states[index] : VersatileGearboxShaftState.OFF;
     }
 
     /**
-     * 从 BlockState 获取状态数组
-     *
-     * @param state 状态
-     * @return 状态数组
+     * 从BlockState获取六个面的轴状态
      */
-    private static VersatileGearboxShaftState[] getFaceStatesFromBlock(BlockState state) {
-        if (!(state.getBlock() instanceof VersatileGearboxBlock)) {
+    private static VersatileGearboxShaftState[] getStatesFromBlock(BlockState state) {
+        if (!(state.getBlock() instanceof VersatileGearboxBlock block)) {
             return null;
         }
         return new VersatileGearboxShaftState[]{
-            VersatileGearboxBlock.getShaftState(Direction.DOWN, state),
-            VersatileGearboxBlock.getShaftState(Direction.UP, state),
-            VersatileGearboxBlock.getShaftState(Direction.NORTH, state),
-            VersatileGearboxBlock.getShaftState(Direction.SOUTH, state),
-            VersatileGearboxBlock.getShaftState(Direction.WEST, state),
-            VersatileGearboxBlock.getShaftState(Direction.EAST, state)
+                block.getShaftState(Direction.DOWN, state),
+                block.getShaftState(Direction.UP, state),
+                block.getShaftState(Direction.NORTH, state),
+                block.getShaftState(Direction.SOUTH, state),
+                block.getShaftState(Direction.WEST, state),
+                block.getShaftState(Direction.EAST, state)
         };
     }
 
     /**
-     * 获取方向索引
-     *
-     * @param direction 方向
-     * @return 方向索引
+     * 方向到索引的映射
+     * 索引顺序：DOWN=0, UP=1, NORTH=2, SOUTH=3, WEST=4, EAST=5
      */
-    private int getDirectionIndex(Direction direction) {
+    private static int directionToIndex(Direction direction) {
         return switch (direction) {
             case DOWN -> 0;
             case UP -> 1;
