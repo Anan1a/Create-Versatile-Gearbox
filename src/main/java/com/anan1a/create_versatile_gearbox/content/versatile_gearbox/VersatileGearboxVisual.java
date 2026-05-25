@@ -6,7 +6,6 @@ import com.simibubi.create.content.kinetics.base.RotatingInstance;
 import com.simibubi.create.foundation.render.AllInstanceTypes;
 import dev.engine_room.flywheel.api.instance.Instance;
 import dev.engine_room.flywheel.api.visualization.VisualizationContext;
-import dev.engine_room.flywheel.lib.instance.FlatLit;
 import dev.engine_room.flywheel.lib.model.Models;
 import net.createmod.catnip.data.Iterate;
 import net.minecraft.core.BlockPos;
@@ -178,14 +177,11 @@ public class VersatileGearboxVisual extends KineticBlockEntityVisual<VersatileGe
      */
     @Override
     public void updateLight(float partialTick) {
-        FlatLit[] instances = new FlatLit[6];
-        int count = 0;
         for (RotatingInstance instance : keys) {
             if (instance != null) {
-                instances[count++] = instance;
+                relight(instance);
             }
         }
-        relight(instances);
     }
 
     /**

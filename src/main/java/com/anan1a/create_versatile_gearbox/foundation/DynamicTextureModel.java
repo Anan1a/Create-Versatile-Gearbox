@@ -3,6 +3,7 @@ package com.anan1a.create_versatile_gearbox.foundation;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -133,7 +134,7 @@ public class DynamicTextureModel<T> {
         Objects.requireNonNull(entries, "textureEntries cannot be null");
         
         // 预分配容量，避免扩容
-        Map<ResourceLocation, TextureEntry<T>> map = new java.util.HashMap<>(entries.size());
+        Map<ResourceLocation, TextureEntry<T>> map = new HashMap<>(entries.size());
         for (TextureEntry<T> entry : entries) {
             Objects.requireNonNull(entry, "texture entry cannot be null");
             Objects.requireNonNull(entry.placeholder(), "placeholder cannot be null");

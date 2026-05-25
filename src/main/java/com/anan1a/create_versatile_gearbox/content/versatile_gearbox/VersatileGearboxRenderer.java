@@ -4,6 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.simibubi.create.AllPartialModels;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntityRenderer;
 import dev.engine_room.flywheel.api.visualization.VisualizationManager;
+import net.createmod.catnip.animation.AnimationTickHolder;
 import net.createmod.catnip.data.Iterate;
 import net.createmod.catnip.render.CachedBuffers;
 import net.createmod.catnip.render.SuperByteBuffer;
@@ -149,7 +150,7 @@ public class VersatileGearboxRenderer extends KineticBlockEntityRenderer<Versati
      * @return 旋转角度（弧度制）
      */
     protected float getAngleForDirection(VersatileGearboxBlockEntity be, BlockPos pos, Axis axis, float speed) {
-        float time = net.createmod.catnip.animation.AnimationTickHolder.getRenderTime(be.getLevel());
+        float time = AnimationTickHolder.getRenderTime(be.getLevel());
         float offset = getRotationOffsetForPosition(be, pos, axis);
         
         // 直接使用速度计算角度（允许负数角度表示反向旋转）

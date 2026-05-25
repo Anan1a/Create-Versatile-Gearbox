@@ -31,25 +31,17 @@ public class VersatileGearboxBlockEntity extends SplitShaftBlockEntity {
     public float getRotationSpeedModifier(Direction face) {
         // 获取方块状态
         BlockState state = getBlockState();
-        
+
         // 1. 检查输出面状态
-        VersatileGearboxShaftState faceState = VersatileGearboxBlock.getShaftState(face, state);
-        if (faceState == VersatileGearboxShaftState.OFF) {
-            return 0;
-        }
-        
+        if (VersatileGearboxBlock.getShaftState(face, state) == VersatileGearboxShaftState.OFF) return 0;
+
         // 2. 检查是否有动力源
-        if (!hasSource()) {
-            return 0;
-        }
-        
+        if (!hasSource()) return 0;
+
         // 3. 检查输入面状态
         Direction source = getSourceFacing();
-        VersatileGearboxShaftState sourceState = VersatileGearboxBlock.getShaftState(source, state);
-        if (sourceState == VersatileGearboxShaftState.OFF) {
-            return 0;
-        }
-        
+        if (VersatileGearboxBlock.getShaftState(source, state) == VersatileGearboxShaftState.OFF) return 0;
+
         // 4. 计算旋转方向
         return getRotationSpeedModifier(face, source, state);
     }
@@ -72,28 +64,23 @@ public class VersatileGearboxBlockEntity extends SplitShaftBlockEntity {
         VersatileGearboxShaftState sourceState = VersatileGearboxBlock.getShaftState(source, state);
         
         // 如果输入面关闭，所有输出都停止
-        if (sourceState == VersatileGearboxShaftState.OFF) {
-            return 0;
-        }
+        if (sourceState == VersatileGearboxShaftState.OFF) return 0;
 
         // 获取输出面状态
         VersatileGearboxShaftState faceState = VersatileGearboxBlock.getShaftState(face, state);
-        
+
         // 如果输出面关闭，返回0（不输出动力）
-        if (faceState == VersatileGearboxShaftState.OFF) {
-            return 0;
-        }
+        if (faceState == VersatileGearboxShaftState.OFF) return 0;
 
         // 轴方向修正
         int axisAdjust = face.getAxisDirection() == source.getAxisDirection() ? 1 : -1;
-        // int axisAdjust = 1;
 
         // 输出面状态修正
         int faceModifier = faceState == VersatileGearboxShaftState.FWD ? 1 : -1;
-        
+
         // 动力源面状态修正（影响输出方向）
         int sourceModifier = sourceState == VersatileGearboxShaftState.FWD ? 1 : -1;
-        
+
         return axisAdjust * faceModifier * sourceModifier;
     }
 
@@ -110,7 +97,7 @@ public class VersatileGearboxBlockEntity extends SplitShaftBlockEntity {
     @Override
     public ModelData getModelData() {
         BlockState state = getBlockState();
-        
+
         // 按绝对方向顺序获取六个面的状态（自动处理相对朝向转换）
         VersatileGearboxShaftState[] faceStates = new VersatileGearboxShaftState[]{
             VersatileGearboxBlock.getShaftState(Direction.DOWN, state),
@@ -120,7 +107,7 @@ public class VersatileGearboxBlockEntity extends SplitShaftBlockEntity {
             VersatileGearboxBlock.getShaftState(Direction.WEST, state),
             VersatileGearboxBlock.getShaftState(Direction.EAST, state)
         };
-        
+
         // 将面状态数组打包到 ModelData 中，传递给渲染器
         return ModelData.builder()
                 .with(VersatileGearboxModel.FACE_STATES, faceStates)

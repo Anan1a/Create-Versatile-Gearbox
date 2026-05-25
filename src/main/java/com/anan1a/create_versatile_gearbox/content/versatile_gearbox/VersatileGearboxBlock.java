@@ -53,7 +53,7 @@ public class VersatileGearboxBlock extends KineticBlock implements IBE<Versatile
             EnumProperty.create("east_state", VersatileGearboxShaftState.class)
     };
 
-    // 便捷访问常量（保持向后兼容）
+    // 单方向便捷访问常量
     public static final EnumProperty<VersatileGearboxShaftState> DOWN_STATE = STATE_PROPERTIES[0];
     public static final EnumProperty<VersatileGearboxShaftState> UP_STATE = STATE_PROPERTIES[1];
     public static final EnumProperty<VersatileGearboxShaftState> NORTH_STATE = STATE_PROPERTIES[2];
@@ -87,7 +87,6 @@ public class VersatileGearboxBlock extends KineticBlock implements IBE<Versatile
 
     /**
      * 获取指定方向的传动轴状态
-     * <p>优化说明：使用 Direction.get3DDataValue() 作为数组索引，避免 switch 分支
      */
     public static VersatileGearboxShaftState getShaftState(Direction face, BlockState state) {
         return state.getValue(STATE_PROPERTIES[face.get3DDataValue()]);
@@ -95,27 +94,13 @@ public class VersatileGearboxBlock extends KineticBlock implements IBE<Versatile
 
     /**
      * 设置指定方向的传动轴状态
-     * <p>优化说明：使用 Direction.get3DDataValue() 作为数组索引，避免 switch 分支
      */
     public static BlockState setShaftState(Direction face, BlockState state, VersatileGearboxShaftState shaftState) {
         return state.setValue(STATE_PROPERTIES[face.get3DDataValue()], shaftState);
     }
 
     /**
-     * 获取下一个状态（循环切换）
-     * OFF → FWD → REV → OFF
-     */
-    public static VersatileGearboxShaftState getNextState(VersatileGearboxShaftState current) {
-        return switch (current) {
-            case OFF -> VersatileGearboxShaftState.FWD;
-            case FWD -> VersatileGearboxShaftState.REV;
-            case REV -> VersatileGearboxShaftState.OFF;
-        };
-    }
-
-    /**
      * 获取指定方向对应的状态属性
-     * <p>优化说明：使用 Direction.get3DDataValue() 作为数组索引，避免 switch 分支
      */
     public static EnumProperty<VersatileGearboxShaftState> getStateProperty(Direction face) {
         return STATE_PROPERTIES[face.get3DDataValue()];
@@ -185,13 +170,13 @@ public class VersatileGearboxBlock extends KineticBlock implements IBE<Versatile
      */
     @Override
     protected boolean areStatesKineticallyEquivalent(BlockState oldState, BlockState newState) {
-        return oldState.getValue(DOWN_STATE) == newState.getValue(DOWN_STATE)
+        return super.areStatesKineticallyEquivalent(oldState, newState)
+            && oldState.getValue(DOWN_STATE) == newState.getValue(DOWN_STATE)
             && oldState.getValue(UP_STATE) == newState.getValue(UP_STATE)
             && oldState.getValue(NORTH_STATE) == newState.getValue(NORTH_STATE)
             && oldState.getValue(SOUTH_STATE) == newState.getValue(SOUTH_STATE)
             && oldState.getValue(WEST_STATE) == newState.getValue(WEST_STATE)
-            && oldState.getValue(EAST_STATE) == newState.getValue(EAST_STATE)
-            && super.areStatesKineticallyEquivalent(oldState, newState);
+            && oldState.getValue(EAST_STATE) == newState.getValue(EAST_STATE);
     }
 
     /**
