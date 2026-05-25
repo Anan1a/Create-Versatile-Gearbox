@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import com.simibubi.create.foundation.model.BakedQuadHelper;
@@ -21,13 +22,12 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
-import net.neoforged.neoforge.client.model.BakedModelWrapper;
 import net.neoforged.neoforge.client.model.data.ModelData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * 动态纹理模型基类
+ * 动态纹理模型
  *
  * <p>功能说明：
  * 根据方块状态动态替换模型中的纹理。渲染时遍历四边形，将匹配占位符纹理
@@ -35,7 +35,7 @@ import org.slf4j.LoggerFactory;
  *
  * <p>使用方式：
  * 1. 定义状态类型 T（如枚举）
- * 2. 继承此类并实现 {@link #getStateForFace(Direction, Object[])}
+ * 2. 创建实例并传入策略接口实现
  * 3. 配置占位符纹理到目标纹理的映射关系
  *
  * <p>性能优化：
@@ -46,7 +46,7 @@ import org.slf4j.LoggerFactory;
  * @param <T> 状态类型
  */
 @OnlyIn(Dist.CLIENT)
-public abstract class DynamicTextureModel<T> extends BakedModelWrapper<BakedModel> {
+public class DynamicTextureModel<T> {
     private static final Logger LOGGER = LoggerFactory.getLogger(DynamicTextureModel.class);
 
     /** 占位符到纹理条目的映射，用于O(1)查找 */
@@ -58,13 +58,26 @@ public abstract class DynamicTextureModel<T> extends BakedModelWrapper<BakedMode
     /** 从BlockState获取状态数组的函数 */
     private final Function<BlockState, T[]> stateProvider;
 
-    protected DynamicTextureModel(
+    /** 根据面方向获取状态的策略 */
+    private final BiFunction<Direction, T[], T> stateForFaceProvider;
+
+    /** 从ModelData获取状态数组的策略 */
+    private final Function<ModelData, T[]> modelDataStateProvider;
+
+    /** 包装的原始模型 */
+    private final BakedModel template;
+
+    public DynamicTextureModel(
             BakedModel template,
             List<TextureEntry<T>> textureEntries,
-            Function<BlockState, T[]> stateProvider
+            Function<BlockState, T[]> stateProvider,
+            BiFunction<Direction, T[], T> stateForFaceProvider,
+            Function<ModelData, T[]> modelDataStateProvider
     ) {
-        super(template);
+        this.template = template;
         this.stateProvider = stateProvider;
+        this.stateForFaceProvider = stateForFaceProvider;
+        this.modelDataStateProvider = modelDataStateProvider;
 
         // 构建占位符→条目映射，支持O(1)查找
         for (TextureEntry<T> entry : textureEntries) {
@@ -73,12 +86,11 @@ public abstract class DynamicTextureModel<T> extends BakedModelWrapper<BakedMode
     }
 
     /**
-     * 获取四边形列表，重写以实现动态纹理替换
+     * 获取四边形列表，实现动态纹理替换
      */
-    @Override
     public List<BakedQuad> getQuads(BlockState state, Direction side, RandomSource rand, ModelData extraData,
                                     RenderType renderType) {
-        List<BakedQuad> originalQuads = super.getQuads(state, side, rand, extraData, renderType);
+        List<BakedQuad> originalQuads = template.getQuads(state, side, rand, extraData, renderType);
         T[] states = getStates(state, extraData);
 
         // 无有效状态或为空，直接返回原四边形
@@ -114,7 +126,7 @@ public abstract class DynamicTextureModel<T> extends BakedModelWrapper<BakedMode
             }
 
             // 根据面方向获取目标纹理
-            T stateKey = getStateForFace(quadFace, states);
+            T stateKey = stateForFaceProvider.apply(quadFace, states);
             ResourceLocation targetLocation = entry.getTexture(stateKey);
             if (targetLocation == null) {
                 continue; // 该状态无映射，跳过此四边形（实现隐藏效果）
@@ -133,6 +145,13 @@ public abstract class DynamicTextureModel<T> extends BakedModelWrapper<BakedMode
         }
 
         return result;
+    }
+
+    /**
+     * 获取包装的原始模型
+     */
+    public BakedModel getTemplate() {
+        return template;
     }
 
     /**
@@ -219,10 +238,12 @@ public abstract class DynamicTextureModel<T> extends BakedModelWrapper<BakedMode
     /**
      * 获取状态数组，优先使用ModelData，必要时回退到BlockState
      */
-    protected T[] getStates(BlockState state, ModelData extraData) {
-        T[] fromModelData = getStatesFromModelData(extraData);
-        if (fromModelData != null && fromModelData.length > 0) {
-            return fromModelData;
+    private T[] getStates(BlockState state, ModelData extraData) {
+        if (modelDataStateProvider != null) {
+            T[] fromModelData = modelDataStateProvider.apply(extraData);
+            if (fromModelData != null && fromModelData.length > 0) {
+                return fromModelData;
+            }
         }
 
         if (stateProvider != null) {
@@ -234,22 +255,6 @@ public abstract class DynamicTextureModel<T> extends BakedModelWrapper<BakedMode
         }
         return null;
     }
-
-    /**
-     * 从ModelData获取状态数组（子类可重写）
-     */
-    protected T[] getStatesFromModelData(ModelData extraData) {
-        return null;
-    }
-
-    /**
-     * 根据面方向获取对应状态（子类必须实现）
-     *
-     * @param face   面方向
-     * @param states 状态数组
-     * @return 该面对应的状态
-     */
-    protected abstract T getStateForFace(Direction face, T[] states);
 
     /**
      * 纹理条目：封装占位符和状态→纹理映射

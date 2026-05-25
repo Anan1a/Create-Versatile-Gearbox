@@ -125,15 +125,15 @@ public class CVGBlocks {
 			// ========== 连接纹理配置 ==========
 			// 为自定义机壳和安山合金机壳注册连接纹理行为
 			// EncasedCTBehaviour 根据相邻方块状态处理纹理渲染
-			.onRegister(CreateRegistrate.connectedTextures(() -> new EncasedCTBehaviour(AllModSpriteShifts.VERSATILE_GEARBOX_OFF)))
+			// .onRegister(CreateRegistrate.connectedTextures(() -> new EncasedCTBehaviour(AllModSpriteShifts.VERSATILE_GEARBOX_OFF)))
 			.onRegister(CreateRegistrate.connectedTextures(() -> new EncasedCTBehaviour(AllSpriteShifts.ANDESITE_CASING)))
 									
 			// ========== 外壳连接性规则 ==========
 			// 定义连接条件：仅当轴状态为 OFF 时面才连接
 			// 防止轴激活时出现视觉错误
 			.onRegister(CreateRegistrate.casingConnectivity((block, cc) -> {
-				cc.make(block, AllModSpriteShifts.VERSATILE_GEARBOX_OFF,
-						(s, f) -> VersatileGearboxBlock.getShaftState(f, s) == VersatileGearboxShaftState.OFF);
+				// cc.make(block, AllModSpriteShifts.VERSATILE_GEARBOX_OFF,
+				// 		(s, f) -> VersatileGearboxBlock.getShaftState(f, s) == VersatileGearboxShaftState.OFF);
 				cc.make(block, AllSpriteShifts.ANDESITE_CASING,
 						(s, f) -> VersatileGearboxBlock.getShaftState(f, s) == VersatileGearboxShaftState.OFF);
 			}))

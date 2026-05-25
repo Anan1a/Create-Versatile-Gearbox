@@ -6,10 +6,16 @@ import java.util.Map;
 import com.anan1a.create_versatile_gearbox.foundation.DynamicTextureModel;
 import static com.anan1a.create_versatile_gearbox.CreateVersatileGearbox.MODID;
 
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.block.state.BlockState;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.client.model.BakedModelWrapper;
 import net.neoforged.neoforge.client.model.data.ModelData;
 import net.neoforged.neoforge.client.model.data.ModelProperty;
 
@@ -24,7 +30,8 @@ import net.neoforged.neoforge.client.model.data.ModelProperty;
  *
  * <p>面状态顺序：[DOWN, UP, NORTH, SOUTH, WEST, EAST]
  */
-public class VersatileGearboxModel extends DynamicTextureModel<VersatileGearboxShaftState> {
+@OnlyIn(Dist.CLIENT)
+public class VersatileGearboxModel extends BakedModelWrapper<BakedModel> {
 
     /** 存储六个面轴状态的属性 */
     public static final ModelProperty<VersatileGearboxShaftState[]> FACE_STATES = new ModelProperty<>();
@@ -39,7 +46,7 @@ public class VersatileGearboxModel extends DynamicTextureModel<VersatileGearboxS
 
     // 纹理条目定义
     // CORE_ENTRY: 旋转状态(FWD/REV)使用独立纹理
-    private static final TextureEntry<VersatileGearboxShaftState> CORE_ENTRY = new TextureEntry<>(
+    private static final DynamicTextureModel.TextureEntry<VersatileGearboxShaftState> CORE_ENTRY = new DynamicTextureModel.TextureEntry<>(
             TEXTURE_FWD,
             Map.of(
                 VersatileGearboxShaftState.FWD, TEXTURE_FWD,
@@ -48,19 +55,34 @@ public class VersatileGearboxModel extends DynamicTextureModel<VersatileGearboxS
     );
 
     // SHELL_ENTRY: 关闭状态使用外壳纹理
-    private static final TextureEntry<VersatileGearboxShaftState> SHELL_ENTRY = new TextureEntry<>(
+    private static final DynamicTextureModel.TextureEntry<VersatileGearboxShaftState> SHELL_ENTRY = new DynamicTextureModel.TextureEntry<>(
             TEXTURE_OFF,
             Map.of(VersatileGearboxShaftState.OFF, TEXTURE_ANDESITE)
     );
 
-    private static final List<TextureEntry<VersatileGearboxShaftState>> TEXTURE_ENTRIES = List.of(CORE_ENTRY, SHELL_ENTRY);
+    private static final List<DynamicTextureModel.TextureEntry<VersatileGearboxShaftState>> TEXTURE_ENTRIES = List.of(CORE_ENTRY, SHELL_ENTRY);
+
+    /** 动态纹理模型实例 */
+    private final DynamicTextureModel<VersatileGearboxShaftState> dynamicTextureModel;
 
     public VersatileGearboxModel(BakedModel template) {
-        super(template, TEXTURE_ENTRIES, VersatileGearboxModel::getStatesFromBlock);
+        super(template);
+        this.dynamicTextureModel = new DynamicTextureModel<>(
+                template,
+                TEXTURE_ENTRIES,
+                VersatileGearboxModel::getStatesFromBlock,
+                this::getStateForFace,
+                this::getStatesFromModelData
+        );
     }
 
     @Override
-    protected VersatileGearboxShaftState[] getStatesFromModelData(ModelData data) {
+    public List<BakedQuad> getQuads(BlockState state, Direction side, RandomSource rand, ModelData extraData,
+                                    RenderType renderType) {
+        return dynamicTextureModel.getQuads(state, side, rand, extraData, renderType);
+    }
+
+    private VersatileGearboxShaftState[] getStatesFromModelData(ModelData data) {
         if (data != null && data.has(FACE_STATES)) {
             VersatileGearboxShaftState[] states = data.get(FACE_STATES);
             // 验证状态数组有效性：必须长度为6且无null
@@ -74,8 +96,7 @@ public class VersatileGearboxModel extends DynamicTextureModel<VersatileGearboxS
         return null;
     }
 
-    @Override
-    protected VersatileGearboxShaftState getStateForFace(Direction face, VersatileGearboxShaftState[] states) {
+    private VersatileGearboxShaftState getStateForFace(Direction face, VersatileGearboxShaftState[] states) {
         if (states == null || states.length != 6) {
             return VersatileGearboxShaftState.OFF;
         }
