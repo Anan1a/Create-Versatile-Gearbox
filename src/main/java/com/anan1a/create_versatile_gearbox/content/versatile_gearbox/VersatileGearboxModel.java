@@ -39,25 +39,25 @@ public class VersatileGearboxModel extends BakedModelWrapper<BakedModel> {
     private static final String TEXTURE_BASE = "block/versatile_gearbox/";
 
     // 纹理常量
-    private static final ResourceLocation TEXTURE_ANDESITE = ResourceLocation.fromNamespaceAndPath("create", "block/andesite_casing");
-    private static final ResourceLocation TEXTURE_FWD = ResourceLocation.fromNamespaceAndPath(MODID, TEXTURE_BASE + "fwd_core");
-    private static final ResourceLocation TEXTURE_REV = ResourceLocation.fromNamespaceAndPath(MODID, TEXTURE_BASE + "rev_core");
-    private static final ResourceLocation TEXTURE_OFF = ResourceLocation.fromNamespaceAndPath(MODID, TEXTURE_BASE + "off_shell");
+    private static final ResourceLocation TEXTURE_ANDESITE_CASING = ResourceLocation.fromNamespaceAndPath("create", "block/andesite_casing");
+    private static final ResourceLocation TEXTURE_FWD_CORE = ResourceLocation.fromNamespaceAndPath(MODID, TEXTURE_BASE + "fwd_core");
+    private static final ResourceLocation TEXTURE_REV_CORE = ResourceLocation.fromNamespaceAndPath(MODID, TEXTURE_BASE + "rev_core");
+    private static final ResourceLocation TEXTURE_OFF_SHELL = ResourceLocation.fromNamespaceAndPath(MODID, TEXTURE_BASE + "off_shell");
 
     // 纹理条目定义
     // CORE_ENTRY: 旋转状态(FWD/REV)使用独立纹理
     private static final DynamicTextureModel.TextureEntry<VersatileGearboxShaftState> CORE_ENTRY = new DynamicTextureModel.TextureEntry<>(
-            TEXTURE_FWD,
+            TEXTURE_FWD_CORE,
             Map.of(
-                VersatileGearboxShaftState.FWD, TEXTURE_FWD,
-                VersatileGearboxShaftState.REV, TEXTURE_REV
+                VersatileGearboxShaftState.FWD, TEXTURE_FWD_CORE,
+                VersatileGearboxShaftState.REV, TEXTURE_REV_CORE
             )
     );
 
     // SHELL_ENTRY: 关闭状态使用外壳纹理
     private static final DynamicTextureModel.TextureEntry<VersatileGearboxShaftState> SHELL_ENTRY = new DynamicTextureModel.TextureEntry<>(
-            TEXTURE_OFF,
-            Map.of(VersatileGearboxShaftState.OFF, TEXTURE_ANDESITE)
+            TEXTURE_OFF_SHELL,
+            Map.of(VersatileGearboxShaftState.OFF, TEXTURE_ANDESITE_CASING)
     );
 
     private static final List<DynamicTextureModel.TextureEntry<VersatileGearboxShaftState>> TEXTURE_ENTRIES = List.of(CORE_ENTRY, SHELL_ENTRY);
