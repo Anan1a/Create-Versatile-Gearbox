@@ -128,7 +128,6 @@ public class VersatileGearboxBlock extends KineticBlock implements IBE<Versatile
      * @param builder 战利品参数构建器
      * @return        物品栈列表
      */
-    @SuppressWarnings("deprecation")
     @Override
     public List<ItemStack> getDrops(BlockState state, LootParams.Builder builder) {
         return super.getDrops(state, builder);

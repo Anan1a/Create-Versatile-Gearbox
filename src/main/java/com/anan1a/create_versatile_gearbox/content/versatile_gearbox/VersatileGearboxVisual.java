@@ -102,11 +102,9 @@ public class VersatileGearboxVisual extends KineticBlockEntityVisual<VersatileGe
      * source字段存储的是相对于方块位置的偏移量
      */
     protected void updateSourceFacing() {
-        if (blockEntity.hasSource()) {
-            // 计算从方块位置到动力源位置的偏移
-            BlockPos source = blockEntity.source.subtract(pos);
-            // 转换为最近的方向
-            sourceFacing = Direction.getNearest(source.getX(), source.getY(), source.getZ());
+        if (blockEntity.hasSource() && blockEntity.source != null) {
+            BlockPos offset = blockEntity.source.subtract(pos);
+            sourceFacing = Direction.getNearest(offset.getX(), offset.getY(), offset.getZ());
         } else {
             sourceFacing = null;
         }
@@ -182,15 +180,6 @@ public class VersatileGearboxVisual extends KineticBlockEntityVisual<VersatileGe
                 relight(instance);
             }
         }
-    }
-
-    /**
-     * 标记状态缓存失效
-     * <p>
-     * 当方块状态改变时调用此方法，触发下一帧的实例状态检查
-     */
-    public void invalidateCache() {
-        this.dirty = true;
     }
 
     /**

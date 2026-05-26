@@ -63,7 +63,7 @@ public class VersatileGearboxRenderer extends KineticBlockEntityRenderer<Versati
         float baseSpeed = be.getSpeed();
 
         Direction sourceFacing = null;
-        if (baseSpeed != 0 && be.hasSource()) {
+        if (baseSpeed != 0 && be.hasSource() && be.source != null) {
             BlockPos sourceOffset = be.source.subtract(pos);
             sourceFacing = Direction.getNearest(sourceOffset.getX(), sourceOffset.getY(), sourceOffset.getZ());
         }

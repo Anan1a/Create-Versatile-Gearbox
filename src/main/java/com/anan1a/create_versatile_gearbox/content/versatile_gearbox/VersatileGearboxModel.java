@@ -30,9 +30,6 @@ import net.neoforged.neoforge.client.model.data.ModelProperty;
  * - REV (反向旋转): 显示 rev_core 纹理（通常为逆时针旋转的齿轮）
  * - OFF (关闭/无轴): 显示 off_shell 纹理，然后替换为 Andesite 机壳纹理
  * 
- * <p>面状态数组顺序：[DOWN, UP, NORTH, SOUTH, WEST, EAST]
- * 与 {@link #directionToIndex(Direction)} 的索引顺序对应。
- * 
  * <p>渲染流程：
  * 1. 从 ModelData 或 BlockState 获取六个面的轴状态
  * 2. 遍历模型的所有四边形
@@ -186,19 +183,19 @@ public class VersatileGearboxModel extends BakedModelWrapper<BakedModel> {
      */
     private static VersatileGearboxShaftState[] getStatesFromBlock(BlockState state) {
         // 验证方块类型：确保传入的状态属于多功能齿轮箱方块
-        if (!(state.getBlock() instanceof VersatileGearboxBlock block)) {
+        if (!(state.getBlock() instanceof VersatileGearboxBlock)) {
             return null;
         }
         // 按固定顺序收集六个面的轴状态
         // 数组索引顺序：DOWN=0, UP=1, NORTH=2, SOUTH=3, WEST=4, EAST=5
         // 此顺序与 Direction.get3DDataValue() 返回值一一对应，确保索引映射的一致性
         return new VersatileGearboxShaftState[]{
-                block.getShaftState(Direction.DOWN, state),    // 底面
-                block.getShaftState(Direction.UP, state),      // 顶面
-                block.getShaftState(Direction.NORTH, state),   // 北面（负Z方向）
-                block.getShaftState(Direction.SOUTH, state),   // 南面（正Z方向）
-                block.getShaftState(Direction.WEST, state),    // 西面（负X方向）
-                block.getShaftState(Direction.EAST, state)     // 东面（正X方向）
+                VersatileGearboxBlock.getShaftState(Direction.DOWN, state),    // 底面
+                VersatileGearboxBlock.getShaftState(Direction.UP, state),      // 顶面
+                VersatileGearboxBlock.getShaftState(Direction.NORTH, state),   // 北面（负Z方向）
+                VersatileGearboxBlock.getShaftState(Direction.SOUTH, state),   // 南面（正Z方向）
+                VersatileGearboxBlock.getShaftState(Direction.WEST, state),    // 西面（负X方向）
+                VersatileGearboxBlock.getShaftState(Direction.EAST, state)     // 东面（正X方向）
         };
     }
 }
