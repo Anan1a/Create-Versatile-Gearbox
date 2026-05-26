@@ -143,7 +143,11 @@ public class CVGBlocks {
 //			.onRegister(block -> RadialWrenchMenu.registerBlacklistedBlock(BuiltInRegistries.BLOCK.getKey(block)))
 			
 			// ========== Blockstate 生成 ==========
-			// 使用简单 blockstate 避免生成大量 variants（3轴 × 3⁶面状态 = 2187个）
+			// 使用 simpleBlock() 生成最简 blockstate，不枚举任何 variant
+			// 原因：该方块有 6 个面 × 3 种轴状态 = 3^6 = 729 种可能状态组合，
+			// 用 axisBlock() 会生成海量冗余 variant，且所有 variant 指向同一模型
+			// 方块外观变化在模型烘焙时由 VersatileGearboxModel 包装（动态纹理重映射），
+			// 叠加 VersatileGearboxRenderer / Visual 的旋转轴动画，共同实现运行时渲染
 			.blockstate((c, p) -> p.simpleBlock(c.getEntry(), p.models().getExistingFile(p.modLoc("block/versatile_gearbox/block"))))
 			
 			// ========== 物品配置 ==========
