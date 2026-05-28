@@ -75,13 +75,24 @@ public class VersatileGearboxBlockEntity extends SplitShaftBlockEntity {
         // 轴方向修正
         int axisAdjust = face.getAxisDirection() == source.getAxisDirection() ? 1 : -1;
 
-        // 输出面状态修正
-        int faceModifier = faceState == VersatileGearboxShaftState.FWD ? 1 : -1;
-
-        // 动力源面状态修正（影响输出方向）
-        int sourceModifier = sourceState == VersatileGearboxShaftState.FWD ? 1 : -1;
+        int faceModifier = getStateModifier(faceState);
+        int sourceModifier = getStateModifier(sourceState);
 
         return axisAdjust * faceModifier * sourceModifier;
+    }
+
+    /**
+     * 将轴状态转换为旋转方向修正值
+     *
+     * @param state 轴状态（FWD同向/REV反向/OFF关闭）
+     * @return 方向修正值：1（同向）、-1（反向）、0（关闭）
+     */
+    private static int getStateModifier(VersatileGearboxShaftState state) {
+        return switch (state) {
+            case FWD -> 1;
+            case REV -> -1;
+            case OFF -> 0;
+        };
     }
 
     @Override

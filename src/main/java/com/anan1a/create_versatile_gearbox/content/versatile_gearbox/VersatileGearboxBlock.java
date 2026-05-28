@@ -287,30 +287,41 @@ public class VersatileGearboxBlock extends KineticBlock implements IBE<Versatile
     }
 
     /**
-     * 自定义扳手右键交互（非潜行）
+     * 扳手右键交互：循环切换点击面的轴状态
      * <p>
-     * 循环切换点击面传动轴的状态：FWD → REV → OFF → FWD
-     * 当玩家用扳手右键点击某个面时，依次改变该面的轴状态。
+     * 状态切换顺序：FWD（同向）→ REV（反向）→ OFF（关闭）→ FWD
+     * <p>
+     * 实现要点：
+     * 1. 仅服务端处理：客户端直接返回，避免重复操作
+     * 2. 使用 BlockState.cycle() 自动按枚举顺序切换状态
+     * 3. 调用 switchToBlockState() 触发 Create 的动力网络重建
+     * 4. 播放音效并触发玩家挥臂动画
      *
-     * @param state   方块状态
-     * @param context 使用上下文
-     * @return 交互结果
+     * @param state   当前方块状态
+     * @param context 扳手使用上下文（包含玩家、位置、点击面等）
+     * @return 交互成功结果
      */
     protected InteractionResult onWrenchRightClick(BlockState state, UseOnContext context) {
         Level level = context.getLevel();
-        if (level.isClientSide)
+        // 仅服务端处理：避免客户端和服务端重复执行
+        if (level.isClientSide) {
             return InteractionResult.SUCCESS;
+        }
 
+        // 提取交互上下文信息
         BlockPos pos = context.getClickedPos();
         Player player = context.getPlayer();
         Direction clickedFace = context.getClickedFace();
 
-        // 使用 cycle 切换状态，触发 areStatesKineticallyEquivalent 检查并自动重建动力网络
+        // cycle() 按枚举声明顺序自动切换：FWD → REV → OFF → FWD
         BlockState newState = state.cycle(getStateProperty(clickedFace));
+        // 通知 Create 动力网络：方块状态已变更，需要重新计算连接关系
         KineticBlockEntity.switchToBlockState(level, pos, newState);
 
+        // 播放扳手交互音效
         playRotateSound(level, pos);
 
+        // 触发玩家挥臂动画（仅当玩家存在时）
         if (player != null) {
             player.swing(context.getHand());
         }
