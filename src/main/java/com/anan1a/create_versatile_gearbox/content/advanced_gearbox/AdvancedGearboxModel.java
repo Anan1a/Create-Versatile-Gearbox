@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.Map;
 
 import com.anan1a.create_versatile_gearbox.foundation.DynamicTextureModel;
+import com.anan1a.create_versatile_gearbox.foundation.FaceStateContainer;
+
 import static com.anan1a.create_versatile_gearbox.CreateVersatileGearbox.MODID;
 
 import net.minecraft.client.renderer.RenderType;
@@ -31,19 +33,32 @@ import net.neoforged.neoforge.client.model.data.ModelProperty;
  *       （即没有轴），将关闭外壳纹理替换为安山岩机壳纹理。</li>
  * </ul>
  * <p>
- * 每个面的状态首先从 {@link ModelData}（由方块实体设置）解析，如果模型数据不可用，
- * 则回退到 {@link BlockState} 属性。
+ * <b>双数据源读取策略</b><br>
+ * 渲染时，每个面的状态通过 {@link #resolveState(BlockState, Direction, ModelData)} 决定，
+ * 优先级如下：
+ * <ol>
+ *   <li><b>ModelData</b>（高优先级）— 来自 {@link AdvancedGearboxBlockEntity#getModelData()}，
+ *       本质是 {@link FaceStateContainer#toArray()} 导出的运行时数组。
+ *       数据源是 BlockEntity 的 NBT，突破 BlockState 枚举数量限制。</li>
+ *   <li><b>BlockState 属性</b>（低优先级/回退）— 当 ModelData 不可用时（如无 BlockEntity、
+ *       在 UI 中预览、Ponder 场景等），直接从 BlockState 的 EnumProperty 读取。</li>
+ * </ol>
  */
 @OnlyIn(Dist.CLIENT)
 public class AdvancedGearboxModel extends BakedModelWrapper<BakedModel> {
 
     /**
-     * 用于在渲染时从方块实体向模型传递每面轴状态的模型属性。
-     * 存储一个包含 6 个 {@link AdvancedGearboxShaftState} 值的数组，
-     * 每个 {@link Direction} 对应一个。
+     * 模型属性 Key：用于在渲染时从 BlockEntity 的 ModelData 中提取面状态数组。
+     * <p>
+     * <b>完整数据流</b>
+     * <pre>
+     * BlockEntity.faceStates (FaceStateContainer)
+     *   └─ .toArray() ──→ ModelData (FACE_STATES → AdvancedGearboxShaftState[6])
+     *                        └─ data.get(FACE_STATES) ──→ resolveState() → DynamicTextureModel
+     * </pre>
      * <p>
      * 存储方：{@link AdvancedGearboxBlockEntity#getModelData()} 中
-     * {@code ModelData.builder().with(FACE_STATES, faceStates).build()}
+     * {@code ModelData.builder().with(FACE_STATES, faceStates.toArray()).build()}
      * <p>
      * 读取方：本类 {@link #getStatesFromModelData(ModelData)} 中
      * {@code data.has(FACE_STATES)} / {@code data.get(FACE_STATES)}
@@ -117,12 +132,22 @@ public class AdvancedGearboxModel extends BakedModelWrapper<BakedModel> {
     }
 
     /**
-     * 解析指定面的轴状态。首先检查 ModelData，然后回退到 BlockState 属性。
+     * 解析指定面的轴状态。
+     * <p>
+     * <b>读取优先级</b>
+     * <ol>
+     *   <li>{@link #getStatesFromModelData(ModelData)} —
+     *       从 ModelData（NBT 来源）读取，是主要数据源</li>
+     *   <li>{@link #getStatesFromBlock(BlockState)} —
+     *       当 ModelData 不可用时的回退方案，从 BlockState 属性读取</li>
+     *   <li>{@link AdvancedGearboxShaftState#OFF} —
+     *       两个数据源都失效时的最终保底值</li>
+     * </ol>
      *
      * @param state 当前的方块状态
      * @param face  面方向
      * @param data  方块实体的模型数据
-     * @return 解析后的轴状态，如果不可用则返回 {@link AdvancedGearboxShaftState#OFF}
+     * @return 解析后的轴状态
      */
     private AdvancedGearboxShaftState resolveState(BlockState state, Direction face, ModelData data) {
         AdvancedGearboxShaftState[] states = getStatesFromModelData(data);
@@ -137,11 +162,18 @@ public class AdvancedGearboxModel extends BakedModelWrapper<BakedModel> {
     }
 
     /**
-     * 从方块实体的模型数据中提取每面轴状态。
-     * 验证数组非空、恰好包含 6 个元素（每个面一个）且不包含空条目。
+     * 从 ModelData 中提取面状态数组。
+     * <p>
+     * 执行三次校验确保数据完整性：
+     * <ol>
+     *   <li>{@code data.has(FACE_STATES)} — ModelData 中是否包含此属性</li>
+     *   <li>{@code states.length == 6} — 数组长度必须恰好为 6（D/U/N/S/W/E）</li>
+     *   <li>逐元素 null 检查 — 6 个状态都不能为 null（防止 NPE）</li>
+     * </ol>
+     * 任一条件不满足即返回 null，触发 {@link #resolveState} 回退到 BlockState。
      *
      * @param data 模型数据容器
-     * @return 包含 6 个轴状态的数组，如果数据缺失或无效则返回 null
+     * @return 6 个轴状态的数组，数据无效时返回 null
      */
     private AdvancedGearboxShaftState[] getStatesFromModelData(ModelData data) {
         if (data != null && data.has(FACE_STATES)) {
@@ -157,11 +189,18 @@ public class AdvancedGearboxModel extends BakedModelWrapper<BakedModel> {
     }
 
     /**
-     * 回退方案：直接从方块状态属性中读取轴状态。
-     * 在没有方块实体或模型数据可用时使用。
+     * 从 BlockState 属性读取面状态（回退方案）。
+     * <p>
+     * 适用场景：
+     * <ul>
+     *   <li>方块没有 BlockEntity（如被活塞推动过程中被破坏）</li>
+     *   <li>在 UI 中预览方块（如 JEI/REI 显示）</li>
+     *   <li>Ponder 场景中静态展示</li>
+     *   <li>ModelData 数据损坏或未设置</li>
+     * </ul>
      *
      * @param state 当前的方块状态
-     * @return 包含 6 个轴状态的数组（D=0, U=1, N=2, S=3, W=4, E=5），
+     * @return 6 个轴状态的数组（D/U/N/S/W/E 顺序），
      *         如果方块不是 {@link AdvancedGearboxBlock} 则返回 null
      */
     private static AdvancedGearboxShaftState[] getStatesFromBlock(BlockState state) {

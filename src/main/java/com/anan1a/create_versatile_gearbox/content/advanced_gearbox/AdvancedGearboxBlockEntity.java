@@ -1,9 +1,12 @@
 package com.anan1a.create_versatile_gearbox.content.advanced_gearbox;
 
+import com.anan1a.create_versatile_gearbox.foundation.FaceStateContainer;
 import com.simibubi.create.content.kinetics.transmission.SplitShaftBlockEntity;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.client.model.data.ModelData;
@@ -14,78 +17,188 @@ import net.neoforged.neoforge.client.model.data.ModelData;
  * 继承 SplitShaftBlockEntity，实现多方向动力传输。
  * 核心逻辑：根据输出面与动力源面的轴方向关系决定旋转方向，
  * 支持每个输出面独立翻转（通过扳手切换）。
+ * <p>
+ * <b>状态存储方案</b><br>
+ * 状态通过 {@link FaceStateContainer} 以 NBT 格式存储，替代 BlockState 属性，
+ * 突破枚举属性数量上限，支持后续扩展更多面变种。
+ * <p>
+ * 数据流：NBT（磁盘/网络）↔ FaceStateContainer（运行时）→ toArray() → ModelData（渲染）
+ * <ul>
+ *   <li>{@link #write(CompoundTag, HolderLookup.Provider, boolean)} → 持久化到 NBT</li>
+ *   <li>{@link #read(CompoundTag, HolderLookup.Provider, boolean)} → 从 NBT 恢复</li>
+ *   <li>{@link #getModelData()} → 导出到渲染管线</li>
+ * </ul>
  */
 public class AdvancedGearboxBlockEntity extends SplitShaftBlockEntity {
+
+    /**
+     * 运行时面状态缓存，使用 NBT 作为持久化存储后端。
+     * <p>
+     * 初始化时所有面默认 FWD（同向旋转），
+     * 在 {@link #read(CompoundTag, HolderLookup.Provider, boolean)} 中从 NBT 恢复覆盖。
+     * <p>
+     * faceStates 是本实体状态数据的<em>唯一真实来源</em>（Single Source of Truth）：
+     * <ul>
+     *   <li>NBT 读写 → faceStates.toNbt() / faceStates.fromNbt()</li>
+     *   <li>动力逻辑 → faceStates.get(face) 读取面状态</li>
+     *   <li>渲染管线 → faceStates.toArray() 导出到 ModelData</li>
+     *   <li>扳手交互 → setShaftState() 经 faceStates.set() 修改</li>
+     * </ul>
+     * BlockState 中也保留了一份相同的数据（由 {@link AdvancedGearboxBlock} 维护），
+     * 主要用于 {@code hasShaftTowards()}（动力网络查询）和蓝图 rotate/mirror。
+     */
+    private final FaceStateContainer<AdvancedGearboxShaftState> faceStates =
+        FaceStateContainer.of(AdvancedGearboxShaftState.FWD);
 
     public AdvancedGearboxBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
     }
 
     /**
-     * 获取指定输出面的旋转速度 Modifier
+     * 获取指定面的传动轴状态。
+     * <p>
+     * 直接委托给 {@link FaceStateContainer#get(Direction)}，O(1) 数组索引。
+     *
+     * @param face 要查询的面方向
+     * @return 该面的传动轴状态
+     */
+    public AdvancedGearboxShaftState getShaftState(Direction face) {
+        return faceStates.get(face);
+    }
+
+    /**
+     * 设置指定面的传动轴状态。
+     * <p>
+     * 触发三个连锁操作：
+     * <ol>
+     *   <li>{@code setChanged()} — 标记方块数据已变更，等待持久化（自动在下一次 save tick 写入 NBT）</li>
+     *   <li>{@code requestModelDataUpdate()} — 通知渲染系统重新查询 {@link #getModelData()}，触发模型重载</li>
+     *   <li>{@code onDataPacket()} 或 {@code saveAdditional()} 在后续调用中序列化 faceStates</li>
+     * </ol>
+     *
+     * @param face  要修改的面方向
+     * @param value 新的状态值
+     */
+    public void setShaftState(Direction face, AdvancedGearboxShaftState value) {
+        faceStates.set(face, value);
+        setChanged();
+        requestModelDataUpdate();
+    }
+
+    // ===== NBT 读写（通过 SmartBlockEntity 的 write/read 钩子）=====
+
+    /**
+     * 写入 NBT：序列化面状态到持久化/网络数据包。
+     * <p>
+     * {@code write()} 是 {@link com.simibubi.create.foundation.blockEntity.SmartBlockEntity}
+     * 提供的非 final 钩子，在 {@code saveAdditional()}（final）内部被调用。
+     * 覆写此方法以写入自定义 NBT 数据。
+     * <p>
+     * 序列化格式：{@code {"face_states": {"down":"fwd","up":"rev",...}}}
+     *
+     * @param tag          目标 NBT（最终写入磁盘或发往客户端）
+     * @param registries   注册表查找器（用于序列化注册表引用）
+     * @param clientPacket true=发送给客户端同步，false=保存到磁盘
+     */
+    @Override
+    protected void write(CompoundTag tag, HolderLookup.Provider registries, boolean clientPacket) {
+        super.write(tag, registries, clientPacket);
+        tag.put("face_states", faceStates.toNbt());
+    }
+
+    /**
+     * 读取 NBT：从持久化/网络数据包恢复面状态。
+     * <p>
+     * {@code read()} 是 SmartBlockEntity 提供的非 final 钩子，
+     * 在 {@code load()}（final）内部被调用。覆写此方法以恢复自定义 NBT 数据。
+     * <p>
+     * <b>缺失键处理</b>：新放置的方块没有 {@code "face_states"} 键，
+     * 此时保持 {@link #faceStates} 初始默认值（全 FWD），不报错。
+     *
+     * @param tag          数据源 NBT（来自磁盘或客户端数据包）
+     * @param registries   注册表查找器（用于反序列化注册表引用）
+     * @param clientPacket true=来自客户端同步包，false=来自磁盘加载
+     */
+    @Override
+    protected void read(CompoundTag tag, HolderLookup.Provider registries, boolean clientPacket) {
+        super.read(tag, registries, clientPacket);
+        if (tag.contains("face_states")) {
+            faceStates.fromNbt(tag.getCompound("face_states"));
+        }
+    }
+
+    // ===== 动力传输逻辑 =====
+
+    /**
+     * 计算指定输出面的旋转速度倍率（覆盖模式）。
+     * <p>
+     * 【判断流程】
+     * <ol>
+     *   <li>输出面为 OFF → 返回 0（不输出动力）</li>
+     *   <li>无动力源 → 返回 0（无动力可传）</li>
+     *   <li>动力源面为 OFF → 返回 0（动力被切断）</li>
+     *   <li>正常 → 委托给 {@link #getRotationSpeedModifier(Direction, Direction)}</li>
+     * </ol>
      *
      * @param face 输出面方向
      * @return 旋转速度倍率（0=关闭，1=同向，-1=反向）
      */
     @Override
     public float getRotationSpeedModifier(Direction face) {
-        // 获取方块状态
-        BlockState state = getBlockState();
-
         // 1. 检查输出面状态
-        if (AdvancedGearboxBlock.getShaftState(face, state) == AdvancedGearboxShaftState.OFF) return 0;
-
+        if (faceStates.get(face) == AdvancedGearboxShaftState.OFF) return 0;
         // 2. 检查是否有动力源
         if (!hasSource()) return 0;
 
         // 3. 检查输入面状态
         Direction source = getSourceFacing();
-        if (AdvancedGearboxBlock.getShaftState(source, state) == AdvancedGearboxShaftState.OFF) return 0;
+        if (faceStates.get(source) == AdvancedGearboxShaftState.OFF) return 0;
 
         // 4. 计算旋转方向
-        return getRotationSpeedModifier(face, source, state);
+        return getRotationSpeedModifier(face, source);
     }
 
     /**
-     * 根据动力源面计算指定输出面的旋转速度 Modifier（静态方法）
+     * 根据动力源面计算指定输出面的旋转速度倍率（双参数版）。
      * <p>
-     * 三状态版本：
-     * FWD:     同向旋转（与动力源同方向）
-     * REV:     反向旋转（与动力源反方向）
-     * OFF:     关闭（不输出动力）
+     * 三状态计算逻辑：
+     * <pre>
+     * modifier = axisAdjust × faceModifier × sourceModifier
+     *
+     * axisAdjust: 轴方向对齐时 +1，相反时 -1
+     *   faceModifier: FWD=+1, REV=-1, OFF=0
+     * sourceModifier: FWD=+1, REV=-1, OFF=0
+     * </pre>
+     * <p>
+     * 示例：source=REV(-1), face=FWD(+1), 轴同向(+1)
+     * → modifier = 1 × 1 × (-1) = -1（相对于动力源反转输出）
      *
      * @param face   输出面
      * @param source 动力源面
-     * @param state  方块状态
-     * @return 旋转速度倍率（0=关闭，1=同向，-1=反向）
+     * @return 旋转速度倍率（-1 ~ 1）
      */
-    public static float getRotationSpeedModifier(Direction face, Direction source, BlockState state) {
-        // 获取输入面（动力源面）状态
-        AdvancedGearboxShaftState sourceState = AdvancedGearboxBlock.getShaftState(source, state);
-        
-        // 如果输入面关闭，所有输出都停止
+    public float getRotationSpeedModifier(Direction face, Direction source) {
+        // 获取动力源面状态
+        AdvancedGearboxShaftState sourceState = faceStates.get(source);
+
+        // 如果动力源面关闭，所有输出都停止
         if (sourceState == AdvancedGearboxShaftState.OFF) return 0;
 
         // 获取输出面状态
-        AdvancedGearboxShaftState faceState = AdvancedGearboxBlock.getShaftState(face, state);
-
+        AdvancedGearboxShaftState faceState = faceStates.get(face);
         // 如果输出面关闭，返回 0（不输出动力）
         if (faceState == AdvancedGearboxShaftState.OFF) return 0;
 
         // 轴方向修正
         int axisAdjust = face.getAxisDirection() == source.getAxisDirection() ? 1 : -1;
-
-        int faceModifier = getStateModifier(faceState);
-        int sourceModifier = getStateModifier(sourceState);
-
-        return axisAdjust * faceModifier * sourceModifier;
+        return axisAdjust * getStateModifier(faceState) * getStateModifier(sourceState);
     }
 
     /**
-     * 将轴状态转换为旋转方向修正值
+     * 将面状态枚举转换为数值倍率。
      *
-     * @param state 轴状态（FWD 同向/REV 反向/OFF 关闭）
-     * @return 方向修正值：1（同向）、-1（反向）、0（关闭）
+     * @param state 面状态
+     * @return FWD=1, REV=-1, OFF=0
      */
     private static int getStateModifier(AdvancedGearboxShaftState state) {
         return switch (state) {
@@ -100,28 +213,23 @@ public class AdvancedGearboxBlockEntity extends SplitShaftBlockEntity {
         return false;
     }
 
+    // ===== 渲染数据 =====
+
     /**
-     * 提供模型数据给渲染器
+     * 提供模型渲染所需的运行时数据。
      * <p>
-     * 返回六个面的状态，用于动态纹理替换和半轴显示控制
+     * 将 6 个面的状态数组存入 {@link AdvancedGearboxModel#FACE_STATES}，
+     * 模型在 {@code getQuads()} 中通过 ModelData 读取该数组以决定每个面的纹理。
+     * <p>
+     * 调用链：渲染引擎 → {@code getModelData()} → ModelData → {@link AdvancedGearboxModel#getQuads} → resolveState
+     *
+     * @return 包含面状态数组的 ModelData
      */
     @Override
     public ModelData getModelData() {
-        BlockState state = getBlockState();
-
-        // 按绝对方向顺序获取六个面的状态（自动处理相对朝向转换）
-        AdvancedGearboxShaftState[] faceStates = new AdvancedGearboxShaftState[]{
-            AdvancedGearboxBlock.getShaftState(Direction.DOWN, state),
-            AdvancedGearboxBlock.getShaftState(Direction.UP, state),
-            AdvancedGearboxBlock.getShaftState(Direction.NORTH, state),
-            AdvancedGearboxBlock.getShaftState(Direction.SOUTH, state),
-            AdvancedGearboxBlock.getShaftState(Direction.WEST, state),
-            AdvancedGearboxBlock.getShaftState(Direction.EAST, state)
-        };
-
         // 将面状态数组打包到 ModelData 中，传递给渲染器
         return ModelData.builder()
-                .with(AdvancedGearboxModel.FACE_STATES, faceStates)
+                .with(AdvancedGearboxModel.FACE_STATES, faceStates.toArray())
                 .build();
     }
 }

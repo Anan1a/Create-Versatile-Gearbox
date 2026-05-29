@@ -19,6 +19,7 @@ import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Mirror;
 import net.minecraft.world.level.block.Rotation;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
@@ -32,6 +33,21 @@ import net.minecraft.world.phys.HitResult;
  * <p>
  * 支持六个面全部连接传动轴，实现全方位动力传输。
  * 每个面可独立翻转旋转方向（通过扳手切换）。
+ * <p>
+ * <b>双重数据存储</b><br>
+ * 此方块维护两套平行的面状态数据：
+ * <ol>
+ *   <li><b>BlockState 属性</b>（{@code down_state} ~ {@code east_state}）—
+ *       用于 {@link #hasShaftTowards()}（动力网络连接判断）、
+ *       {@link #areStatesKineticallyEquivalent()}（网络增量更新）、
+ *       以及蓝图 rotate/mirror 操作。
+ *       这是 Minecraft 原版机制要求，不可省略。</li>
+ *   <li><b>FaceStateContainer / NBT</b>（由 {@link AdvancedGearboxBlockEntity} 管理）—
+ *       作为状态的<em>唯一真实来源</em>，突破 BlockState 枚举数量限制。
+ *       动力逻辑 {@code getRotationSpeedModifier()} 和渲染（ModelData）从此读取。</li>
+ * </ol>
+ * BlockState 属性的更新始终伴随 BlockEntity 的 NBT 写入（见 {@link #onWrenchRightClick}），
+ * 两者保持同步，避免数据不一致。
  * <p>
  * 【蓝图兼容性】方块没有方向属性，放置时永远保持相同朝向。
  */
@@ -291,11 +307,23 @@ public class AdvancedGearboxBlock extends KineticBlock implements IBE<AdvancedGe
      * <p>
      * 状态切换顺序：FWD（同向）→ REV（反向）→ OFF（关闭）→ FWD
      * <p>
-     * 实现要点：
-     * 1. 仅服务端处理：客户端直接返回，避免重复操作
-     * 2. 使用 BlockState.cycle() 自动按枚举顺序切换状态
-     * 3. 调用 switchToBlockState() 触发 Create 的动力网络重建
-     * 4. 播放音效并触发玩家挥臂动画
+     * <b>双重更新策略</b><br>
+     * BlockState 和 FaceStateContainer 都存储了面状态数据，更新时必须保持两者同步：
+     * <ol>
+     *   <li><b>BlockState 更新</b>（第 1 步：cycle）—
+     *       调用 {@code state.cycle(getStateProperty(clickedFace))} 在 BlockState 属性上切换，
+     *       改变后的 BlockState 用于后续的 {@code switchToBlockState()} 通知动力网络。</li>
+     *   <li><b>FaceStateContainer 更新</b>（第 2 步：setShaftState）—
+     *       将 cycle() 后的新状态写入 BlockEntity 的 NBT 存储，
+     *       触发 {@code setChanged()}（标记存档）和 {@code requestModelDataUpdate()}（通知渲染）。</li>
+     *   <li><b>动力网络重建</b>（第 3 步：switchToBlockState）—
+     *       Create 检测到 BlockState 变更后重新计算方块的动力连接关系。
+     *       此调用在 setShaftState <em>之后</em>执行，确保动力网络重建时 BlockEntity 的 NBT 已经更新。</li>
+     * </ol>
+     * <p>
+     * 为什么先更新 FaceStateContainer（NBT），再重建网络？
+     * — switchToBlockState 会触发 BlockEntity 的读取回调，如果 NBT 尚未更新，
+     * 渲染和动力逻辑会读到旧数据。先写入再重建，保证数据一致性。
      *
      * @param state   当前方块状态
      * @param context 扳手使用上下文（包含玩家、位置、点击面等）
@@ -303,25 +331,33 @@ public class AdvancedGearboxBlock extends KineticBlock implements IBE<AdvancedGe
      */
     protected InteractionResult onWrenchRightClick(BlockState state, UseOnContext context) {
         Level level = context.getLevel();
-        // 仅服务端处理：避免客户端和服务端重复执行
         if (level.isClientSide) {
             return InteractionResult.SUCCESS;
         }
 
-        // 提取交互上下文信息
         BlockPos pos = context.getClickedPos();
         Player player = context.getPlayer();
         Direction clickedFace = context.getClickedFace();
 
-        // cycle() 按枚举声明顺序自动切换：FWD → REV → OFF → FWD
+        // 第 1 步：在 BlockState 上切换状态（FWD → REV → OFF → FWD）
         BlockState newState = state.cycle(getStateProperty(clickedFace));
-        // 通知 Create 动力网络：方块状态已变更，需要重新计算连接关系
+
+        // 第 2 步：将新状态写入 BlockEntity 的 FaceStateContainer（NBT 存储）
+        // cycle() 修改了 BlockState，但 NBT 不会自动同步。
+        // 手动 setShaftState 确保：
+        //   - setChanged() → 存档时写入 NBT
+        //   - requestModelDataUpdate() → 渲染时读取新状态
+        if (level.getBlockEntity(pos) instanceof AdvancedGearboxBlockEntity be) {
+            be.setShaftState(clickedFace, getShaftState(clickedFace, newState));
+        }
+
+        // 第 3 步：通知 Create 动力网络，BlockState 已变更
+        // switchToBlockState 会触发动力连接重新计算，
+        // 此时 BlockEntity 的 NBT 已在第 2 步更新，数据一致。
         KineticBlockEntity.switchToBlockState(level, pos, newState);
 
-        // 播放扳手交互音效
         playRotateSound(level, pos);
 
-        // 触发玩家挥臂动画（仅当玩家存在时）
         if (player != null) {
             player.swing(context.getHand());
         }

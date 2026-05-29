@@ -90,7 +90,7 @@ public class AdvancedGearboxVisual extends KineticBlockEntityVisual<AdvancedGear
     private float getSpeed(Direction direction) {
         float speed = blockEntity.getSpeed();
         if (speed != 0 && sourceFacing != null) {
-            speed *= AdvancedGearboxBlockEntity.getRotationSpeedModifier(direction, sourceFacing, blockState);
+            speed *= blockEntity.getRotationSpeedModifier(direction, sourceFacing);
         }
         return speed;
     }

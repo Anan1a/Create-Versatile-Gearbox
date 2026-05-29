@@ -120,7 +120,7 @@ public class AdvancedGearboxRenderer extends KineticBlockEntityRenderer<Advanced
         // 计算该方向的实际速度（考虑翻转属性）
         float speedForDirection = baseSpeed;
         if (speedForDirection != 0 && sourceFacing != null) {
-            float modifier = AdvancedGearboxBlockEntity.getRotationSpeedModifier(direction, sourceFacing, state);
+            float modifier = be.getRotationSpeedModifier(direction, sourceFacing);
             speedForDirection *= modifier;
         }
 
