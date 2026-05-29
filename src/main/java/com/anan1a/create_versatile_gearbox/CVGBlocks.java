@@ -1,11 +1,13 @@
 package com.anan1a.create_versatile_gearbox;
 
 import com.anan1a.create_versatile_gearbox.content.versatile_gearbox.VersatileGearboxShaftState;
+import com.anan1a.create_versatile_gearbox.content.advanced_gearbox.AdvancedGearboxShaftState;
 import com.tterrag.registrate.util.entry.BlockEntry;
 
 import net.minecraft.world.level.material.MapColor;
 
 import com.anan1a.create_versatile_gearbox.content.versatile_gearbox.VersatileGearboxBlock;
+import com.anan1a.create_versatile_gearbox.content.advanced_gearbox.AdvancedGearboxBlock;
 import com.anan1a.create_versatile_gearbox.foundation.AllModSpriteShifts;
 import com.simibubi.create.foundation.data.CreateRegistrate;
 import com.simibubi.create.foundation.data.SharedProperties;
@@ -152,6 +154,73 @@ public class CVGBlocks {
 			
 			// ========== 物品配置 ==========
 			// customItemModel() 会查找 models/block/versatile_gearbox/item.json
+			.item()
+			.transform(customItemModel())
+			
+			// ========== 完成注册 ==========
+			.register();
+
+	/**
+	 * Advanced Gearbox - 高级齿轮箱
+	 * <p>
+	 * 升级版多功能齿轮箱，支持更复杂的动力传输配置
+	 */
+	public static final BlockEntry<AdvancedGearboxBlock> ADVANCED_GEARBOX = REGISTRATE
+            .block("advanced_gearbox", AdvancedGearboxBlock::new)
+
+			// ========== 基础属性配置 ==========
+			.initialProperties(SharedProperties::stone)
+			
+			// ========== 额外属性配置 ==========
+			.properties(p -> p
+				.mapColor(MapColor.PODZOL)
+				.noOcclusion()
+			)
+
+			// ========== 合成配方配置 ==========
+			// 配方结构：
+			//   S C S
+			//   C A C
+			//   S C S
+			// 其中：A=安山机壳(1个), C=大齿轮(4个), S=钢构件(4个)
+			.recipe((ctx, prov) -> {
+				ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ctx.getEntry())
+					.pattern("SCS")
+					.pattern("CAC")
+					.pattern("SCS")
+					.define('A', AllBlocks.ANDESITE_CASING.get())        // A: 安山机壳（中心）
+					.define('C', AllBlocks.LARGE_COGWHEEL.get())        // C: 大齿轮（4个）
+					.define('S', AllItems.SHADOW_STEEL.get())            // S: 钢构件（4个）
+					.unlockedBy("has_alloy", 
+						InventoryChangeTrigger.TriggerInstance.hasItems(AllItems.ANDESITE_ALLOY.get()))
+					.unlockedBy("has_casing", 
+						InventoryChangeTrigger.TriggerInstance.hasItems(AllBlocks.ANDESITE_CASING.get()))
+					.unlockedBy("has_large_cogwheel", 
+						InventoryChangeTrigger.TriggerInstance.hasItems(AllBlocks.LARGE_COGWHEEL.get()))
+					.unlockedBy("has_steel_sheet", 
+						InventoryChangeTrigger.TriggerInstance.hasItems(AllItems.SHADOW_STEEL.get()))
+					.save(prov);
+			})
+
+			// ========== 应力配置 ==========
+			.onRegister(block -> BlockStressValues.IMPACTS.register(block, () -> 0))
+			
+			// ========== 采集工具配置 ==========
+			.transform(axeOrPickaxe())
+			
+			// ========== 连接纹理配置 ==========
+			.onRegister(CreateRegistrate.connectedTextures(() -> new EncasedCTBehaviour(AllSpriteShifts.ANDESITE_CASING)))
+									
+			// ========== 外壳连接性规则 ==========
+			.onRegister(CreateRegistrate.casingConnectivity((block, cc) -> {
+				cc.make(block, AllSpriteShifts.ANDESITE_CASING,
+						(s, f) -> AdvancedGearboxBlock.getShaftState(f, s) == AdvancedGearboxShaftState.OFF);
+			}))
+
+			// ========== Blockstate 生成 ==========
+			.blockstate((c, p) -> p.simpleBlock(c.getEntry(), p.models().getExistingFile(p.modLoc("block/advanced_gearbox/block"))))
+			
+			// ========== 物品配置 ==========
 			.item()
 			.transform(customItemModel())
 			

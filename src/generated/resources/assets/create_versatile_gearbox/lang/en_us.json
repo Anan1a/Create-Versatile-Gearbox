@@ -1,4 +1,5 @@
 {
+  "block.create_versatile_gearbox.advanced_gearbox": "Advanced Gearbox",
   "block.create_versatile_gearbox.versatile_gearbox": "Versatile Gearbox",
   "create_versatile_gearbox.configuration.items": "Item List",
   "create_versatile_gearbox.configuration.items.tooltip": "A list of items to log during common setup",

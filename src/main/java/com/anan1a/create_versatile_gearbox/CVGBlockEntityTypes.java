@@ -3,6 +3,9 @@ package com.anan1a.create_versatile_gearbox;
 import com.anan1a.create_versatile_gearbox.content.versatile_gearbox.VersatileGearboxBlockEntity;
 import com.anan1a.create_versatile_gearbox.content.versatile_gearbox.VersatileGearboxRenderer;
 import com.anan1a.create_versatile_gearbox.content.versatile_gearbox.VersatileGearboxVisual;
+import com.anan1a.create_versatile_gearbox.content.advanced_gearbox.AdvancedGearboxBlockEntity;
+import com.anan1a.create_versatile_gearbox.content.advanced_gearbox.AdvancedGearboxRenderer;
+import com.anan1a.create_versatile_gearbox.content.advanced_gearbox.AdvancedGearboxVisual;
 import com.simibubi.create.foundation.data.CreateRegistrate;
 import com.tterrag.registrate.util.entry.BlockEntityEntry;
 
@@ -49,6 +52,18 @@ public class CVGBlockEntityTypes {
             .renderer(() -> VersatileGearboxRenderer::new)
             
             // 完成注册，返回注册条目供后续引用
+            .register();
+
+    /**
+     * 高级齿轮箱方块实体
+     * <p>
+     * 注册 ID: create_versatile_gearbox:advanced_gearbox
+     */
+    public static final BlockEntityEntry<AdvancedGearboxBlockEntity> ADVANCED_GEARBOX = REGISTRATE
+            .blockEntity("advanced_gearbox", AdvancedGearboxBlockEntity::new)
+            .visual(() -> AdvancedGearboxVisual::new, false)
+            .validBlocks(CVGBlocks.ADVANCED_GEARBOX)
+            .renderer(() -> AdvancedGearboxRenderer::new)
             .register();
 
     public static void register() {}

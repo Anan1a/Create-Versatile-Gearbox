@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "create_versatile_gearbox:block/advanced_gearbox/block"
+    }
+  }
+}

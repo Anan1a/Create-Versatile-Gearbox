@@ -50,17 +50,21 @@ public class DynamicTextureModel<T> {
      */
     private static final float MIN_TEXTURE_SIZE = 1e-6f;
 
-    /** 占位纹理位置到其对应 TextureEntry 的不可变映射表。 */
-    private final Map<ResourceLocation, TextureEntry<T>> placeholderEntryMap;
-
-    /** 已加载目标精灵的线程安全缓存，以 ResourceLocation 为键。 */
-    private final ConcurrentHashMap<ResourceLocation, TextureAtlasSprite> textureCache;
+    /** 原始已烘焙模型，其 quad 将被拦截并重映射。 */
+    private final BakedModel template;
 
     /** 状态解析器，用于在渲染时确定每个面应使用哪个状态键。 */
     private final StateResolver<T> stateResolver;
 
-    /** 原始已烘焙模型，其 quad 将被拦截并重映射。 */
-    private final BakedModel template;
+    /** 占位纹理位置到其对应 TextureEntry 的不可变映射表。 */
+    private final Map<ResourceLocation, TextureEntry<T>> placeholderEntryMap;
+
+    /**
+     * 全局共享的纹理缓存，所有 DynamicTextureModel 实例共用一个。
+     * 使用线程安全的 ConcurrentHashMap 确保多线程环境下正确加载纹理。
+     * Key: 纹理 ResourceLocation, Value: 已加载的 TextureAtlasSprite
+     */
+    private static final ConcurrentHashMap<ResourceLocation, TextureAtlasSprite> GLOBAL_TEXTURE_CACHE = new ConcurrentHashMap<>();
 
     /** 线程本地可复用的 quad 结果列表，避免每帧渲染时产生分配开销。 */
     private final ThreadLocal<ArrayList<BakedQuad>> resultListCache = ThreadLocal.withInitial(
@@ -84,7 +88,6 @@ public class DynamicTextureModel<T> {
         this.stateResolver = Objects.requireNonNull(stateResolver, "stateResolver cannot be null");
 
         this.placeholderEntryMap = Collections.unmodifiableMap(buildPlaceholderMap(textureEntries));
-        this.textureCache = new ConcurrentHashMap<>();
     }
 
     /**
@@ -121,70 +124,104 @@ public class DynamicTextureModel<T> {
      *   <li>克隆 quad 并重映射 UV 坐标以匹配目标精灵</li>
      * </ol>
      *
-     * @param state      当前的方块状态
-     * @param side       正在渲染的面方向
+     * @param state      当前方块的 BlockState（由 Minecraft 渲染系统传入，仅反映方块属性）
+     * @param side       当前正在渲染的面方向（Minecraft 在遍历六个面时依次传入）
      * @param rand       随机数源（透传给模板模型）
-     * @param extraData  附加到方块实体的模型数据
+     * @param extraData  ModelData 运行时数据容器，来自 BlockEntity.getModelData()。
+     *                   本身不是 NBT，但可包含从 NBT 读取后转换的运行时值。
      * @param renderType 渲染类型（例如 solid、cutout、translucent）
      * @return 经过动态纹理重映射的已烘焙 quad 列表
      */
     public List<BakedQuad> getQuads(BlockState state, Direction side, RandomSource rand, ModelData extraData,
                                     RenderType renderType) {
+        // 第一步：从模板模型获取原始 quad 列表
+        // Minecraft 在渲染每个面时会调用此方法，template 是已烘焙的基础模型
         List<BakedQuad> originalQuads = template.getQuads(state, side, rand, extraData, renderType);
 
+        // 第二步：获取线程本地的结果列表（避免每帧分配新对象）
+        // ThreadLocal 确保每个线程有独立的对象，避免多线程竞争
         ArrayList<BakedQuad> result = resultListCache.get();
         result.clear();
         result.ensureCapacity(originalQuads.size());
 
+        // 第三步：将实例字段缓存到局部变量（性能优化）
+        // 注意：textureCache 使用全局共享的 GLOBAL_TEXTURE_CACHE，所有实例共用
         Map<ResourceLocation, TextureEntry<T>> placeholderMap = this.placeholderEntryMap;
-        ConcurrentHashMap<ResourceLocation, TextureAtlasSprite> cache = this.textureCache;
         StateResolver<T> resolver = this.stateResolver;
 
+        // 第四步：遍历每个 quad，进行纹理替换
         for (BakedQuad quad : originalQuads) {
+            // 4.1 空 quad 检查：直接保留
             if (quad == null) {
                 result.add(quad);
                 continue;
             }
 
+            // 4.2 获取 quad 的纹理精灵
+            // 每个 quad 绑定一个 TextureAtlasSprite，代表该 quad 使用的纹理
             TextureAtlasSprite originalSprite = quad.getSprite();
             if (originalSprite == null) {
                 result.add(quad);
                 continue;
             }
 
+            // 4.3 检查该精灵是否是已注册的占位符
+            // placeholderEntryMap: 占位纹理 ResourceLocation → TextureEntry
+            // 如果不是占位符（普通纹理），则跳过替换
             TextureEntry<T> entry = placeholderMap.get(originalSprite.contents().name());
             if (entry == null) {
                 result.add(quad);
                 continue;
             }
 
+            // 4.4 获取 quad 对应的面方向
+            // quad.getDirection() 返回该 quad 所属的面（NORTH/SOUTH/EAST/WEST/UP/DOWN）
+            // 注意：此处的 side 参数是"渲染视角"，可能与 quadFace 不同
             Direction quadFace = quad.getDirection();
             if (quadFace == null) {
                 result.add(quad);
                 continue;
             }
 
+            // 4.5 通过 StateResolver 解析该面对应的状态键
+            // state: 当前方块的 BlockState（包含方块属性，如连接状态）
+            // quadFace: 当前 quad 所属的面
+            // extraData: 来自 BlockEntity.getModelData()，可存储额外运行时数据
+            // 返回值 T 是状态键（如枚举值），用于查找目标纹理
             T stateKey = resolver.getState(state, quadFace, extraData);
             if (stateKey == null) {
+                // 返回 null 表示该面不需要纹理替换，保留原始 quad
                 result.add(quad);
                 continue;
             }
 
+            // 4.6 根据状态键查找目标纹理位置
+            // TextureEntry 内部维护 Map<T, ResourceLocation>
+            // 其中 T 是状态键，ResourceLocation 是目标纹理
             ResourceLocation targetLocation = entry.getTexture(stateKey);
             if (targetLocation == null) {
+                // 该状态没有对应的纹理映射，跳过此 quad
                 continue;
             }
 
-            TextureAtlasSprite targetSprite = getOrCreateCachedSprite(cache, targetLocation);
+            // 4.7 获取目标精灵（从全局缓存或重新加载）
+            // GLOBAL_TEXTURE_CACHE 是所有 DynamicTextureModel 实例共用的静态缓存
+            // 首次访问时从 TextureAtlas 加载，之后直接返回缓存
+            TextureAtlasSprite targetSprite = getOrCreateCachedSprite(targetLocation);
             if (targetSprite == null) {
+                // 纹理加载失败，保留原始 quad
                 result.add(quad);
                 continue;
             }
 
+            // 4.8 克隆 quad 并重映射 UV 坐标
+            // cloneQuadWithTexture 将原始 quad 的 UV 从 originalSprite
+            // 重映射到 targetSprite，保持相对位置不变
             BakedQuad newQuad = cloneQuadWithTexture(quad, originalSprite, targetSprite);
             result.add(newQuad);
         }
 
+        // 返回处理后的 quad 列表
         return result;
     }
 
@@ -198,30 +235,38 @@ public class DynamicTextureModel<T> {
     }
 
     /**
-     * 从缓存中获取 TextureAtlasSprite，如果尚未缓存则从方块纹理图集中加载。
+     * 从全局缓存中获取 TextureAtlasSprite，如果尚未缓存则从方块纹理图集中加载。
      * 使用 computeIfAbsent 确保线程安全的懒加载。
      *
-     * @param cache    并发精灵缓存
-     * @param location 目标纹理的资源位置
+     * @param location 目标纹理的资源位置（如 new ResourceLocation("minecraft", "block/oak_planks")）
      * @return 加载的精灵，如果加载失败则返回 null
      */
-    private static TextureAtlasSprite getOrCreateCachedSprite(
-            ConcurrentHashMap<ResourceLocation, TextureAtlasSprite> cache,
-            ResourceLocation location
-    ) {
-        TextureAtlasSprite cached = cache.get(location);
+    private static TextureAtlasSprite getOrCreateCachedSprite(ResourceLocation location) {
+        // 第一步：尝试从全局缓存读取
+        // ConcurrentHashMap.get() 是线程安全的，无需额外同步
+        TextureAtlasSprite cached = GLOBAL_TEXTURE_CACHE.get(location);
         if (cached != null) {
+            // 缓存命中，直接返回已加载的精灵
             return cached;
         }
-        return cache.computeIfAbsent(location, loc -> {
+
+        // 第二步：缓存未命中，从 TextureAtlas 懒加载
+        // computeIfAbsent 是原子操作，确保多线程不会重复加载
+        return GLOBAL_TEXTURE_CACHE.computeIfAbsent(location, loc -> {
+            // 获取 Minecraft 实例（客户端专用）
             Minecraft mc = Minecraft.getInstance();
             if (mc == null) {
+                // Minecraft 实例不可用（可能在服务端调用）
                 LOGGER.warn("Minecraft instance not available for texture loading");
                 return null;
             }
             try {
+                // 从方块纹理图集（block textures atlas）获取指定纹理
+                // TextureAtlas.LOCATION_BLOCKS 是 Minecraft 的主方块纹理图集
+                // apply() 方法会从图集中查找并加载该纹理
                 return mc.getTextureAtlas(TextureAtlas.LOCATION_BLOCKS).apply(loc);
             } catch (Exception e) {
+                // 纹理加载失败（可能资源包缺失或资源位置错误）
                 LOGGER.error("Failed to load texture: {}", loc, e);
                 return null;
             }

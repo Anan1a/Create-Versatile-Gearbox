@@ -1,4 +1,4 @@
-package com.anan1a.create_versatile_gearbox.content.versatile_gearbox;
+package com.anan1a.create_versatile_gearbox.content.advanced_gearbox;
 
 import java.util.List;
 import java.util.Map;
@@ -20,14 +20,14 @@ import net.neoforged.neoforge.client.model.data.ModelData;
 import net.neoforged.neoforge.client.model.data.ModelProperty;
 
 /**
- * 万向齿轮箱方块的定制烘焙模型，根据轴的运行状态（正向、反向或关闭）动态切换每个面的纹理。
+ * 高级齿轮箱方块的定制烘焙模型，根据轴的运行状态（正向、反向或关闭）动态切换每个面的纹理。
  * <p>
  * 使用 {@link DynamicTextureModel} 在运行时高效地进行纹理重映射，无需定义多个 blockstate 变体
  * 或 model override。注册了两个纹理条目：
  * <ul>
- *   <li><b>核心条目</b>：根据旋转方向，在正向核心纹理（{@link VersatileGearboxShaftState#FWD}）
- *       和反向核心纹理（{@link VersatileGearboxShaftState#REV}）之间切换。</li>
- *   <li><b>外壳条目</b>：当轴处于 {@link VersatileGearboxShaftState#OFF} 状态时
+ *   <li><b>核心条目</b>：根据旋转方向，在正向核心纹理（{@link AdvancedGearboxShaftState#FWD}）
+ *       和反向核心纹理（{@link AdvancedGearboxShaftState#REV}）之间切换。</li>
+ *   <li><b>外壳条目</b>：当轴处于 {@link AdvancedGearboxShaftState#OFF} 状态时
  *       （即没有轴），将关闭外壳纹理替换为安山岩机壳纹理。</li>
  * </ul>
  * <p>
@@ -35,23 +35,23 @@ import net.neoforged.neoforge.client.model.data.ModelProperty;
  * 则回退到 {@link BlockState} 属性。
  */
 @OnlyIn(Dist.CLIENT)
-public class VersatileGearboxModel extends BakedModelWrapper<BakedModel> {
+public class AdvancedGearboxModel extends BakedModelWrapper<BakedModel> {
 
     /**
      * 用于在渲染时从方块实体向模型传递每面轴状态的模型属性。
-     * 存储一个包含 6 个 {@link VersatileGearboxShaftState} 值的数组，
+     * 存储一个包含 6 个 {@link AdvancedGearboxShaftState} 值的数组，
      * 每个 {@link Direction} 对应一个。
      * <p>
-     * 存储方：{@link VersatileGearboxBlockEntity#getModelData()} 中
+     * 存储方：{@link AdvancedGearboxBlockEntity#getModelData()} 中
      * {@code ModelData.builder().with(FACE_STATES, faceStates).build()}
      * <p>
      * 读取方：本类 {@link #getStatesFromModelData(ModelData)} 中
      * {@code data.has(FACE_STATES)} / {@code data.get(FACE_STATES)}
      */
-    public static final ModelProperty<VersatileGearboxShaftState[]> FACE_STATES = new ModelProperty<>();
+    public static final ModelProperty<AdvancedGearboxShaftState[]> FACE_STATES = new ModelProperty<>();
 
-    /** 万向齿轮箱方块纹理的基础路径。 */
-    private static final String TEXTURE_BASE = "block/versatile_gearbox/";
+    /** 高级齿轮箱方块纹理的基础路径。 */
+    private static final String TEXTURE_BASE = "block/advanced_gearbox/";
 
     /** 关闭外壳替换使用的纹理（来自 Create 的安山岩机壳）。 */
     private static final ResourceLocation TEXTURE_ANDESITE_CASING = ResourceLocation.fromNamespaceAndPath("create", "block/andesite_casing");
@@ -63,33 +63,33 @@ public class VersatileGearboxModel extends BakedModelWrapper<BakedModel> {
     private static final ResourceLocation TEXTURE_OFF_SHELL = ResourceLocation.fromNamespaceAndPath(MODID, TEXTURE_BASE + "off_shell");
 
     /** 齿轮箱核心的纹理条目：将 FWD 映射到 fwd_core，REV 映射到 rev_core。 */
-    private static final DynamicTextureModel.TextureEntry<VersatileGearboxShaftState> CORE_ENTRY = new DynamicTextureModel.TextureEntry<>(
+    private static final DynamicTextureModel.TextureEntry<AdvancedGearboxShaftState> CORE_ENTRY = new DynamicTextureModel.TextureEntry<>(
             TEXTURE_FWD_CORE,
             Map.of(
-                VersatileGearboxShaftState.FWD, TEXTURE_FWD_CORE,
-                VersatileGearboxShaftState.REV, TEXTURE_REV_CORE
+                AdvancedGearboxShaftState.FWD, TEXTURE_FWD_CORE,
+                AdvancedGearboxShaftState.REV, TEXTURE_REV_CORE
             )
     );
 
     /** 齿轮箱外壳的纹理条目：将 OFF 映射到安山岩机壳（隐藏轴）。 */
-    private static final DynamicTextureModel.TextureEntry<VersatileGearboxShaftState> SHELL_ENTRY = new DynamicTextureModel.TextureEntry<>(
+    private static final DynamicTextureModel.TextureEntry<AdvancedGearboxShaftState> SHELL_ENTRY = new DynamicTextureModel.TextureEntry<>(
             TEXTURE_OFF_SHELL,
-            Map.of(VersatileGearboxShaftState.OFF, TEXTURE_ANDESITE_CASING)
+            Map.of(AdvancedGearboxShaftState.OFF, TEXTURE_ANDESITE_CASING)
     );
 
     /** 注册用于动态重映射的所有纹理条目。 */
-    private static final List<DynamicTextureModel.TextureEntry<VersatileGearboxShaftState>> TEXTURE_ENTRIES = List.of(CORE_ENTRY, SHELL_ENTRY);
+    private static final List<DynamicTextureModel.TextureEntry<AdvancedGearboxShaftState>> TEXTURE_ENTRIES = List.of(CORE_ENTRY, SHELL_ENTRY);
 
     /** 执行每面纹理重映射的底层动态纹理模型。 */
-    private final DynamicTextureModel<VersatileGearboxShaftState> dynamicTextureModel;
+    private final DynamicTextureModel<AdvancedGearboxShaftState> dynamicTextureModel;
 
     /**
-     * 构造一个新的万向齿轮箱模型，包装给定的模板。
+     * 构造一个新的高级齿轮箱模型，包装给定的模板。
      *
      * @param template 来自 blockstate JSON 的原始烘焙模型，
      *                 包含将被动态重映射的占位纹理
      */
-    public VersatileGearboxModel(BakedModel template) {
+    public AdvancedGearboxModel(BakedModel template) {
         super(template);
         this.dynamicTextureModel = new DynamicTextureModel<>(
                 template,
@@ -122,25 +122,18 @@ public class VersatileGearboxModel extends BakedModelWrapper<BakedModel> {
      * @param state 当前的方块状态
      * @param face  面方向
      * @param data  方块实体的模型数据
-     * @return 解析后的轴状态，如果不可用则返回 {@link VersatileGearboxShaftState#OFF}
+     * @return 解析后的轴状态，如果不可用则返回 {@link AdvancedGearboxShaftState#OFF}
      */
-    private VersatileGearboxShaftState resolveState(BlockState state, Direction face, ModelData data) {
-        // 尝试从 ModelData（BlockEntity 提供）获取 6 个面的状态数组
-        // getStatesFromModelData() 内部校验数据完整性：非空、长度=6、无 null 元素
-        VersatileGearboxShaftState[] states = getStatesFromModelData(data);
-        // 回退策略：ModelData 不可用（如无 BlockEntity）时，从 BlockState 属性读取
+    private AdvancedGearboxShaftState resolveState(BlockState state, Direction face, ModelData data) {
+        AdvancedGearboxShaftState[] states = getStatesFromModelData(data);
         if (states == null) {
-            // getStatesFromBlock() 内部校验 state.getBlock() 是否为 VersatileGearboxBlock
             states = getStatesFromBlock(state);
         }
-        // 双重保障：如果两个数据源都失效（意外情况），返回 OFF 避免渲染异常
         if (states == null || states.length != 6) {
-            return VersatileGearboxShaftState.OFF;
+            return AdvancedGearboxShaftState.OFF;
         }
-        // face.get3DDataValue() 返回 Direction 的序数（D=0, U=1, N=2, S=3, W=4, E=5）
-        // 正好对应 states[0]~states[5] 的下标，直接索引取出该面状态
         int index = face.get3DDataValue();
-        return (index >= 0 && index < 6) ? states[index] : VersatileGearboxShaftState.OFF;
+        return (index >= 0 && index < 6) ? states[index] : AdvancedGearboxShaftState.OFF;
     }
 
     /**
@@ -150,25 +143,16 @@ public class VersatileGearboxModel extends BakedModelWrapper<BakedModel> {
      * @param data 模型数据容器
      * @return 包含 6 个轴状态的数组，如果数据缺失或无效则返回 null
      */
-    private VersatileGearboxShaftState[] getStatesFromModelData(ModelData data) {
-        // data.has(FACE_STATES) 检查 ModelData 中是否包含 FACE_STATES 属性
-        // FACE_STATES 是 ModelProperty<VersatileGearboxShaftState[]> 类型，
-        // 由 BlockEntity.getModelData() 设置，存储 6 个面的轴状态数组
+    private AdvancedGearboxShaftState[] getStatesFromModelData(ModelData data) {
         if (data != null && data.has(FACE_STATES)) {
-            // data.get(FACE_STATES) 取出存储的轴状态数组
-            VersatileGearboxShaftState[] states = data.get(FACE_STATES);
-            // 校验：数组存在且长度为 6（D/U/N/S/W/E 六个面各一个）
+            AdvancedGearboxShaftState[] states = data.get(FACE_STATES);
             if (states != null && states.length == 6) {
-                // 逐元素校验：6 个面的状态都不能为 null
-                // 任一 null 视为数据损坏，返回 null 触发回退到 BlockState
-                for (VersatileGearboxShaftState s : states) {
+                for (AdvancedGearboxShaftState s : states) {
                     if (s == null) return null;
                 }
                 return states;
             }
         }
-        // data 为 null、无 FACE_STATES 属性、数组校验失败，均返回 null
-        // 调用方 resolveState() 会回退到 getStatesFromBlock(state) 读取 BlockState 属性
         return null;
     }
 
@@ -178,19 +162,19 @@ public class VersatileGearboxModel extends BakedModelWrapper<BakedModel> {
      *
      * @param state 当前的方块状态
      * @return 包含 6 个轴状态的数组（D=0, U=1, N=2, S=3, W=4, E=5），
-     *         如果方块不是 {@link VersatileGearboxBlock} 则返回 null
+     *         如果方块不是 {@link AdvancedGearboxBlock} 则返回 null
      */
-    private static VersatileGearboxShaftState[] getStatesFromBlock(BlockState state) {
-        if (!(state.getBlock() instanceof VersatileGearboxBlock)) {
+    private static AdvancedGearboxShaftState[] getStatesFromBlock(BlockState state) {
+        if (!(state.getBlock() instanceof AdvancedGearboxBlock)) {
             return null;
         }
-        return new VersatileGearboxShaftState[]{
-                VersatileGearboxBlock.getShaftState(Direction.DOWN, state),
-                VersatileGearboxBlock.getShaftState(Direction.UP, state),
-                VersatileGearboxBlock.getShaftState(Direction.NORTH, state),
-                VersatileGearboxBlock.getShaftState(Direction.SOUTH, state),
-                VersatileGearboxBlock.getShaftState(Direction.WEST, state),
-                VersatileGearboxBlock.getShaftState(Direction.EAST, state)
+        return new AdvancedGearboxShaftState[]{
+                AdvancedGearboxBlock.getShaftState(Direction.DOWN, state),
+                AdvancedGearboxBlock.getShaftState(Direction.UP, state),
+                AdvancedGearboxBlock.getShaftState(Direction.NORTH, state),
+                AdvancedGearboxBlock.getShaftState(Direction.SOUTH, state),
+                AdvancedGearboxBlock.getShaftState(Direction.WEST, state),
+                AdvancedGearboxBlock.getShaftState(Direction.EAST, state)
         };
     }
 }

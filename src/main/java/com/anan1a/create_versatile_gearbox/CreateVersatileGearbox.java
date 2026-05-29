@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import com.mojang.logging.LogUtils;
 
 import com.anan1a.create_versatile_gearbox.content.versatile_gearbox.VersatileGearboxModel;
+import com.anan1a.create_versatile_gearbox.content.advanced_gearbox.AdvancedGearboxModel;
 import com.simibubi.create.foundation.model.ModelSwapper;
 
 import net.minecraft.client.resources.model.BakedModel;
@@ -128,6 +129,15 @@ public class CreateVersatileGearbox {
                     if (originalModel != null) {
                         // 用 VersatileGearboxModel 包装原始模型，实现运行时动态纹理替换
                         modelRegistry.put(location, new VersatileGearboxModel(originalModel));
+                    }
+                });
+
+            // 注册高级齿轮箱的动态模型
+            ModelSwapper.getAllBlockStateModelLocations(CVGBlocks.ADVANCED_GEARBOX.get())
+                .forEach(location -> {
+                    BakedModel originalModel = modelRegistry.get(location);
+                    if (originalModel != null) {
+                        modelRegistry.put(location, new AdvancedGearboxModel(originalModel));
                     }
                 });
         }
