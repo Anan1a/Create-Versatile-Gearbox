@@ -18,4 +18,19 @@ public enum AdvancedGearboxShaftState implements StringRepresentable {
     public String getSerializedName() {
         return name().toLowerCase();
     }
+
+    /**
+     * 获取下一个状态。
+     * <p>
+     * 顺序：FWD → REV → OFF → FWD
+     *
+     * @return 下一个状态
+     */
+    public AdvancedGearboxShaftState next() {
+        return switch (this) {
+            case FWD -> REV;
+            case REV -> OFF;
+            case OFF -> FWD;
+        };
+    }
 }

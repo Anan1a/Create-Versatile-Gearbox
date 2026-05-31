@@ -195,12 +195,12 @@ public class AdvancedGearboxBlock extends KineticBlock implements IBE<AdvancedGe
     }
 
     /**
-     * 获取方块的旋转轴（IRotate 接口要求）
+     * 获取方块的旋转轴。
      * <p>
-     * 【蓝图兼容性】始终返回 Y 轴，使方块在任何情况下都保持相同的视觉朝向。
-     * 方块本身没有方向属性，所有面的功能通过绝对方向系统处理。
+     * AdvancedGearbox 支持六个面的传动轴连接，轴方向由绝对方向（东/西/南/北/上/下）
+     * 而非方块朝向决定，因此视觉模型始终保持固定方向，旋转轴固定为 Y 轴。
      *
-     * @param state 方块状态
+     * @param state 方块状态（未使用，固定返回 Y 轴）
      * @return 固定为 Y 轴
      */
     @Override
@@ -343,12 +343,10 @@ public class AdvancedGearboxBlock extends KineticBlock implements IBE<AdvancedGe
         BlockState newState = state.cycle(getStateProperty(clickedFace));
 
         // 第 2 步：将新状态写入 BlockEntity 的 FaceStateContainer（NBT 存储）
-        // cycle() 修改了 BlockState，但 NBT 不会自动同步。
-        // 手动 setShaftState 确保：
-        //   - setChanged() → 存档时写入 NBT
-        //   - requestModelDataUpdate() → 渲染时读取新状态
+        // cycleShaftState() 直接从 BlockEntity 的 faceStates 计算下一个状态，
+        // 不再依赖 BlockState newState，实现数据解耦。
         if (level.getBlockEntity(pos) instanceof AdvancedGearboxBlockEntity be) {
-            be.setShaftState(clickedFace, getShaftState(clickedFace, newState));
+            be.cycleShaftState(clickedFace);
         }
 
         // 第 3 步：通知 Create 动力网络，BlockState 已变更

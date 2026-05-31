@@ -1,12 +1,15 @@
 package com.anan1a.create_versatile_gearbox.content.advanced_gearbox;
 
 import com.anan1a.create_versatile_gearbox.foundation.FaceStateContainer;
+import com.simibubi.create.api.contraption.transformable.TransformableBlockEntity;
+import com.simibubi.create.content.contraptions.StructureTransform;
 import com.simibubi.create.content.kinetics.transmission.SplitShaftBlockEntity;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.client.model.data.ModelData;
@@ -29,7 +32,7 @@ import net.neoforged.neoforge.client.model.data.ModelData;
  *   <li>{@link #getModelData()} → 导出到渲染管线</li>
  * </ul>
  */
-public class AdvancedGearboxBlockEntity extends SplitShaftBlockEntity {
+public class AdvancedGearboxBlockEntity extends SplitShaftBlockEntity implements TransformableBlockEntity {
 
     /**
      * 运行时面状态缓存，使用 NBT 作为持久化存储后端。
@@ -83,6 +86,22 @@ public class AdvancedGearboxBlockEntity extends SplitShaftBlockEntity {
         faceStates.set(face, value);
         setChanged();
         requestModelDataUpdate();
+    }
+
+    /**
+     * 循环切换指定面的传动轴状态。
+     * <p>
+     * 状态切换顺序：FWD → REV → OFF → FWD
+     * <p>
+     * 与 {@link #setShaftState(Direction, AdvancedGearboxShaftState)} 的区别：
+     * 此方法直接基于当前状态计算下一个状态，无需外部传入目标值。
+     * 常用于扳手交互场景（每次右键切换到下一个状态）。
+     *
+     * @param face 要切换的面方向
+     */
+    public void cycleShaftState(Direction face) {
+        AdvancedGearboxShaftState current = faceStates.get(face);
+        setShaftState(face, current.next());
     }
 
     // ===== NBT 读写（通过 SmartBlockEntity 的 write/read 钩子）=====
@@ -211,6 +230,49 @@ public class AdvancedGearboxBlockEntity extends SplitShaftBlockEntity {
     @Override
     protected boolean isNoisy() {
         return false;
+    }
+
+    // ===== 蓝图变换 =====
+
+    /**
+     * 蓝图/装置变换时旋转面状态。
+     * <p>
+     * 实现 {@link TransformableBlockEntity} 接口，在蓝图旋转/镜像时被
+     * {@link StructureTransform#apply(BlockEntity)} 调用。
+     * <p>
+     * 变换规则：
+     * <ul>
+     *   <li><b>旋转</b>：新位置的状态 = 旋转前在该位置的面的状态</li>
+     *   <li><b>镜像</b>：镜像面交换状态（如 LEFT_RIGHT 镜像时 NORTH ↔ SOUTH）</li>
+     * </ul>
+     * <p>
+     * 示例：绕 Y 轴顺时针旋转 90° 时，原来在 WEST 的面转到 NORTH 位置，
+     * 因此新 NORTH 的状态 = 旧 WEST 的状态。
+     *
+     * @param blockEntity 本方块实体（由接口传入）
+     * @param transform   变换信息（包含旋转轴、角度、镜像方式）
+     */
+    @Override
+    public void transform(BlockEntity blockEntity, StructureTransform transform) {
+        AdvancedGearboxShaftState[] oldStates = faceStates.toArray();
+
+        for (Direction newFace : Direction.values()) {
+            Direction oldFace = newFace;
+
+            // Step 1: 应用旋转（反向旋转 = 与正向相同的旋转方向）
+            if (transform.rotation != null && transform.rotationAxis == Direction.Axis.Y) {
+                for (int i = 0; i < transform.rotation.ordinal(); i++) {
+                    oldFace = oldFace.getCounterClockWise(transform.rotationAxis);
+                }
+            }
+
+            // Step 2: 应用镜像（反向镜像 = 正向镜像，同一个 API）
+            if (transform.mirror != null) {
+                oldFace = transform.mirror.mirror(oldFace);
+            }
+
+            faceStates.set(newFace, oldStates[oldFace.get3DDataValue()]);
+        }
     }
 
     // ===== 渲染数据 =====
