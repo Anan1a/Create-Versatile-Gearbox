@@ -14,7 +14,7 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Direction.Axis;
-import net.minecraft.world.level.block.state.BlockState;
+
 
 /**
  * 高级齿轮箱渲染器（六面轴版本）
@@ -38,12 +38,10 @@ public class AdvancedGearboxRenderer extends KineticBlockEntityRenderer<Advanced
      * <p>
      * 【渲染策略】
      * - Flywheel 优化：如果启用了 Flywheel 可视化，则跳过此渲染器，由 Flywheel 接管
-     * - 六面轴渲染：遍历所有 6 个方向，根据 BlockState 判断是否渲染该方向的半轴
+     * - 六面轴渲染：遍历所有 6 个方向，根据 NBT 数据判断是否渲染该方向的半轴
      * - 独立旋转：每个半轴根据其方向的动力传输状态独立计算旋转角度
      * <p>
-     * 【关键修复】
-     * - 优先从 BlockState 读取状态，确保与 Ponder 场景中的 modifyBlock 同步
-     * - OFF 状态的半轴不渲染，FWD/REV 状态的半轴正常渲染
+     * OFF 状态的半轴不渲染，FWD/REV 状态的半轴正常渲染。
      *
      * @param be          方块实体，包含动力网络和状态信息
      * @param partialTicks 部分 tick 值，用于平滑动画插值
@@ -58,7 +56,6 @@ public class AdvancedGearboxRenderer extends KineticBlockEntityRenderer<Advanced
         if (VisualizationManager.supportsVisualization(be.getLevel()))
             return;
 
-        BlockState state = be.getBlockState();
         BlockPos pos = be.getBlockPos();
         float baseSpeed = be.getSpeed();
 
@@ -69,9 +66,9 @@ public class AdvancedGearboxRenderer extends KineticBlockEntityRenderer<Advanced
         }
 
         for (Direction direction : Iterate.directions) {
-            if (!shouldRenderShaftHalf(state, direction))
+            if (!shouldRenderShaftHalf(be, direction))
                 continue;
-            renderShaftHalf(be, state, pos, sourceFacing, baseSpeed, direction, ms, buffer, light);
+            renderShaftHalf(be, pos, sourceFacing, baseSpeed, direction, ms, buffer, light);
         }
     }
 
@@ -79,15 +76,13 @@ public class AdvancedGearboxRenderer extends KineticBlockEntityRenderer<Advanced
      * 检查是否应该渲染指定方向的半轴
      * <p>
      * 【三状态版本】OFF 状态不渲染半轴，FWD/REV 状态渲染半轴。
-     * <p>
-     * 【性能优化】直接接受 BlockState 参数，避免重复调用 getBlockState()
      *
-     * @param state     方块状态
+     * @param be        方块实体
      * @param direction 要检查的方向
      * @return true 表示渲染该半轴
      */
-    protected boolean shouldRenderShaftHalf(BlockState state, Direction direction) {
-        return AdvancedGearboxBlock.getShaftState(direction, state) != AdvancedGearboxShaftState.OFF;
+    protected boolean shouldRenderShaftHalf(AdvancedGearboxBlockEntity be, Direction direction) {
+        return be.getShaftState(direction) != AdvancedGearboxShaftState.OFF;
     }
 
     /**
@@ -99,7 +94,6 @@ public class AdvancedGearboxRenderer extends KineticBlockEntityRenderer<Advanced
      * 【性能优化】参数预计算传递，避免每帧重复计算
      *
      * @param be          方块实体
-     * @param state       方块状态
      * @param pos         方块位置
      * @param sourceFacing 动力源方向
      * @param baseSpeed   基础速度
@@ -108,14 +102,15 @@ public class AdvancedGearboxRenderer extends KineticBlockEntityRenderer<Advanced
      * @param buffer      渲染缓冲区
      * @param light       光照值
      */
-    protected void renderShaftHalf(AdvancedGearboxBlockEntity be, BlockState state, BlockPos pos,
+    protected void renderShaftHalf(AdvancedGearboxBlockEntity be, BlockPos pos,
                                    Direction sourceFacing, float baseSpeed, Direction direction,
                                    PoseStack ms, MultiBufferSource buffer, int light) {
         final Axis shaftAxis = direction.getAxis();
 
         // 获取缓存的半轴模型（Create API）
+        // 传入 be.getBlockState() 仅用于模型注册表查找，不涉及面状态属性
         SuperByteBuffer shaftBuffer = CachedBuffers.partialFacing(
-                AllPartialModels.SHAFT_HALF, state, direction);
+                AllPartialModels.SHAFT_HALF, be.getBlockState(), direction);
 
         // 计算该方向的实际速度（考虑翻转属性）
         float speedForDirection = baseSpeed;

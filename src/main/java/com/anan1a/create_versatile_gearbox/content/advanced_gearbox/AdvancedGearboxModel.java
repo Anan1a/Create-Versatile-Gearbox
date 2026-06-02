@@ -2,7 +2,6 @@ package com.anan1a.create_versatile_gearbox.content.advanced_gearbox;
 
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 import com.anan1a.create_versatile_gearbox.foundation.DynamicTextureModel;
 
@@ -11,17 +10,14 @@ import static com.anan1a.create_versatile_gearbox.CreateVersatileGearbox.MODID;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.resources.model.BakedModel;
-import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.client.model.BakedModelWrapper;
 import net.neoforged.neoforge.client.model.data.ModelData;
-import net.neoforged.neoforge.client.model.data.ModelProperty;
 
 /**
  * 高级齿轮箱方块的定制烘焙模型，根据轴的运行状态（正向、反向或关闭）动态切换每个面的纹理。
@@ -35,45 +31,15 @@ import net.neoforged.neoforge.client.model.data.ModelProperty;
  *       （即没有轴），将关闭外壳纹理替换为安山岩机壳纹理。</li>
  * </ul>
  * <p>
- * <b>数据来源</b>：从 {@link ModelData} 读取每面状态，由 {@link AdvancedGearboxBlockEntity#getModelData()}
- * 提供。使用 {@link #FACE_STATES_CACHE} 静态缓存解决渲染管线中 ModelData 传递断裂的问题。
+ * <b>数据来源</b>：由 Mixin 在 {@code renderBatched} HEAD 处从 BlockEntity 直接读取面状态并写入
+ * {@link #CURRENT_FACE_STATES}（ThreadLocal），模型在 {@link #resolveState} 中直接读取，
+ * 避免替换原始 ModelData 导致连接纹理数据丢失。
  */
 @OnlyIn(Dist.CLIENT)
 public class AdvancedGearboxModel extends BakedModelWrapper<BakedModel> {
 
-    /** ModelData 键：存储六个面的轴状态数组 */
-    public static final ModelProperty<AdvancedGearboxShaftState[]> FACE_STATES = new ModelProperty<>();
-
-    /**
-     * 面状态静态缓存：解决渲染管线中 ModelData 传递断裂问题。
-     * <p>
-     * 由 {@link AdvancedGearboxBlockEntity} 的 {@code setShaftState()}、{@code read()}、{@code getModelData()}
-     * 方法写入，由 {@link #resolveState(BlockState, Direction, ModelData)} 和 Mixin 读取。
-     */
-    public static final ConcurrentHashMap<BlockPos, AdvancedGearboxShaftState[]> FACE_STATES_CACHE = new ConcurrentHashMap<>();
-
-    /**
-     * 更新面状态缓存。
-     *
-     * @param pos    方块位置（将被转为不可变）
-     * @param states 六个面的轴状态数组
-     */
-    public static void updateCache(BlockPos pos, AdvancedGearboxShaftState[] states) {
-        if (pos != null && states != null) {
-            FACE_STATES_CACHE.put(pos.immutable(), states);
-        }
-    }
-
-    /**
-     * 从缓存中移除指定位置的面状态。
-     *
-     * @param pos 方块位置
-     */
-    public static void removeFromCache(BlockPos pos) {
-        if (pos != null) {
-            FACE_STATES_CACHE.remove(pos);
-        }
-    }
+    /** 当前渲染的面状态数组，由 Mixin 在 renderBatched HEAD 从 BE 直接读取后注入。 */
+    public static final ThreadLocal<AdvancedGearboxShaftState[]> CURRENT_FACE_STATES = new ThreadLocal<>();
 
     /** 高级齿轮箱方块纹理的基础路径。 */
     private static final String TEXTURE_BASE = "block/advanced_gearbox/";
@@ -129,21 +95,6 @@ public class AdvancedGearboxModel extends BakedModelWrapper<BakedModel> {
     }
 
     /**
-     * 返回模型数据。由于渲染管线中 ModelData 传递存在问题，实际数据由 Mixin 在
-     * {@link #FACE_STATES_CACHE} 中读取并注入。
-     *
-     * @param level      方块访问器
-     * @param pos        方块位置
-     * @param state      当前方块状态
-     * @param modelData  输入的 ModelData（透传）
-     * @return 透传的 ModelData
-     */
-    @Override
-    public ModelData getModelData(BlockAndTintGetter level, BlockPos pos, BlockState state, ModelData modelData) {
-        return modelData;
-    }
-
-    /**
      * 将 quad 生成委托给 {@link DynamicTextureModel}，后者拦截模板中的 quad
      * 并根据每面轴状态重映射纹理。
      *
@@ -162,19 +113,17 @@ public class AdvancedGearboxModel extends BakedModelWrapper<BakedModel> {
     }
 
     /**
-     * 解析指定面的轴状态。从 ModelData 读取每面状态，由 Mixin 注入。
+     * 解析指定面的轴状态。从 {@link #CURRENT_FACE_STATES} 读取，由 Mixin 在 renderBatched HEAD 注入。
      *
-     * @param state 当前的方块状态
+     * @param state 当前的方块状态（未使用，保留以匹配 {@link DynamicTextureModel} 函数签名）
      * @param face  面方向
-     * @param data  ModelData 数据容器，包含每面轴状态
+     * @param data  ModelData（未使用，数据通过 ThreadLocal 桥接）
      * @return 解析后的轴状态，如果数据无效则返回 {@link AdvancedGearboxShaftState#OFF}
      */
     private AdvancedGearboxShaftState resolveState(BlockState state, Direction face, ModelData data) {
-        if (data != null && data.has(FACE_STATES)) {
-            AdvancedGearboxShaftState[] states = data.get(FACE_STATES);
-            if (states != null && states.length == 6) {
-                return states[face.get3DDataValue()];
-            }
+        AdvancedGearboxShaftState[] states = CURRENT_FACE_STATES.get();
+        if (states != null && states.length == 6) {
+            return states[face.get3DDataValue()];
         }
         return AdvancedGearboxShaftState.OFF;
     }

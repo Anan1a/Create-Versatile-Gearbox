@@ -64,7 +64,7 @@ public class AdvancedGearboxVisual extends KineticBlockEntityVisual<AdvancedGear
     private void initShaftInstances() {
         var instancer = instancerProvider().instancer(AllInstanceTypes.ROTATING, Models.partial(AllPartialModels.SHAFT_HALF));
         for (Direction direction : Iterate.directions) {
-            if (AdvancedGearboxBlock.getShaftState(direction, blockState) == AdvancedGearboxShaftState.OFF)
+            if (blockEntity.getShaftState(direction) == AdvancedGearboxShaftState.OFF)
                 continue;
 
             RotatingInstance instance = instancer.createInstance();
@@ -151,7 +151,7 @@ public class AdvancedGearboxVisual extends KineticBlockEntityVisual<AdvancedGear
         var instancer = instancerProvider().instancer(AllInstanceTypes.ROTATING, Models.partial(AllPartialModels.SHAFT_HALF));
         for (Direction direction : Iterate.directions) {
             int idx = direction.ordinal();
-            AdvancedGearboxShaftState state = AdvancedGearboxBlock.getShaftState(direction, blockState);
+            AdvancedGearboxShaftState state = blockEntity.getShaftState(direction);
             RotatingInstance existing = keys[idx];
 
             if (state == AdvancedGearboxShaftState.OFF && existing != null) {

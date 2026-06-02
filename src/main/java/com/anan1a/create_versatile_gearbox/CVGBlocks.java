@@ -8,7 +8,6 @@ import net.minecraft.world.level.material.MapColor;
 
 import com.anan1a.create_versatile_gearbox.content.versatile_gearbox.VersatileGearboxBlock;
 import com.anan1a.create_versatile_gearbox.content.advanced_gearbox.AdvancedGearboxBlock;
-import com.anan1a.create_versatile_gearbox.foundation.AllModSpriteShifts;
 import com.simibubi.create.foundation.data.CreateRegistrate;
 import com.simibubi.create.foundation.data.SharedProperties;
 import com.simibubi.create.api.stress.BlockStressValues;
@@ -22,7 +21,6 @@ import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.ShapedRecipeBuilder;
 import net.minecraft.advancements.critereon.InventoryChangeTrigger;
 
-import static com.simibubi.create.foundation.data.BlockStateGen.axisBlock;
 import static com.simibubi.create.foundation.data.ModelGen.customItemModel;
 import static com.simibubi.create.foundation.data.TagGen.axeOrPickaxe;
 
@@ -127,15 +125,12 @@ public class CVGBlocks {
 			// ========== 连接纹理配置 ==========
 			// 为自定义机壳和安山合金机壳注册连接纹理行为
 			// EncasedCTBehaviour 根据相邻方块状态处理纹理渲染
-			// .onRegister(CreateRegistrate.connectedTextures(() -> new EncasedCTBehaviour(AllModSpriteShifts.VERSATILE_GEARBOX_OFF)))
 			.onRegister(CreateRegistrate.connectedTextures(() -> new EncasedCTBehaviour(AllSpriteShifts.ANDESITE_CASING)))
 									
 			// ========== 外壳连接性规则 ==========
 			// 定义连接条件：仅当轴状态为 OFF 时面才连接
 			// 防止轴激活时出现视觉错误
 			.onRegister(CreateRegistrate.casingConnectivity((block, cc) -> {
-				// cc.make(block, AllModSpriteShifts.VERSATILE_GEARBOX_OFF,
-				// 		(s, f) -> VersatileGearboxBlock.getShaftState(f, s) == VersatileGearboxShaftState.OFF);
 				cc.make(block, AllSpriteShifts.ANDESITE_CASING,
 						(s, f) -> VersatileGearboxBlock.getShaftState(f, s) == VersatileGearboxShaftState.OFF);
 			}))

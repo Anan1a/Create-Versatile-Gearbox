@@ -62,14 +62,7 @@ public class AdvancedGearboxBlockEntity extends SplitShaftBlockEntity implements
      * 供同包 Model 直接读取面状态数组（绕过 ModelData 机制）。
      * 返回值是 clone，修改不影响内部状态。
      */
-    AdvancedGearboxShaftState[] getFaceStatesArray() {
-        return faceStates.toArray();
-    }
-
-    /**
-     * 获取当前所有面状态的快照。
-     */
-    public AdvancedGearboxShaftState[] getFaceStatesSnapshot() {
+    public AdvancedGearboxShaftState[] getFaceStatesArray() {
         return faceStates.toArray();
     }
 
@@ -102,9 +95,6 @@ public class AdvancedGearboxBlockEntity extends SplitShaftBlockEntity implements
         faceStates.set(face, value);
         setChanged();
         requestModelDataUpdate();
-        if (level != null && level.isClientSide()) {
-            AdvancedGearboxModel.updateCache(getBlockPos(), faceStates.toArray());
-        }
     }
 
     /**
@@ -164,7 +154,6 @@ public class AdvancedGearboxBlockEntity extends SplitShaftBlockEntity implements
             faceStates.fromNbt(tag.getCompound("face_states"));
         }
         if (clientPacket) {
-            AdvancedGearboxModel.updateCache(getBlockPos(), faceStates.toArray());
             requestModelDataUpdate();
         }
     }
@@ -296,26 +285,5 @@ public class AdvancedGearboxBlockEntity extends SplitShaftBlockEntity implements
 
             faceStates.set(newFace, oldStates[oldFace.get3DDataValue()]);
         }
-    }
-
-    // ===== 渲染数据 =====
-
-    /**
-     * 提供模型渲染所需的运行时数据。
-     * <p>
-     * 将 6 个面的状态数组存入 {@link AdvancedGearboxModel#FACE_STATES}，
-     * 模型在 {@code getQuads()} 中通过 ModelData 读取该数组以决定每个面的纹理。
-     * <p>
-     * 调用链：渲染引擎 → {@code getModelData()} → ModelData → {@link AdvancedGearboxModel#getQuads} → resolveState
-     *
-     * @return 包含面状态数组的 ModelData
-     */
-    @Override
-    public ModelData getModelData() {
-        AdvancedGearboxShaftState[] arr = faceStates.toArray();
-        AdvancedGearboxModel.updateCache(getBlockPos(), arr);
-        return ModelData.builder()
-                .with(AdvancedGearboxModel.FACE_STATES, arr)
-                .build();
     }
 }
