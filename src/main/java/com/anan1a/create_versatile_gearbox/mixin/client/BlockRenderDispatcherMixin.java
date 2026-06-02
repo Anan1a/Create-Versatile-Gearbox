@@ -3,6 +3,7 @@ package com.anan1a.create_versatile_gearbox.mixin.client;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.anan1a.create_versatile_gearbox.content.advanced_gearbox.AdvancedGearboxBlock;
 import com.anan1a.create_versatile_gearbox.content.advanced_gearbox.AdvancedGearboxBlockEntity;
 import com.anan1a.create_versatile_gearbox.content.advanced_gearbox.AdvancedGearboxModel;
 import com.anan1a.create_versatile_gearbox.content.advanced_gearbox.AdvancedGearboxShaftState;
@@ -90,21 +91,20 @@ public class BlockRenderDispatcherMixin {
                                     PoseStack poseStack, VertexConsumer vertexConsumer, boolean checkSides,
                                     RandomSource random, ModelData modelData, RenderType renderType,
                                     CallbackInfo ci) {
-        // 查询当前位置的 BlockEntity 并检查是否为高级齿轮箱
+        // 快速路径：检查方块类型（BlockState.getBlock() 是 O(1) 字段访问）
+        // 非高级齿轮箱方块不参与渲染数据注入，直接返回
+        if (!(state.getBlock() instanceof AdvancedGearboxBlock)) {
+            return;
+        }
+
+        // 慢速路径：仅对高级齿轮箱执行 BE 查询
         // level.getBlockEntity(pos) 在 rend_chk_rebuild 线程调用是安全的，
         // 因为 SectionCompiler 在重建期间持有该区块的读锁。
         if (level.getBlockEntity(pos) instanceof AdvancedGearboxBlockEntity agbe) {
             // 从 BE 获取六个面的轴状态数组
-            // getFaceStatesArray() 返回 clone，修改不影响 BE 内部状态
             AdvancedGearboxShaftState[] arr = agbe.getFaceStatesArray();
-            // 注入到 ThreadLocal，供 resolveState 在后续的 tesselateBlock 调用中读取
-            // 数据流：BE (NBT) → 此 ThreadLocal → resolveState → DynamicTextureModel
+            // 注入到 ThreadLocal，供 resolveState 在后续的 getQuads 中读取
             AdvancedGearboxModel.CURRENT_FACE_STATES.set(arr);
-        } else {
-            // 非高级齿轮箱方块：清除 ThreadLocal
-            // 防止前一个 AdvancedGearbox 的渲染数据被当前非 AG 方块的 resolveState 读取，
-            // 导致纹理映射错误地使用旧的面状态（此情况虽概率低，但考虑防御性编程）
-            AdvancedGearboxModel.CURRENT_FACE_STATES.remove();
         }
     }
 }
