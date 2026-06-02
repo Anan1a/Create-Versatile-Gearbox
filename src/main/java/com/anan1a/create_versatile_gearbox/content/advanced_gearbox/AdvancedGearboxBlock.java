@@ -331,9 +331,6 @@ public class AdvancedGearboxBlock extends KineticBlock implements IBE<AdvancedGe
      */
     protected InteractionResult onWrenchRightClick(BlockState state, UseOnContext context) {
         Level level = context.getLevel();
-        if (level.isClientSide) {
-            return InteractionResult.SUCCESS;
-        }
 
         BlockPos pos = context.getClickedPos();
         Player player = context.getPlayer();
@@ -343,15 +340,16 @@ public class AdvancedGearboxBlock extends KineticBlock implements IBE<AdvancedGe
         BlockState newState = state.cycle(getStateProperty(clickedFace));
 
         // 第 2 步：将新状态写入 BlockEntity 的 FaceStateContainer（NBT 存储）
-        // cycleShaftState() 直接从 BlockEntity 的 faceStates 计算下一个状态，
-        // 不再依赖 BlockState newState，实现数据解耦。
         if (level.getBlockEntity(pos) instanceof AdvancedGearboxBlockEntity be) {
-            be.cycleShaftState(clickedFace);
+            be.cycleShaftState(clickedFace); // 循环切换指定面的传动轴状态。
         }
 
-        // 第 3 步：通知 Create 动力网络，BlockState 已变更
-        // switchToBlockState 会触发动力连接重新计算，
-        // 此时 BlockEntity 的 NBT 已在第 2 步更新，数据一致。
+        // 客户端立即返回，无需等待服务器同步
+        if (level.isClientSide) {
+            return InteractionResult.SUCCESS;
+        }
+
+        // 第 3 步（仅服务器）：通知 Create 动力网络，BlockState 已变更
         KineticBlockEntity.switchToBlockState(level, pos, newState);
 
         playRotateSound(level, pos);

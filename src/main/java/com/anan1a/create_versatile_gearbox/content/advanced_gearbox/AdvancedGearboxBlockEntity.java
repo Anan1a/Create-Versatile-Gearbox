@@ -14,6 +14,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.client.model.data.ModelData;
 
+
 /**
  * 高级齿轮箱方块实体
  * <p>
@@ -58,6 +59,21 @@ public class AdvancedGearboxBlockEntity extends SplitShaftBlockEntity implements
     }
 
     /**
+     * 供同包 Model 直接读取面状态数组（绕过 ModelData 机制）。
+     * 返回值是 clone，修改不影响内部状态。
+     */
+    AdvancedGearboxShaftState[] getFaceStatesArray() {
+        return faceStates.toArray();
+    }
+
+    /**
+     * 获取当前所有面状态的快照。
+     */
+    public AdvancedGearboxShaftState[] getFaceStatesSnapshot() {
+        return faceStates.toArray();
+    }
+
+    /**
      * 获取指定面的传动轴状态。
      * <p>
      * 直接委托给 {@link FaceStateContainer#get(Direction)}，O(1) 数组索引。
@@ -86,6 +102,9 @@ public class AdvancedGearboxBlockEntity extends SplitShaftBlockEntity implements
         faceStates.set(face, value);
         setChanged();
         requestModelDataUpdate();
+        if (level != null && level.isClientSide()) {
+            AdvancedGearboxModel.updateCache(getBlockPos(), faceStates.toArray());
+        }
     }
 
     /**
@@ -143,6 +162,10 @@ public class AdvancedGearboxBlockEntity extends SplitShaftBlockEntity implements
         super.read(tag, registries, clientPacket);
         if (tag.contains("face_states")) {
             faceStates.fromNbt(tag.getCompound("face_states"));
+        }
+        if (clientPacket) {
+            AdvancedGearboxModel.updateCache(getBlockPos(), faceStates.toArray());
+            requestModelDataUpdate();
         }
     }
 
@@ -289,9 +312,10 @@ public class AdvancedGearboxBlockEntity extends SplitShaftBlockEntity implements
      */
     @Override
     public ModelData getModelData() {
-        // 将面状态数组打包到 ModelData 中，传递给渲染器
+        AdvancedGearboxShaftState[] arr = faceStates.toArray();
+        AdvancedGearboxModel.updateCache(getBlockPos(), arr);
         return ModelData.builder()
-                .with(AdvancedGearboxModel.FACE_STATES, faceStates.toArray())
+                .with(AdvancedGearboxModel.FACE_STATES, arr)
                 .build();
     }
 }

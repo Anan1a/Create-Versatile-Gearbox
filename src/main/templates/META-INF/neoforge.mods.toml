@@ -50,8 +50,8 @@ description='''
 '''
 
 # [[mixins]] 块允许你声明你的 mixin 配置给 FML，以便它被加载。
-#[[mixins]]
-#config="${mod_id}.mixins.json"
+[[mixins]]
+config="${mod_id}.mixins.json"
 
 # [[accessTransformers]] 块允许你声明 AT 文件的位置。
 # 如果省略此块，将尝试从 META-INF/accesstransformer.cfg 加载 AT
