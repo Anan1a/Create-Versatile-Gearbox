@@ -7,17 +7,22 @@ import com.anan1a.create_versatile_gearbox.foundation.DynamicTextureModel;
 
 import static com.anan1a.create_versatile_gearbox.CreateVersatileGearbox.MODID;
 
+import com.simibubi.create.foundation.model.BakedModelWrapperWithData;
+
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
-import net.neoforged.neoforge.client.model.BakedModelWrapper;
 import net.neoforged.neoforge.client.model.data.ModelData;
+import net.neoforged.neoforge.client.model.data.ModelData.Builder;
+import net.neoforged.neoforge.client.model.data.ModelProperty;
 
 /**
  * 高级齿轮箱方块的定制烘焙模型，根据轴的运行状态（正向、反向或关闭）动态切换每个面的纹理。
@@ -31,15 +36,20 @@ import net.neoforged.neoforge.client.model.data.ModelData;
  *       （即没有轴），将关闭外壳纹理替换为安山岩机壳纹理。</li>
  * </ul>
  * <p>
- * <b>数据来源</b>：由 Mixin 在 {@code renderBatched} HEAD 处从 BlockEntity 直接读取面状态并写入
- * {@link #CURRENT_FACE_STATES}（ThreadLocal），模型在 {@link #resolveState} 中直接读取，
- * 避免替换原始 ModelData 导致连接纹理数据丢失。
+ * <b>数据来源</b>：通过 {@link #gatherModelData} 在模型层级直接从世界读取 BlockEntity，
+ * 使用 {@link BakedModelWrapperWithData} 提供的模型级 {@code getModelData()} 钩子。
+ * 所有渲染路径（renderBatched / renderSingleBlock）均经过此方法，无需 Mixin 或 ThreadLocal。
  */
 @OnlyIn(Dist.CLIENT)
-public class AdvancedGearboxModel extends BakedModelWrapper<BakedModel> {
+public class AdvancedGearboxModel extends BakedModelWrapperWithData {
 
-    /** 当前渲染的面状态数组，由 Mixin 在 renderBatched HEAD 从 BE 直接读取后注入。 */
-    public static final ThreadLocal<AdvancedGearboxShaftState[]> CURRENT_FACE_STATES = new ThreadLocal<>();
+    /**
+     * ModelData 属性键，用于存储面状态数组。
+     * 在 {@link #gatherModelData} 中从 BlockEntity 读取后填入，
+     * 供 {@link #resolveState} 在 {@code getQuads()} 中读取。
+     */
+    public static final ModelProperty<AdvancedGearboxShaftState[]> FACE_STATES =
+            new ModelProperty<>();
 
     /** 高级齿轮箱方块纹理的基础路径。 */
     private static final String TEXTURE_BASE = "block/advanced_gearbox/";
@@ -95,13 +105,37 @@ public class AdvancedGearboxModel extends BakedModelWrapper<BakedModel> {
     }
 
     /**
+     * 在模型层级收集渲染数据。由 NeoForge 在每个方块渲染前调用，
+     * 覆盖所有渲染路径（renderBatched、renderSingleBlock 等）。
+     * <p>
+     * 只需透传 BE 层级已准备好的面状态数据 — NeoForge 渲染管线在调用此方法前，
+     * 已先调用 {@code BlockEntity.getModelData()}，结果作为
+     * {@code blockEntityData} 参数传入。数据来源已在 BE 层级统一。
+     *
+     * @param builder          ModelData 构建器
+     * @param world            世界访问器（未使用，数据来自 BE 层级钩子）
+     * @param pos              方块位置（未使用）
+     * @param state            方块状态（未使用）
+     * @param blockEntityData  BE 层级 {@code getModelData()} 的结果，
+     *                         已包含 {@link #FACE_STATES}
+     * @return ModelData 构建器（已加入面状态数据）
+     */
+    @Override
+    protected Builder gatherModelData(Builder builder, BlockAndTintGetter world,
+                                       BlockPos pos, BlockState state, ModelData blockEntityData) {
+        // blockEntityData 是 NeoForge 从 BE.getModelData() 获取后传入的，
+        // 已完成 FACE_STATES 填充，直接透传
+        return builder.with(FACE_STATES, blockEntityData.get(FACE_STATES));
+    }
+
+    /**
      * 将 quad 生成委托给 {@link DynamicTextureModel}，后者拦截模板中的 quad
      * 并根据每面轴状态重映射纹理。
      *
      * @param state      当前方块的 BlockState（由 Minecraft 渲染系统传入，反映方块属性）
      * @param side       当前正在渲染的面方向（Minecraft 依次传入每个面）
      * @param rand       随机数源（透传给模板模型）
-     * @param extraData  ModelData 运行时数据容器，来自 BlockEntity.getModelData()，
+     * @param extraData  ModelData 运行时数据容器，由 {@link #gatherModelData} 构建，
      *                   包含每面轴状态等渲染所需数据
      * @param renderType 渲染类型（例如 solid、cutout）
      * @return 经过动态纹理重映射的已烘焙 quad 列表
@@ -113,17 +147,22 @@ public class AdvancedGearboxModel extends BakedModelWrapper<BakedModel> {
     }
 
     /**
-     * 解析指定面的轴状态。从 {@link #CURRENT_FACE_STATES} 读取，由 Mixin 在 renderBatched HEAD 注入。
+     * 解析指定面的轴状态。仅从 ModelData 读取。
+     * <p>
+     * ModelData 由 {@link #gatherModelData} 在所有渲染路径中统一构建，
+     * 无需双通道回退或 ThreadLocal。
      *
      * @param state 当前的方块状态（未使用，保留以匹配 {@link DynamicTextureModel} 函数签名）
      * @param face  面方向
-     * @param data  ModelData（未使用，数据通过 ThreadLocal 桥接）
+     * @param data  ModelData，来自 {@code getQuads} 的 extraData 参数
      * @return 解析后的轴状态，如果数据无效则返回 {@link AdvancedGearboxShaftState#OFF}
      */
     private AdvancedGearboxShaftState resolveState(BlockState state, Direction face, ModelData data) {
-        AdvancedGearboxShaftState[] states = CURRENT_FACE_STATES.get();
-        if (states != null && states.length == 6) {
-            return states[face.get3DDataValue()];
+        if (data != null && data.has(FACE_STATES)) {
+            AdvancedGearboxShaftState[] states = data.get(FACE_STATES);
+            if (states != null && states.length == 6) {
+                return states[face.get3DDataValue()];
+            }
         }
         return AdvancedGearboxShaftState.OFF;
     }

@@ -12,6 +12,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.neoforged.neoforge.client.model.data.ModelData;
 
 /**
  * 高级齿轮箱方块实体
@@ -109,6 +110,29 @@ public class AdvancedGearboxBlockEntity extends SplitShaftBlockEntity implements
     public void cycleShaftState(Direction face) {
         AdvancedGearboxShaftState current = faceStatesNbt.get(face);
         setShaftState(face, current.next());
+    }
+
+    // ===== ModelData（渲染管线数据传递）=====
+
+    /**
+     * BE 层级的 ModelData 钩子，通过渲染管线传递面状态数组。
+     * <p>
+     * 与模型层级的 {@link AdvancedGearboxModel#gatherModelData} 共同构成双通道方案：
+     * <ul>
+     *   <li><b>模型级钩子</b>（{@code BakedModelWrapperWithData.gatherModelData}）—
+     *       由 NeoForge 在 {@code renderBatched} 路径中调用，覆盖区块重建（SectionCompiler）。</li>
+     *   <li><b>BE 级钩子</b>（{@code BlockEntity.getModelData}）—
+     *       由 NeoForge 在 {@code renderSingleBlock} 等路径中调用，覆盖单方块物理化渲染。</li>
+     * </ul>
+     * 两个钩子写入相同数据，在 {@link AdvancedGearboxModel#resolveState} 统一读取。
+     *
+     * @return 包含面状态数组的 ModelData
+     */
+    @Override
+    public ModelData getModelData() {
+        return ModelData.builder()
+                .with(AdvancedGearboxModel.FACE_STATES, faceStatesNbt.toArray())
+                .build();
     }
 
     // ===== NBT 读写（通过 SmartBlockEntity 的 write/read 钩子）=====
