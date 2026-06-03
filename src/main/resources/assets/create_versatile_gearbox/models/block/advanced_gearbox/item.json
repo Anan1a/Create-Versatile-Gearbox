@@ -3,11 +3,11 @@
 	"credit": "Made with Blockbench",
 	"parent": "block/block",
 	"textures": {
-		"0": "create:block/andesite_casing",
+		"0": "create:block/brass_casing",
 		"1": "create_versatile_gearbox:block/advanced_gearbox/fwd_core",
 		"2": "create:block/axis",
 		"3": "create:block/axis_top",
-		"particle": "create:block/andesite_casing"
+		"particle": "create:block/brass_casing"
 	},
 	"elements": [
 		{

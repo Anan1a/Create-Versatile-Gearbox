@@ -5,7 +5,7 @@
       "conditions": {
         "items": [
           {
-            "items": "create:andesite_alloy"
+            "items": "create:brass_ingot"
           }
         ]
       },
@@ -15,7 +15,7 @@
       "conditions": {
         "items": [
           {
-            "items": "create:andesite_casing"
+            "items": "create:brass_casing"
           }
         ]
       },
@@ -35,7 +35,7 @@
       "conditions": {
         "items": [
           {
-            "items": "create:shadow_steel"
+            "items": "create:precision_mechanism"
           }
         ]
       },

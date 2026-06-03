@@ -45,7 +45,7 @@ public class AdvancedGearboxModel extends BakedModelWrapper<BakedModel> {
     private static final String TEXTURE_BASE = "block/advanced_gearbox/";
 
     /** 关闭外壳替换使用的纹理（来自 Create 的安山岩机壳）。 */
-    private static final ResourceLocation TEXTURE_ANDESITE_CASING = ResourceLocation.fromNamespaceAndPath("create", "block/andesite_casing");
+    private static final ResourceLocation TEXTURE_BRASS_CASING = ResourceLocation.fromNamespaceAndPath("create", "block/brass_casing");
     /** 正向核心状态的占位纹理。 */
     private static final ResourceLocation TEXTURE_FWD_CORE = ResourceLocation.fromNamespaceAndPath(MODID, TEXTURE_BASE + "fwd_core");
     /** 反向核心状态的目标纹理。 */
@@ -72,7 +72,7 @@ public class AdvancedGearboxModel extends BakedModelWrapper<BakedModel> {
             // 齿轮箱外壳纹理映射：OFF→andesite_casing（隐藏轴）
             new DynamicTextureModel.TextureEntry<>(
                     TEXTURE_OFF_SHELL,
-                    Map.of(AdvancedGearboxShaftState.OFF, TEXTURE_ANDESITE_CASING)
+                    Map.of(AdvancedGearboxShaftState.OFF, TEXTURE_BRASS_CASING)
             )
     );
 

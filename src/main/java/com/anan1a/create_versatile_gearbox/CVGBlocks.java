@@ -180,20 +180,20 @@ public class CVGBlocks {
 			// 其中：A=安山机壳(1个), C=大齿轮(4个), S=钢构件(4个)
 			.recipe((ctx, prov) -> {
 				ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ctx.getEntry())
-					.pattern("SCS")
-					.pattern("CAC")
-					.pattern("SCS")
-					.define('A', AllBlocks.ANDESITE_CASING.get())        // A: 安山机壳（中心）
-					.define('C', AllBlocks.LARGE_COGWHEEL.get())        // C: 大齿轮（4个）
-					.define('S', AllItems.SHADOW_STEEL.get())            // S: 钢构件（4个）
+					.pattern("LLP")
+					.pattern("LBL")
+					.pattern("PLL")
+					.define('B', AllBlocks.BRASS_CASING.get())      	// B: 黄铜机壳（中心）
+					.define('L', AllBlocks.LARGE_COGWHEEL.get())        // L: 大齿轮（6个）
+					.define('P', AllItems.PRECISION_MECHANISM.get())	// P: 精密构件（2个）
 					.unlockedBy("has_alloy", 
-						InventoryChangeTrigger.TriggerInstance.hasItems(AllItems.ANDESITE_ALLOY.get()))
+						InventoryChangeTrigger.TriggerInstance.hasItems(AllItems.BRASS_INGOT.get()))			// 解锁条件：获得黄铜锭
 					.unlockedBy("has_casing", 
-						InventoryChangeTrigger.TriggerInstance.hasItems(AllBlocks.ANDESITE_CASING.get()))
+						InventoryChangeTrigger.TriggerInstance.hasItems(AllBlocks.BRASS_CASING.get()))			// 解锁条件：获得黄铜机壳
 					.unlockedBy("has_large_cogwheel", 
-						InventoryChangeTrigger.TriggerInstance.hasItems(AllBlocks.LARGE_COGWHEEL.get()))
+						InventoryChangeTrigger.TriggerInstance.hasItems(AllBlocks.LARGE_COGWHEEL.get()))		// 解锁条件：获得大齿轮
 					.unlockedBy("has_steel_sheet", 
-						InventoryChangeTrigger.TriggerInstance.hasItems(AllItems.SHADOW_STEEL.get()))
+						InventoryChangeTrigger.TriggerInstance.hasItems(AllItems.PRECISION_MECHANISM.get()))	// 解锁条件：获得精密构件
 					.save(prov);
 			})
 
@@ -204,11 +204,11 @@ public class CVGBlocks {
 			.transform(axeOrPickaxe())
 			
 			// ========== 连接纹理配置 ==========
-			.onRegister(CreateRegistrate.connectedTextures(() -> new EncasedCTBehaviour(AllSpriteShifts.ANDESITE_CASING)))
+			.onRegister(CreateRegistrate.connectedTextures(() -> new EncasedCTBehaviour(AllSpriteShifts.BRASS_CASING)))
 									
 			// ========== 外壳连接性规则 ==========
 			.onRegister(CreateRegistrate.casingConnectivity((block, cc) -> {
-				cc.make(block, AllSpriteShifts.ANDESITE_CASING,
+				cc.make(block, AllSpriteShifts.BRASS_CASING,
 						(s, f) -> AdvancedGearboxBlock.getConnectionState(f, s));
 			}))
 
