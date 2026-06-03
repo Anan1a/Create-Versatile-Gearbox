@@ -3,6 +3,7 @@ package com.anan1a.create_versatile_gearbox.content.versatile_gearbox;
 import java.util.List;
 
 import com.anan1a.create_versatile_gearbox.CVGBlockEntityTypes;
+import com.simibubi.create.AllSoundEvents;
 import com.simibubi.create.content.kinetics.base.KineticBlock;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
 import com.simibubi.create.foundation.block.IBE;
@@ -330,11 +331,10 @@ public class VersatileGearboxBlock extends KineticBlock implements IBE<Versatile
     }
 
     /**
-     * 播放旋转声音（从 IWrenchable 接口复制）
+     * 播放扳手交互音效（使用 Create 标准扳手声音）
      */
     protected void playRotateSound(Level level, BlockPos pos) {
-        level.playSound(null, pos, net.minecraft.sounds.SoundEvents.WOODEN_BUTTON_CLICK_ON,
-            net.minecraft.sounds.SoundSource.BLOCKS, 0.2f, level.random.nextFloat() * 0.2f + 0.8f);
+        AllSoundEvents.WRENCH_ROTATE.playOnServer(level, pos, 1, level.getRandom().nextFloat() + .5f);
     }
 
     // ===== IBE 接口实现 =====

@@ -12,8 +12,6 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import net.neoforged.neoforge.client.model.data.ModelData;
-
 
 /**
  * 高级齿轮箱方块实体
@@ -239,9 +237,37 @@ public class AdvancedGearboxBlockEntity extends SplitShaftBlockEntity implements
         };
     }
 
+    /**
+     * 计算指定方向的实际旋转速度。
+     * <p>
+     * 统一 Renderer 和 Visual 的速度计算逻辑：
+     * <ol>
+     *   <li>使用传入的基础速度（避免重复调用 getSpeed()）</li>
+     *   <li>如果有速度且有动力源，应用方向倍率</li>
+     * </ol>
+     * <p>
+     * 倍率由 {@link #getRotationSpeedModifier(Direction, Direction)} 计算：
+     * <ul>
+     *   <li>FWD 面：正向传动（倍率为 1）</li>
+     *   <li>REV 面：反向传动（倍率为 -1）</li>
+     *   <li>OFF 面：断开（倍率为 0，速度归零）</li>
+     * </ul>
+     *
+     * @param baseSpeed    基础速度（来自动力网络）
+     * @param direction    要计算的方向
+     * @param sourceFacing 动力源方向（可为 null）
+     * @return 该方向的旋转速度（负数表示反向旋转）
+     */
+    public float getSpeedForDirection(float baseSpeed, Direction direction, Direction sourceFacing) {
+        if (baseSpeed != 0 && sourceFacing != null) {
+            return baseSpeed * getRotationSpeedModifier(direction, sourceFacing);
+        }
+        return baseSpeed;
+    }
+
     @Override
     protected boolean isNoisy() {
-        return false;
+        return true;
     }
 
     // ===== 蓝图变换 =====

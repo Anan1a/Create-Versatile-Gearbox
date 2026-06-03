@@ -30,6 +30,8 @@ public class AdvancedGearboxRenderer extends KineticBlockEntityRenderer<Advanced
      * @param context 渲染器提供者上下文
      */
     public AdvancedGearboxRenderer(BlockEntityRendererProvider.Context context) {
+        // 调用父类构造函数，初始化 KineticBlockEntityRenderer 基础渲染功能
+        // 父类提供了 kineticRotationTransform 等旋转动画工具方法
         super(context);
     }
 
@@ -41,7 +43,7 @@ public class AdvancedGearboxRenderer extends KineticBlockEntityRenderer<Advanced
      * - 六面轴渲染：遍历所有 6 个方向，根据 NBT 数据判断是否渲染该方向的半轴
      * - 独立旋转：每个半轴根据其方向的动力传输状态独立计算旋转角度
      * <p>
-     * OFF 状态的半轴不渲染，FWD/REV 状态的半轴正常渲染。
+     * 无轴状态组的半轴不渲染，有轴状态组的半轴正常渲染。
      *
      * @param be          方块实体，包含动力网络和状态信息
      * @param partialTicks 部分 tick 值，用于平滑动画插值
@@ -53,36 +55,34 @@ public class AdvancedGearboxRenderer extends KineticBlockEntityRenderer<Advanced
     @Override
     protected void renderSafe(AdvancedGearboxBlockEntity be, float partialTicks, PoseStack ms, MultiBufferSource buffer,
                               int light, int overlay) {
+        // Flywheel 优化：如果启用了 Flywheel 可视化，则跳过此渲染器
+        // Flywheel 使用 GPU 实例化渲染，性能优于传统的 TileEntityRenderer
         if (VisualizationManager.supportsVisualization(be.getLevel()))
             return;
 
+        // 获取方块位置和基础速度
         BlockPos pos = be.getBlockPos();
         float baseSpeed = be.getSpeed();
 
+        // 计算动力源方向（用于确定各面旋转方向）
+        // 从 BE 的 source 字段（动力源位置）推算动力输入方向
         Direction sourceFacing = null;
         if (baseSpeed != 0 && be.hasSource() && be.source != null) {
+            // 计算动力源与自身位置的偏移向量
             BlockPos sourceOffset = be.source.subtract(pos);
+            // 从偏移向量获取最接近的方向（即动力源所在的面）
             sourceFacing = Direction.getNearest(sourceOffset.getX(), sourceOffset.getY(), sourceOffset.getZ());
         }
 
+        // 遍历六个方向，渲染所有无轴状态组的半轴
         for (Direction direction : Iterate.directions) {
-            if (!shouldRenderShaftHalf(be, direction))
+            // 跳过无轴状态组的半轴（不渲染）
+            // 使用枚举的统一方法判断，便于扩展新状态（如 PARTIAL、LOCKED 等）
+            if (!be.getShaftState(direction).shouldRenderShaft())
                 continue;
+            // 渲染该方向的半轴
             renderShaftHalf(be, pos, sourceFacing, baseSpeed, direction, ms, buffer, light);
         }
-    }
-
-    /**
-     * 检查是否应该渲染指定方向的半轴
-     * <p>
-     * 【三状态版本】OFF 状态不渲染半轴，FWD/REV 状态渲染半轴。
-     *
-     * @param be        方块实体
-     * @param direction 要检查的方向
-     * @return true 表示渲染该半轴
-     */
-    protected boolean shouldRenderShaftHalf(AdvancedGearboxBlockEntity be, Direction direction) {
-        return be.getShaftState(direction) != AdvancedGearboxShaftState.OFF;
     }
 
     /**
@@ -109,20 +109,20 @@ public class AdvancedGearboxRenderer extends KineticBlockEntityRenderer<Advanced
 
         // 获取缓存的半轴模型（Create API）
         // 传入 be.getBlockState() 仅用于模型注册表查找，不涉及面状态属性
+        // partialFacing 会根据 direction 自动旋转模型到正确朝向
         SuperByteBuffer shaftBuffer = CachedBuffers.partialFacing(
                 AllPartialModels.SHAFT_HALF, be.getBlockState(), direction);
 
-        // 计算该方向的实际速度（考虑翻转属性）
-        float speedForDirection = baseSpeed;
-        if (speedForDirection != 0 && sourceFacing != null) {
-            float modifier = be.getRotationSpeedModifier(direction, sourceFacing);
-            speedForDirection *= modifier;
-        }
+        // 计算该方向的实际速度（考虑传动比）
+        // 使用 BE 的统一方法，与 Visual 保持一致
+        float speedForDirection = be.getSpeedForDirection(baseSpeed, direction, sourceFacing);
 
         // 使用修正后的速度计算旋转角度
+        // 负速度会产生负角度，实现反向旋转
         float angle = getAngleForDirection(be, pos, shaftAxis, speedForDirection);
 
         // 应用旋转并渲染（Create API）
+        // kineticRotationTransform 会应用旋转矩阵、光照和位置变换
         kineticRotationTransform(shaftBuffer, be, shaftAxis, angle, light);
 
         // 将半轴模型渲染到屏幕
@@ -145,13 +145,23 @@ public class AdvancedGearboxRenderer extends KineticBlockEntityRenderer<Advanced
      * @return 旋转角度（弧度制）
      */
     protected float getAngleForDirection(AdvancedGearboxBlockEntity be, BlockPos pos, Axis axis, float speed) {
+        // 获取当前渲染时间（用于动画同步）
+        // AnimationTickHolder 提供与游戏 tick 同步的时间戳
         float time = AnimationTickHolder.getRenderTime(be.getLevel());
+        
+        // 获取该位置的旋转偏移量（用于多方块同步旋转）
+        // 确保相邻方块的轴旋转相位一致
         float offset = getRotationOffsetForPosition(be, pos, axis);
         
-        // 直接使用速度计算角度（允许负数角度表示反向旋转）
+        // 计算旋转角度（度数制）
+        // 公式：angle = (时间 * 速度 * 传动系数 + 偏移量) % 360
+        // - time * speed * 3f / 10: 时间积分得到角度，3/10 是 Create 的传动系数
+        // - 负速度会产生负角度，实现反向旋转
+        // - % 360 确保角度在 0-359 度范围内
         float angle = (time * speed * 3f / 10 + offset) % 360;
         
-        // 转换为弧度制
+        // 转换为弧度制（OpenGL 使用弧度）
+        // 公式：弧度 = 度数 * π / 180
         return angle / 180 * (float) Math.PI;
     }
 

@@ -96,6 +96,6 @@ public class VersatileGearboxBlockEntity extends SplitShaftBlockEntity {
 
     @Override
     protected boolean isNoisy() {
-        return false;
+        return true;
     }
 }
