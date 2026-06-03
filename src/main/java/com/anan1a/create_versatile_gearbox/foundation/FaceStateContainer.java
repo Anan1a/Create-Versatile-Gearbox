@@ -23,7 +23,7 @@ import net.minecraft.util.StringRepresentable;
  * <p>
  * <b>数据流三阶段</b>
  * <ol>
- *   <li><b>持久化 → 运行时</b>：{@link #read(CompoundTag, HolderLookup.Provider, boolean)} 从 NBT 加载 → {@link #fromNbt(CompoundTag)}</li>
+ *   <li><b>持久化 → 运行时</b>：{@link #fromNbt(CompoundTag)} 从 NBT 加载</li>
  *   <li><b>运行时操作</b>：{@link #get(Direction)} / {@link #set(Direction, Object)} 直接操作内存数组</li>
  *   <li><b>运行时 → 渲染</b>：{@link #toArray()} → {@link net.neoforged.neoforge.client.model.data.ModelData} → {@link AdvancedGearboxModel#resolveState}</li>
  * </ol>
@@ -38,8 +38,8 @@ import net.minecraft.util.StringRepresentable;
  * states.set(face, ShaftState.FWD);
  *
  * // NBT 序列化
- * tag.put("face_states", states.toNbt());
- * states.fromNbt(tag.getCompound("face_states"));
+ * tag.put("FaceStateData", states.toNbt());
+ * states.fromNbt(tag.getCompound("FaceStateData"));
  *
  * // 导出到 ModelData（渲染管线）
  * return ModelData.builder()
@@ -48,21 +48,22 @@ import net.minecraft.util.StringRepresentable;
  * }</pre>
  * <p>
  * <b>NBT 存储格式</b><br>
- * 使用方向名作为键名（可读性优先于紧凑性）：
+ * 外层由 {@code "FaceStateData"} 根键包裹，每个方向使用一个独立复合标签，
+ * 内部以 {@code "FaceState"} 键存储序列化值，预留扩展空间：
  * <pre>
  * {
- *   "down":  "fwd",    // Direction.DOWN
- *   "up":    "rev",    // Direction.UP
- *   "north": "fwd",    // Direction.NORTH
- *   "south": "off",    // Direction.SOUTH
- *   "west":  "off",    // Direction.WEST
- *   "east":  "rev"     // Direction.EAST
+ *   "FaceStateData": {
+ *     "DOWN":  { "FaceState": "fwd" },    // Direction.DOWN
+ *     "UP":    { "FaceState": "rev" },    // Direction.UP
+ *     "NORTH": { "FaceState": "fwd" },    // Direction.NORTH
+ *     "SOUTH": { "FaceState": "off" },    // Direction.SOUTH
+ *     "WEST":  { "FaceState": "off" },    // Direction.WEST
+ *     "EAST":  { "FaceState": "rev" }     // Direction.EAST
+ *   }
  * }
  * </pre>
  * <p>
- * 键名 {@code "down"/"up"/"north"/"south"/"west"/"east"} 与 {@link Direction#getName()} 一致，
- * 值使用枚举常量的 {@link StringRepresentable#getSerializedName()}。
- * 缺失的键会被 {@link #defaultValue} 填充，确保 NBT 部分写入时不会读到 null。
+ * 方向键名使用枚举 {@code name()}（大写），与 NBT 键名 PascalCase 社区惯例一致。
  * <p>
  * <b>线程安全</b><br>
  * 此类不是线程安全的。每个 {@link net.minecraft.world.level.block.entity.BlockEntity}
@@ -76,19 +77,22 @@ public final class FaceStateContainer<T extends Enum<T> & StringRepresentable> {
     private final T[] states;
 
     /**
-     * 方向键名常量，与 {@link Direction#get3DDataValue()} 的序数严格对齐。
+     * 方向键名常量，与 {@link Direction#name()} 的序数严格对齐。
      * <ul>
-     *   <li>0 → {@code "down"}  → {@link Direction#DOWN}</li>
-     *   <li>1 → {@code "up"}    → {@link Direction#UP}</li>
-     *   <li>2 → {@code "north"} → {@link Direction#NORTH}</li>
-     *   <li>3 → {@code "south"} → {@link Direction#SOUTH}</li>
-     *   <li>4 → {@code "west"}  → {@link Direction#WEST}</li>
-     *   <li>5 → {@code "east"}  → {@link Direction#EAST}</li>
+     *   <li>0 → {@code "DOWN"}  → {@link Direction#DOWN}</li>
+     *   <li>1 → {@code "UP"}    → {@link Direction#UP}</li>
+     *   <li>2 → {@code "NORTH"} → {@link Direction#NORTH}</li>
+     *   <li>3 → {@code "SOUTH"} → {@link Direction#SOUTH}</li>
+     *   <li>4 → {@code "WEST"}  → {@link Direction#WEST}</li>
+     *   <li>5 → {@code "EAST"}  → {@link Direction#EAST}</li>
      * </ul>
-     * 使用字符串而非数字的原因：NBT 作为人类可读的层级格式，方向名比 {@code "0"}~{@code "5"}
-     * 更直观，调试时可直接看出哪个面的数据异常。
+     * 使用枚举名（大写）而非 {@link Direction#getName()}，与 Minecraft
+     * NBT 键名使用 PascalCase/PascalUpper 的社区惯例保持一致。
      */
-    private static final String[] DIRECTION_KEYS = {"down", "up", "north", "south", "west", "east"};
+    private static final String[] DIRECTION_KEYS = {"DOWN", "UP", "NORTH", "SOUTH", "WEST", "EAST"};
+
+    /** 每个方向复合标签内，面状态值的键名。 */
+    private static final String FACE_STATE_KEY = "FaceState";
 
     /**
      * 默认状态值。
@@ -99,6 +103,14 @@ public final class FaceStateContainer<T extends Enum<T> & StringRepresentable> {
      * </ul>
      */
     private final T defaultValue;
+
+    /**
+     * 枚举常量缓存，用于 {@link #enumValueOf(String)}。
+     * <p>
+     * 在构造函数中预先获取 {@code defaultValue.getDeclaringClass().getEnumConstants()}，
+     * 避免 {@link #fromNbt(CompoundTag)} 每次反序列化时重复调用反射 API。
+     */
+    private final T[] enumConstants;
 
     /**
      * 构造函数：创建全默认值的容器。
@@ -116,6 +128,7 @@ public final class FaceStateContainer<T extends Enum<T> & StringRepresentable> {
         // Array.newInstance(enumClass, 6) 等价于 new ShaftState[6]
         Class<T> enumClass = defaultValue.getDeclaringClass();
         this.states = (T[]) java.lang.reflect.Array.newInstance(enumClass, 6);
+        this.enumConstants = enumClass.getEnumConstants();
         fill(defaultValue);
     }
 
@@ -134,6 +147,7 @@ public final class FaceStateContainer<T extends Enum<T> & StringRepresentable> {
         this.defaultValue = Objects.requireNonNull(defaultValue, "defaultValue must not be null");
         Class<T> enumClass = defaultValue.getDeclaringClass();
         this.states = (T[]) java.lang.reflect.Array.newInstance(enumClass, 6);
+        this.enumConstants = enumClass.getEnumConstants();
         // 复制前 6 个元素，避免源数组越界
         System.arraycopy(array, 0, this.states, 0, Math.min(array.length, 6));
         // null 安全填充：复制后仍有 null 的位置填入默认值
@@ -177,12 +191,26 @@ public final class FaceStateContainer<T extends Enum<T> & StringRepresentable> {
     }
 
     /**
+     * 创建当前容器的副本。
+     * <p>
+     * 返回具有完全相同的 6 个面状态的新容器，共享同一个 {@code defaultValue}。
+     * 适用于需要保存快照或在不同 BlockEntity 间传递面状态的场景。
+     * <p>
+     * 副本与原始容器相互独立，修改任意一个不影响另一个。
+     *
+     * @return 状态相同但独立的新容器
+     */
+    public FaceStateContainer<T> copy() {
+        return new FaceStateContainer<>(defaultValue, states);
+    }
+
+    /**
      * 从 NBT 反序列化创建容器。
      * <p>
      * 静态工厂版，适合直接从 NBT 一步创建：
      * <pre>{@code
-     * FaceStateContainer<ShaftState> states =
-     *     FaceStateContainer.fromNbt(tag.getCompound("face_states"), ShaftState.OFF);
+     * FaceStateContainer<AdvancedGearboxShaftState> states =
+     *     FaceStateContainer.fromNbt(tag.getCompound("FaceStateData"), AdvancedGearboxShaftState.OFF);
      * }</pre>
      * <p>
      * 内部先创建全默认容器，再调用 {@link #fromNbt(CompoundTag)} 覆写已有的值，
@@ -208,11 +236,11 @@ public final class FaceStateContainer<T extends Enum<T> & StringRepresentable> {
      * 时间复杂度 O(1)，直接数组索引：{@code states[face.get3DDataValue()]}。
      * 与 BlockState 的 {@code state.getValue(PROPERTY)} 性能等价。
      *
-     * @param face 要查询的面方向
+     * @param face 要查询的面方向（不可为 null）
      * @return 该面的状态值
      */
     public T get(Direction face) {
-        return states[face.get3DDataValue()];
+        return states[Objects.requireNonNull(face, "face must not be null").get3DDataValue()];
     }
 
     /**
@@ -303,12 +331,14 @@ public final class FaceStateContainer<T extends Enum<T> & StringRepresentable> {
      * <b>输出格式</b>
      * <pre>
      * {
-     *   "down":  "fwd",   // Direction.DOWN  -> getSerializedName()
-     *   "up":    "rev",   // Direction.UP    -> getSerializedName()
-     *   "north": "fwd",   // Direction.NORTH -> getSerializedName()
-     *   "south": "off",   // Direction.SOUTH -> getSerializedName()
-     *   "west":  "off",   // Direction.WEST  -> getSerializedName()
-     *   "east":  "rev"    // Direction.EAST  -> getSerializedName()
+     *   "FaceStateData": {
+     *     "DOWN":  { "FaceState": "fwd" },   // Direction.DOWN  -> getSerializedName()
+     *     "UP":    { "FaceState": "rev" },   // Direction.UP    -> getSerializedName()
+     *     "NORTH": { "FaceState": "fwd" },   // Direction.NORTH -> getSerializedName()
+     *     "SOUTH": { "FaceState": "off" },   // Direction.SOUTH -> getSerializedName()
+     *     "WEST":  { "FaceState": "off" },   // Direction.WEST  -> getSerializedName()
+     *     "EAST":  { "FaceState": "rev" }    // Direction.EAST  -> getSerializedName()
+     *   }
      * }
      * </pre>
      * <p>
@@ -323,8 +353,10 @@ public final class FaceStateContainer<T extends Enum<T> & StringRepresentable> {
     public CompoundTag toNbt() {
         CompoundTag tag = new CompoundTag();
         for (int i = 0; i < 6; i++) {
-            tag.putString(DIRECTION_KEYS[i],
+            CompoundTag faceTag = new CompoundTag();
+            faceTag.putString(FACE_STATE_KEY,
                 states[i] != null ? states[i].getSerializedName() : defaultValue.getSerializedName());
+            tag.put(DIRECTION_KEYS[i], faceTag);
         }
         return tag;
     }
@@ -335,8 +367,8 @@ public final class FaceStateContainer<T extends Enum<T> & StringRepresentable> {
      * <b>反序列化策略</b>
      * <ol>
      *   <li>按 D/U/N/S/W/E 顺序遍历 6 个方向键</li>
-     *   <li>如果 NBT 中包含该键，通过 {@link #enumValueOf(String)} 将字符串转换回枚举</li>
-     *   <li>如果 NBT 中缺失该键（部分写入或旧格式），用 {@link #defaultValue} 填充</li>
+     *   <li>如果 NBT 中包含该键，读取其复合标签中的 {@code "FaceState"} 字段</li>
+     *   <li>如果 NBT 中缺失该键，用 {@link #defaultValue} 填充</li>
      * </ol>
      * <p>
      * 此方法覆写的是容器已有的值。如果只想读取而不修改已有容器，请使用
@@ -348,8 +380,9 @@ public final class FaceStateContainer<T extends Enum<T> & StringRepresentable> {
         for (int i = 0; i < 6; i++) {
             String key = DIRECTION_KEYS[i];
             if (tag.contains(key)) {
-                // tag.getString(key) 返回字符串 → 通过 enumValueOf 转换回枚举
-                states[i] = enumValueOf(tag.getString(key));
+                // 每个方向键对应一个独立复合标签：{ "DOWN": { "FaceState": "fwd" } }
+                CompoundTag faceTag = tag.getCompound(key);
+                states[i] = enumValueOf(faceTag.getString(FACE_STATE_KEY));
             } else {
                 // NBT 中没有此方向的数据（可能是新初始化的 BlockEntity）
                 states[i] = defaultValue;
@@ -372,10 +405,8 @@ public final class FaceStateContainer<T extends Enum<T> & StringRepresentable> {
      * @param name 枚举的序列化名称（与 getSerializedName() 比较）
      * @return 匹配的枚举常量，无匹配时返回 defaultValue
      */
-    @SuppressWarnings("unchecked")
     private T enumValueOf(String name) {
-        Class<T> enumClass = (Class<T>) defaultValue.getClass();
-        for (T constant : enumClass.getEnumConstants()) {
+        for (T constant : enumConstants) {
             if (constant.getSerializedName().equals(name)) {
                 return constant;
             }

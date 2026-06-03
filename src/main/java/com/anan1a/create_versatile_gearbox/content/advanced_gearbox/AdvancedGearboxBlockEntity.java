@@ -50,7 +50,7 @@ public class AdvancedGearboxBlockEntity extends SplitShaftBlockEntity implements
      * 主要用于 {@code hasShaftTowards()}（动力网络查询）和蓝图 rotate/mirror。
      */
     private final FaceStateContainer<AdvancedGearboxShaftState> faceStatesNbt =
-        FaceStateContainer.of(AdvancedGearboxShaftState.FWD);
+        FaceStateContainer.of(AdvancedGearboxBlock.DEFAULT_SHAFT_STATE);
 
     public AdvancedGearboxBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
@@ -120,7 +120,7 @@ public class AdvancedGearboxBlockEntity extends SplitShaftBlockEntity implements
      * 提供的非 final 钩子，在 {@code saveAdditional()}（final）内部被调用。
      * 覆写此方法以写入自定义 NBT 数据。
      * <p>
-     * 序列化格式：{@code {"face_states": {"down":"fwd","up":"rev",...}}}
+     * 序列化格式：{@code {"FaceStateData": {"DOWN":{"FaceState":"fwd"},"UP":{"FaceState":"rev"},...}}}
      *
      * @param tag          目标 NBT（最终写入磁盘或发往客户端）
      * @param registries   注册表查找器（用于序列化注册表引用）
@@ -129,7 +129,7 @@ public class AdvancedGearboxBlockEntity extends SplitShaftBlockEntity implements
     @Override
     protected void write(CompoundTag tag, HolderLookup.Provider registries, boolean clientPacket) {
         super.write(tag, registries, clientPacket);
-        tag.put("face_states", faceStatesNbt.toNbt());
+        tag.put("FaceStateData", faceStatesNbt.toNbt());
     }
 
     /**
@@ -138,7 +138,7 @@ public class AdvancedGearboxBlockEntity extends SplitShaftBlockEntity implements
      * {@code read()} 是 SmartBlockEntity 提供的非 final 钩子，
      * 在 {@code load()}（final）内部被调用。覆写此方法以恢复自定义 NBT 数据。
      * <p>
-     * <b>缺失键处理</b>：新放置的方块没有 {@code "face_states"} 键，
+     * <b>缺失键处理</b>：新放置的方块没有 {@code "FaceStateData"} 键，
      * 此时保持 {@link #faceStatesNbt} 初始默认值（全 FWD），不报错。
      *
      * @param tag          数据源 NBT（来自磁盘或客户端数据包）
@@ -148,8 +148,8 @@ public class AdvancedGearboxBlockEntity extends SplitShaftBlockEntity implements
     @Override
     protected void read(CompoundTag tag, HolderLookup.Provider registries, boolean clientPacket) {
         super.read(tag, registries, clientPacket);
-        if (tag.contains("face_states")) {
-            faceStatesNbt.fromNbt(tag.getCompound("face_states"));
+        if (tag.contains("FaceStateData")) {
+            faceStatesNbt.fromNbt(tag.getCompound("FaceStateData"));
         }
         if (clientPacket) {
             requestModelDataUpdate();

@@ -76,6 +76,9 @@ public class AdvancedGearboxBlock extends KineticBlock implements IBE<AdvancedGe
     public static final BooleanProperty WEST_CONNECTED = CONNECTION_PROPERTIES[4];
     public static final BooleanProperty EAST_CONNECTED = CONNECTION_PROPERTIES[5];
 
+    /** 默认面状态：所有面初始化为 FWD（有轴、正向） */
+    public static final AdvancedGearboxShaftState DEFAULT_SHAFT_STATE = AdvancedGearboxShaftState.FWD;
+
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         // KineticBlock 没有方向属性，只需添加六个面的状态和更新数据属性
@@ -89,14 +92,15 @@ public class AdvancedGearboxBlock extends KineticBlock implements IBE<AdvancedGe
      */
     public AdvancedGearboxBlock(Properties properties) {
         super(properties);
-        // 初始化默认状态：所有面未连接，更新数据为false
+        // 初始化默认状态：所有面纹理连接状态与默认面状态一致，更新数据为false
+        boolean defaultConnected = DEFAULT_SHAFT_STATE.hasTextureConnection();
         this.registerDefaultState(this.defaultBlockState()
-                .setValue(DOWN_CONNECTED, false)
-                .setValue(UP_CONNECTED, false)
-                .setValue(NORTH_CONNECTED, false)
-                .setValue(SOUTH_CONNECTED, false)
-                .setValue(WEST_CONNECTED, false)
-                .setValue(EAST_CONNECTED, false)
+                .setValue(DOWN_CONNECTED, defaultConnected)
+                .setValue(UP_CONNECTED, defaultConnected)
+                .setValue(NORTH_CONNECTED, defaultConnected)
+                .setValue(SOUTH_CONNECTED, defaultConnected)
+                .setValue(WEST_CONNECTED, defaultConnected)
+                .setValue(EAST_CONNECTED, defaultConnected)
                 .setValue(UPDATE_DATA, false)
         );
     }
@@ -113,13 +117,6 @@ public class AdvancedGearboxBlock extends KineticBlock implements IBE<AdvancedGe
      */
     public static boolean getConnectionState(Direction face, BlockState state) {
         return state.getValue(getConnectionProperty(face));
-    }
-
-    /**
-     * 设置指定方向的纹理连接状态
-     */
-    public static BlockState setConnectionState(Direction face, BlockState state, boolean connected) {
-        return state.setValue(getConnectionProperty(face), connected);
     }
 
     /**
