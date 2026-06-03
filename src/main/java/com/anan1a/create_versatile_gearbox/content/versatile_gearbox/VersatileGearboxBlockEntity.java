@@ -74,9 +74,9 @@ public class VersatileGearboxBlockEntity extends SplitShaftBlockEntity {
         // 如果输出面关闭（非传动轴状态），返回 0（不输出动力）
         if (!faceState.shouldRenderShaft()) return 0;
 
-        // 轴方向修正
-        int axisAdjust = face.getAxisDirection() == source.getAxisDirection() ? 1 : -1;
-        return axisAdjust * faceState.getModifier() * sourceState.getModifier();
+        // 轴方向修正：AxisDirection.getStep() 返回 POSITIVE=1, NEGATIVE=-1
+        return face.getAxisDirection().getStep() * source.getAxisDirection().getStep()
+                * faceState.getModifier() * sourceState.getModifier();
     }
 
     /**
