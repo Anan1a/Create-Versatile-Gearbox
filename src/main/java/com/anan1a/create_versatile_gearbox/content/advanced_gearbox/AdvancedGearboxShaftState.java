@@ -1,4 +1,4 @@
-package com.anan1a.create_versatile_gearbox.content.versatile_gearbox;
+package com.anan1a.create_versatile_gearbox.content.advanced_gearbox;
 
 import net.minecraft.util.StringRepresentable;
 
@@ -8,10 +8,10 @@ import net.minecraft.util.StringRepresentable;
  * <b>有轴状态</b>：FWD（正向旋转）、REV（反向旋转）<br>
  * <b>无轴状态</b>：OFF（不输出动力）
  */
-public enum VersatileGearboxShaftState implements StringRepresentable {
-    FWD(true, 1),   // 同向旋转（与动力源同方向），倍率 1
-    REV(true, -1),  // 反向旋转（与动力源反方向），倍率 -1
-    OFF(false, 0);  // 关闭（不输出动力），倍率 0
+public enum AdvancedGearboxShaftState implements StringRepresentable {
+    FWD(true, false, 1),   // 同向旋转（与动力源同方向），无纹理连接，倍率 1
+    REV(true, false, -1),  // 反向旋转（与动力源反方向），无纹理连接，倍率 -1
+    OFF(false, true, 0);   // 关闭（不输出动力），有纹理连接，倍率 0
 
     /**
      * 该状态是否渲染传动轴。
@@ -22,19 +22,23 @@ public enum VersatileGearboxShaftState implements StringRepresentable {
     private final boolean shouldRenderShaft;
 
     /**
+     * 该状态是否显示纹理连接效果。
+     * <p>
+     * 用于控制方块表面的纹理连接视觉效果，
+     * 与传动轴渲染逻辑分离，可独立控制。
+     */
+    private final boolean hasTextureConnection;
+
+    /**
      * 该状态的数值倍率。
      * <p>
      * 用于计算旋转速度的方向和大小：
-     * <ul>
-     *   <li>FWD → 1（正向传动）</li>
-     *   <li>REV → -1（反向传动）</li>
-     *   <li>OFF → 0（断开传动）</li>
-     * </ul>
      */
     private final int modifier;
 
-    VersatileGearboxShaftState(boolean shouldRenderShaft, int modifier) {
+    AdvancedGearboxShaftState(boolean shouldRenderShaft, boolean hasTextureConnection, int modifier) {
         this.shouldRenderShaft = shouldRenderShaft;
+        this.hasTextureConnection = hasTextureConnection;
         this.modifier = modifier;
     }
 
@@ -52,12 +56,36 @@ public enum VersatileGearboxShaftState implements StringRepresentable {
     }
 
     /**
+     * 获取下一个状态。
+     * <p>
+     * 顺序：FWD → REV → OFF → FWD
+     *
+     * @return 下一个状态
+     */
+    public AdvancedGearboxShaftState next() {
+        return switch (this) {
+            case FWD -> REV;
+            case REV -> OFF;
+            case OFF -> FWD;
+        };
+    }
+
+    /**
      * 判断该状态是否应该渲染传动轴。
      *
      * @return true 表示渲染传动轴，false 表示不渲染
      */
     public boolean shouldRenderShaft() {
         return shouldRenderShaft;
+    }
+
+    /**
+     * 判断该状态是否显示纹理连接效果。
+     *
+     * @return true 表示显示纹理连接，false 表示不显示
+     */
+    public boolean hasTextureConnection() {
+        return hasTextureConnection;
     }
 
     /**

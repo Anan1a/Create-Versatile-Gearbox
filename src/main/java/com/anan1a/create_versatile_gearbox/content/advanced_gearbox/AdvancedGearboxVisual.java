@@ -1,4 +1,4 @@
-package com.anan1a.create_versatile_gearbox.content.versatile_gearbox;
+package com.anan1a.create_versatile_gearbox.content.advanced_gearbox;
 
 import com.simibubi.create.AllPartialModels;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntityVisual;
@@ -14,24 +14,31 @@ import net.minecraft.core.Direction;
 import java.util.function.Consumer;
 
 /**
- * 万能变速箱可视化类（六面轴版本）
+ * 高级齿轮箱可视化类（六面轴版本）
  * <p>
- * 使用 Flywheel 渲染引擎为每个非 OFF 面创建半轴旋转实例（{@link RotatingInstance}），
+ * 使用 Flywheel 渲染引擎为每个有轴状态组面创建半轴旋转实例（{@link RotatingInstance}），
  * 六个面均可独立旋转。
  * <p>
  * <b>实例生命周期</b>（一次性分配）：<br>
  * 构造函数中根据当前面状态创建对应实例，之后 <em>数量固定</em>。
- * OFF 面不创建实例，非 OFF 面创建一个 {@link RotatingInstance}。
- * 后续状态切换不增删实例，因为纹理通过 BlockState 独立控制。
+ * 无轴状态组面不创建实例，有轴状态组面创建一个 {@link RotatingInstance}。
+ * 后续状态切换不增删实例，因为纹理通过 {@link AdvancedGearboxModel} 的 
+ * DynamicTextureModel 独立控制，与 Flywheel 实例解耦。
+ * <p>
+ * <b>与纹理系统的关系</b>：<br>
+ * Flywheel 仅控制半轴 3D 模型的旋转动画，面纹理由 {@link AdvancedGearboxModel} 的
+ * DynamicTextureModel 接管（通过 Mixin + ThreadLocal 桥接 BE 的面状态数据）。
+ * 两者独立工作：纹理切换不依赖 Flywheel 实例的创建/删除，
+ * 即使实例存在，OFF 面的纹理也会正确显示为安山岩机壳。
  */
-public class VersatileGearboxVisual extends KineticBlockEntityVisual<VersatileGearboxBlockEntity> {
+public class AdvancedGearboxVisual extends KineticBlockEntityVisual<AdvancedGearboxBlockEntity> {
 
     /**
      * 存储每个方向的旋转实例（数组形式，优化访问速度）。
      * <p>
      * 索引 0-5 对应 DOWN, UP, NORTH, SOUTH, WEST, EAST
      * （与 {@link Direction#values()} 顺序一致）。
-     * 未使用的槽位为 null（该面 OFF）。
+     * 未使用的槽位为 null（该面无轴状态组）。
      */
     protected final RotatingInstance[] keys = new RotatingInstance[6];
 
@@ -47,14 +54,15 @@ public class VersatileGearboxVisual extends KineticBlockEntityVisual<VersatileGe
     /**
      * 构造可视化实例。
      * <p>
-     * 执行一次性的半轴实例分配：遍历六个面，仅为非 OFF 面创建旋转实例。
-     * 不创建后续增删机制，因为纹理通过 BlockState 独立控制。
+     * 执行一次性的半轴实例分配：遍历六个面，仅为有轴状态组创建旋转实例。
+     * 不创建后续增删机制，因为纹理切换由 {@link AdvancedGearboxModel} 的 
+     * DynamicTextureModel 独立处理，与 Flywheel 实例解耦。
      *
      * @param context     可视化上下文（Flywheel 框架提供）
      * @param blockEntity 方块实体，包含面状态和动力数据
      * @param partialTick 部分 tick 值（用于插值）
      */
-    public VersatileGearboxVisual(VisualizationContext context, VersatileGearboxBlockEntity blockEntity, float partialTick) {
+    public AdvancedGearboxVisual(VisualizationContext context, AdvancedGearboxBlockEntity blockEntity, float partialTick) {
         // 调用父类构造函数，初始化基础 KineticBlockEntityVisual 功能
         super(context, blockEntity, partialTick);
 
@@ -62,7 +70,7 @@ public class VersatileGearboxVisual extends KineticBlockEntityVisual<VersatileGe
         // 这是计算各面旋转方向的前提
         updateSourceFacing();
         
-        // 一次性分配半轴实例：遍历六面，仅为非 OFF 面创建 RotatingInstance
+        // 一次性分配半轴实例：遍历六面，仅为有轴状态组面创建 RotatingInstance
         // 实例数量在此时固定，后续不增删
         initShaftInstances();
     }
@@ -70,8 +78,8 @@ public class VersatileGearboxVisual extends KineticBlockEntityVisual<VersatileGe
     /**
      * 初始化半轴实例。
      * <p>
-     * 遍历六个面，为非 OFF 面创建 {@link RotatingInstance}。
-     * OFF 面跳过（keys[i] 保持 null），后续无论状态如何变化都不增删实例。
+     * 遍历六个面，为有轴状态组创建 {@link RotatingInstance}。
+     * 无轴状态组跳过（keys[i] 保持 null），后续无论状态如何变化都不增删实例。
      * 旋转方向和速度通过 {@link #getSpeed(Direction)} 计算。
      */
     private void initShaftInstances() {
@@ -80,9 +88,9 @@ public class VersatileGearboxVisual extends KineticBlockEntityVisual<VersatileGe
         
         // 遍历六个方向（DOWN, UP, NORTH, SOUTH, WEST, EAST）
         for (Direction direction : Iterate.directions) {
-            // 跳过 OFF 面：不创建实例，此时显示机壳纹理
+            // 跳过 OFF 面：不创建实例，此时显示安山岩机壳纹理
             // 使用枚举的统一方法判断，便于扩展新状态
-            if (!VersatileGearboxBlock.getShaftState(direction, blockEntity.getBlockState()).shouldRenderShaft())
+            if (!blockEntity.getShaftState(direction).shouldRenderShaft())
                 continue;
 
             // 创建旋转实例并配置
@@ -149,7 +157,7 @@ public class VersatileGearboxVisual extends KineticBlockEntityVisual<VersatileGe
         // 遍历六个方向，更新所有已存在的旋转实例
         for (int i = 0; i < 6; i++) {
             RotatingInstance instance = keys[i];
-            // 跳过 OFF 面（未创建实例，keys[i] 为 null）
+            // 跳过无轴状态组（未创建实例，keys[i] 为 null）
             if (instance != null) {
                 Direction direction = Direction.values()[i];
                 // 更新实例的旋转轴和速度，标记状态变更
@@ -170,7 +178,7 @@ public class VersatileGearboxVisual extends KineticBlockEntityVisual<VersatileGe
     public void updateLight(float partialTick) {
         // 遍历所有旋转实例，更新光照信息
         for (RotatingInstance instance : keys) {
-            // 跳过未创建的实例（OFF 面）
+            // 跳过未创建的实例（无轴状态组）
             if (instance != null) {
                 // 将方块位置的光照数据传递给实例
                 relight(instance);
@@ -187,7 +195,7 @@ public class VersatileGearboxVisual extends KineticBlockEntityVisual<VersatileGe
     protected void _delete() {
         // 遍历所有旋转实例，释放资源
         for (RotatingInstance instance : keys) {
-            // 跳过未创建的实例（OFF 面）
+            // 跳过未创建的实例（无轴状态组）
             if (instance != null) {
                 // 删除实例，释放 GPU 资源
                 instance.delete();
@@ -208,7 +216,7 @@ public class VersatileGearboxVisual extends KineticBlockEntityVisual<VersatileGe
         // 遍历所有旋转实例，收集参与 crumbling 动画的实例
         // Crumbling 是方块被破坏时的破碎动画效果
         for (RotatingInstance instance : keys) {
-            // 跳过未创建的实例（OFF 面）
+            // 跳过未创建的实例（无轴状态组）
             if (instance != null) {
                 // 将实例传递给消费者，用于渲染破碎动画
                 consumer.accept(instance);

@@ -19,9 +19,9 @@ public class AllModSpriteShifts {
      * <p>
      * 复用 Create 原版安山机壳的连接纹理图集
      */
-    public static final CTSpriteShiftEntry VERSATILE_GEARBOX_OFF = CTSpriteShifter.getCT(
-            AllCTTypes.OMNIDIRECTIONAL,
-            ResourceLocation.fromNamespaceAndPath(MODID, "block/versatile_gearbox/off_shell"),
-            ResourceLocation.fromNamespaceAndPath("create", "block/andesite_casing_connected")
-    );
+    // public static final CTSpriteShiftEntry VERSATILE_GEARBOX_OFF = CTSpriteShifter.getCT(
+    //         AllCTTypes.OMNIDIRECTIONAL,
+    //         ResourceLocation.fromNamespaceAndPath(MODID, "block/versatile_gearbox/off_shell"),
+    //         ResourceLocation.fromNamespaceAndPath("create", "block/andesite_casing_connected")
+    // );
 }

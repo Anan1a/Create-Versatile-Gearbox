@@ -1,12 +1,13 @@
 package com.anan1a.create_versatile_gearbox;
 
 import com.anan1a.create_versatile_gearbox.content.versatile_gearbox.VersatileGearboxShaftState;
+import com.anan1a.create_versatile_gearbox.content.advanced_gearbox.AdvancedGearboxShaftState;
 import com.tterrag.registrate.util.entry.BlockEntry;
 
 import net.minecraft.world.level.material.MapColor;
 
 import com.anan1a.create_versatile_gearbox.content.versatile_gearbox.VersatileGearboxBlock;
-import com.anan1a.create_versatile_gearbox.foundation.AllModSpriteShifts;
+import com.anan1a.create_versatile_gearbox.content.advanced_gearbox.AdvancedGearboxBlock;
 import com.simibubi.create.foundation.data.CreateRegistrate;
 import com.simibubi.create.foundation.data.SharedProperties;
 import com.simibubi.create.api.stress.BlockStressValues;
@@ -20,7 +21,6 @@ import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.ShapedRecipeBuilder;
 import net.minecraft.advancements.critereon.InventoryChangeTrigger;
 
-import static com.simibubi.create.foundation.data.BlockStateGen.axisBlock;
 import static com.simibubi.create.foundation.data.ModelGen.customItemModel;
 import static com.simibubi.create.foundation.data.TagGen.axeOrPickaxe;
 
@@ -125,15 +125,12 @@ public class CVGBlocks {
 			// ========== 连接纹理配置 ==========
 			// 为自定义机壳和安山合金机壳注册连接纹理行为
 			// EncasedCTBehaviour 根据相邻方块状态处理纹理渲染
-			// .onRegister(CreateRegistrate.connectedTextures(() -> new EncasedCTBehaviour(AllModSpriteShifts.VERSATILE_GEARBOX_OFF)))
 			.onRegister(CreateRegistrate.connectedTextures(() -> new EncasedCTBehaviour(AllSpriteShifts.ANDESITE_CASING)))
 									
 			// ========== 外壳连接性规则 ==========
 			// 定义连接条件：仅当轴状态为 OFF 时面才连接
 			// 防止轴激活时出现视觉错误
 			.onRegister(CreateRegistrate.casingConnectivity((block, cc) -> {
-				// cc.make(block, AllModSpriteShifts.VERSATILE_GEARBOX_OFF,
-				// 		(s, f) -> VersatileGearboxBlock.getShaftState(f, s) == VersatileGearboxShaftState.OFF);
 				cc.make(block, AllSpriteShifts.ANDESITE_CASING,
 						(s, f) -> VersatileGearboxBlock.getShaftState(f, s) == VersatileGearboxShaftState.OFF);
 			}))
@@ -143,11 +140,82 @@ public class CVGBlocks {
 //			.onRegister(block -> RadialWrenchMenu.registerBlacklistedBlock(BuiltInRegistries.BLOCK.getKey(block)))
 			
 			// ========== Blockstate 生成 ==========
-			// 使用简单 blockstate 避免生成大量 variants（3轴 × 3⁶面状态 = 2187个）
+			// 使用 simpleBlock() 生成最简 blockstate，不枚举任何 variant
+			// 原因：该方块有 6 个面 × 3 种轴状态 = 3^6 = 729 种可能状态组合，
+			// 用 axisBlock() 会生成海量冗余 variant，且所有 variant 指向同一模型
+			// 方块外观变化在模型烘焙时由 VersatileGearboxModel 包装（动态纹理重映射），
+			// 叠加 VersatileGearboxRenderer / Visual 的旋转轴动画，共同实现运行时渲染
 			.blockstate((c, p) -> p.simpleBlock(c.getEntry(), p.models().getExistingFile(p.modLoc("block/versatile_gearbox/block"))))
 			
 			// ========== 物品配置 ==========
 			// customItemModel() 会查找 models/block/versatile_gearbox/item.json
+			.item()
+			.transform(customItemModel())
+			
+			// ========== 完成注册 ==========
+			.register();
+
+	/**
+	 * Advanced Gearbox - 高级齿轮箱
+	 * <p>
+	 * 升级版多功能齿轮箱，支持更复杂的动力传输配置
+	 */
+	public static final BlockEntry<AdvancedGearboxBlock> ADVANCED_GEARBOX = REGISTRATE
+            .block("advanced_gearbox", AdvancedGearboxBlock::new)
+
+			// ========== 基础属性配置 ==========
+			.initialProperties(SharedProperties::stone)
+			
+			// ========== 额外属性配置 ==========
+			.properties(p -> p
+				.mapColor(MapColor.PODZOL)
+				.noOcclusion()
+			)
+
+			// ========== 合成配方配置 ==========
+			// 配方结构：
+			//   S C S
+			//   C A C
+			//   S C S
+			// 其中：A=安山机壳(1个), C=大齿轮(4个), S=钢构件(4个)
+			.recipe((ctx, prov) -> {
+				ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ctx.getEntry())
+					.pattern("LLP")
+					.pattern("LBL")
+					.pattern("PLL")
+					.define('B', AllBlocks.BRASS_CASING.get())      	// B: 黄铜机壳（中心）
+					.define('L', AllBlocks.LARGE_COGWHEEL.get())        // L: 大齿轮（6个）
+					.define('P', AllItems.PRECISION_MECHANISM.get())	// P: 精密构件（2个）
+					.unlockedBy("has_alloy", 
+						InventoryChangeTrigger.TriggerInstance.hasItems(AllItems.BRASS_INGOT.get()))			// 解锁条件：获得黄铜锭
+					.unlockedBy("has_casing", 
+						InventoryChangeTrigger.TriggerInstance.hasItems(AllBlocks.BRASS_CASING.get()))			// 解锁条件：获得黄铜机壳
+					.unlockedBy("has_large_cogwheel", 
+						InventoryChangeTrigger.TriggerInstance.hasItems(AllBlocks.LARGE_COGWHEEL.get()))		// 解锁条件：获得大齿轮
+					.unlockedBy("has_steel_sheet", 
+						InventoryChangeTrigger.TriggerInstance.hasItems(AllItems.PRECISION_MECHANISM.get()))	// 解锁条件：获得精密构件
+					.save(prov);
+			})
+
+			// ========== 应力配置 ==========
+			.onRegister(block -> BlockStressValues.IMPACTS.register(block, () -> 0))
+			
+			// ========== 采集工具配置 ==========
+			.transform(axeOrPickaxe())
+			
+			// ========== 连接纹理配置 ==========
+			.onRegister(CreateRegistrate.connectedTextures(() -> new EncasedCTBehaviour(AllSpriteShifts.BRASS_CASING)))
+									
+			// ========== 外壳连接性规则 ==========
+			.onRegister(CreateRegistrate.casingConnectivity((block, cc) -> {
+				cc.make(block, AllSpriteShifts.BRASS_CASING,
+						(s, f) -> AdvancedGearboxBlock.getConnectionState(f, s));
+			}))
+
+			// ========== Blockstate 生成 ==========
+			.blockstate((c, p) -> p.simpleBlock(c.getEntry(), p.models().getExistingFile(p.modLoc("block/advanced_gearbox/block"))))
+			
+			// ========== 物品配置 ==========
 			.item()
 			.transform(customItemModel())
 			

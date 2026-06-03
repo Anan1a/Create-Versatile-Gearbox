@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import com.mojang.logging.LogUtils;
 
 import com.anan1a.create_versatile_gearbox.content.versatile_gearbox.VersatileGearboxModel;
+import com.anan1a.create_versatile_gearbox.content.advanced_gearbox.AdvancedGearboxModel;
 import com.simibubi.create.foundation.model.ModelSwapper;
 
 import net.minecraft.client.resources.model.BakedModel;
@@ -117,13 +118,26 @@ public class CreateVersatileGearbox {
             // 获取已烘焙的模型注册表
             Map<ModelResourceLocation, BakedModel> modelRegistry = event.getModels();
             
-            // 遍历万能变速箱的所有 BlockState 变体，替换为动态模型
+            // 遍历万能变速箱的所有 BlockState 变体（3^6 = 729 个），替换为动态模型
+            // blockstate JSON 虽只有 1 个 variant 条目，但 Minecraft 模型烘焙器会为每个
+            // 可能的 BlockState 组合创建一个 ModelResourceLocation 作为注册表 Key，
+            // 所有 Key 都指向同一 BakedModel 实例。必须逐个包装以确保无论方块处于
+            // 何种状态组合，getQuads() 都经过 VersatileGearboxModel 的动态纹理重映射。
             ModelSwapper.getAllBlockStateModelLocations(CVGBlocks.VERSATILE_GEARBOX.get())
                 .forEach(location -> {
                     BakedModel originalModel = modelRegistry.get(location);
                     if (originalModel != null) {
                         // 用 VersatileGearboxModel 包装原始模型，实现运行时动态纹理替换
                         modelRegistry.put(location, new VersatileGearboxModel(originalModel));
+                    }
+                });
+
+            // 注册高级齿轮箱的动态模型
+            ModelSwapper.getAllBlockStateModelLocations(CVGBlocks.ADVANCED_GEARBOX.get())
+                .forEach(location -> {
+                    BakedModel originalModel = modelRegistry.get(location);
+                    if (originalModel != null) {
+                        modelRegistry.put(location, new AdvancedGearboxModel(originalModel));
                     }
                 });
         }

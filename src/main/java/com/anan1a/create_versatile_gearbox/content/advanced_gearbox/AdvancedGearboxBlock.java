@@ -1,9 +1,10 @@
-package com.anan1a.create_versatile_gearbox.content.versatile_gearbox;
+package com.anan1a.create_versatile_gearbox.content.advanced_gearbox;
 
 import java.util.List;
 
 import com.anan1a.create_versatile_gearbox.CVGBlockEntityTypes;
 import com.simibubi.create.AllSoundEvents;
+
 import com.simibubi.create.content.kinetics.base.KineticBlock;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
 import com.simibubi.create.foundation.block.IBE;
@@ -23,91 +24,99 @@ import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
-import net.minecraft.world.level.block.state.properties.EnumProperty;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.material.PushReaction;
 import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.phys.HitResult;
 
 /**
- * 多功能传动箱方块（六面轴版本）
+ * 高级齿轮箱方块（六面轴版本）
  * <p>
  * 支持六个面全部连接传动轴，实现全方位动力传输。
- * 每个面可独立翻转旋转方向（通过扳手切换）。
+ * 每个面可独立切换纹理连接状态（通过扳手切换）。
+ * <p>
+ * <b>纹理连接面数据</b><br>
+ * 此方块使用 BooleanProperty 存储六个面的纹理连接状态：
+ * <ol>
+ *   <li><b>BlockState 属性</b>（{@code down_connected} ~ {@code east_connected}）—
+ *       用于 {@link #hasShaftTowards()}（动力网络连接判断）、
+ *       {@link #areStatesKineticallyEquivalent()}（网络增量更新）、
+ *       以及蓝图 rotate/mirror 操作。
+ *       这是 Minecraft 原版机制要求，不可省略。</li>
+ *   <li><b>UPDATE_DATA 属性</b> — 用于触发数据更新的布尔标志。</li>
+ * </ol>
  * <p>
  * 【蓝图兼容性】方块没有方向属性，放置时永远保持相同朝向。
  */
-public class VersatileGearboxBlock extends KineticBlock implements IBE<VersatileGearboxBlockEntity> {
+public class AdvancedGearboxBlock extends KineticBlock implements IBE<AdvancedGearboxBlockEntity> {
 
     /**
-     * 六个面的传动轴状态属性数组
+     * 六个面的纹理连接面属性数组
      * <p>
      * 索引顺序：DOWN=0, UP=1, NORTH=2, SOUTH=3, WEST=4, EAST=5
      * 与 Direction.get3DDataValue() 返回值一致
      */
-    @SuppressWarnings("unchecked")
-    private static final EnumProperty<VersatileGearboxShaftState>[] STATE_PROPERTIES = new EnumProperty[]{
-            EnumProperty.create("down_state", VersatileGearboxShaftState.class),
-            EnumProperty.create("up_state", VersatileGearboxShaftState.class),
-            EnumProperty.create("north_state", VersatileGearboxShaftState.class),
-            EnumProperty.create("south_state", VersatileGearboxShaftState.class),
-            EnumProperty.create("west_state", VersatileGearboxShaftState.class),
-            EnumProperty.create("east_state", VersatileGearboxShaftState.class)
+    private static final BooleanProperty[] CONNECTION_PROPERTIES = new BooleanProperty[]{
+            BooleanProperty.create("down_connected"),
+            BooleanProperty.create("up_connected"),
+            BooleanProperty.create("north_connected"),
+            BooleanProperty.create("south_connected"),
+            BooleanProperty.create("west_connected"),
+            BooleanProperty.create("east_connected")
     };
 
+    // 更新数据属性
+    public static final BooleanProperty UPDATE_DATA = BooleanProperty.create("update_data");
+
     // 单方向便捷访问常量
-    public static final EnumProperty<VersatileGearboxShaftState> DOWN_STATE = STATE_PROPERTIES[0];
-    public static final EnumProperty<VersatileGearboxShaftState> UP_STATE = STATE_PROPERTIES[1];
-    public static final EnumProperty<VersatileGearboxShaftState> NORTH_STATE = STATE_PROPERTIES[2];
-    public static final EnumProperty<VersatileGearboxShaftState> SOUTH_STATE = STATE_PROPERTIES[3];
-    public static final EnumProperty<VersatileGearboxShaftState> WEST_STATE = STATE_PROPERTIES[4];
-    public static final EnumProperty<VersatileGearboxShaftState> EAST_STATE = STATE_PROPERTIES[5];
+    public static final BooleanProperty DOWN_CONNECTED = CONNECTION_PROPERTIES[0];
+    public static final BooleanProperty UP_CONNECTED = CONNECTION_PROPERTIES[1];
+    public static final BooleanProperty NORTH_CONNECTED = CONNECTION_PROPERTIES[2];
+    public static final BooleanProperty SOUTH_CONNECTED = CONNECTION_PROPERTIES[3];
+    public static final BooleanProperty WEST_CONNECTED = CONNECTION_PROPERTIES[4];
+    public static final BooleanProperty EAST_CONNECTED = CONNECTION_PROPERTIES[5];
 
     /** 默认面状态：所有面初始化为 FWD（有轴、正向） */
-    public static final VersatileGearboxShaftState DEFAULT_SHAFT_STATE = VersatileGearboxShaftState.FWD;
+    public static final AdvancedGearboxShaftState DEFAULT_SHAFT_STATE = AdvancedGearboxShaftState.FWD;
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        // KineticBlock 没有方向属性，只需添加六个面的状态
+        // KineticBlock 没有方向属性，只需添加六个面的状态和更新数据属性
         super.createBlockStateDefinition(builder);
-        builder.add(DOWN_STATE, UP_STATE, NORTH_STATE, SOUTH_STATE, WEST_STATE, EAST_STATE);
+        builder.add(DOWN_CONNECTED, UP_CONNECTED, NORTH_CONNECTED, SOUTH_CONNECTED, WEST_CONNECTED, EAST_CONNECTED, UPDATE_DATA);
     }
 
     /**
      * 构造函数
      * @param properties 方块属性
      */
-    public VersatileGearboxBlock(Properties properties) {
+    public AdvancedGearboxBlock(Properties properties) {
         super(properties);
-        // 初始化默认状态：所有面初始化为 DEFAULT_SHAFT_STATE
+        // 初始化默认状态：所有面纹理连接状态与默认面状态一致，更新数据为false
+        boolean defaultConnected = DEFAULT_SHAFT_STATE.hasTextureConnection();
         this.registerDefaultState(this.defaultBlockState()
-                .setValue(DOWN_STATE, DEFAULT_SHAFT_STATE)
-                .setValue(UP_STATE, DEFAULT_SHAFT_STATE)
-                .setValue(NORTH_STATE, DEFAULT_SHAFT_STATE)
-                .setValue(SOUTH_STATE, DEFAULT_SHAFT_STATE)
-                .setValue(WEST_STATE, DEFAULT_SHAFT_STATE)
-                .setValue(EAST_STATE, DEFAULT_SHAFT_STATE)
+                .setValue(DOWN_CONNECTED, defaultConnected)
+                .setValue(UP_CONNECTED, defaultConnected)
+                .setValue(NORTH_CONNECTED, defaultConnected)
+                .setValue(SOUTH_CONNECTED, defaultConnected)
+                .setValue(WEST_CONNECTED, defaultConnected)
+                .setValue(EAST_CONNECTED, defaultConnected)
+                .setValue(UPDATE_DATA, false)
         );
     }
 
     /**
-     * 获取指定方向的传动轴状态
+     * 获取指定方向对应的连接属性
      */
-    public static VersatileGearboxShaftState getShaftState(Direction face, BlockState state) {
-        return state.getValue(STATE_PROPERTIES[face.get3DDataValue()]);
+    public static BooleanProperty getConnectionProperty(Direction face) {
+        return CONNECTION_PROPERTIES[face.get3DDataValue()];
     }
 
     /**
-     * 设置指定方向的传动轴状态
+     * 获取指定方向的纹理连接状态
      */
-    public static BlockState setShaftState(Direction face, BlockState state, VersatileGearboxShaftState shaftState) {
-        return state.setValue(STATE_PROPERTIES[face.get3DDataValue()], shaftState);
-    }
-
-    /**
-     * 获取指定方向对应的状态属性
-     */
-    public static EnumProperty<VersatileGearboxShaftState> getStateProperty(Direction face) {
-        return STATE_PROPERTIES[face.get3DDataValue()];
+    public static boolean getConnectionState(Direction face, BlockState state) {
+        return state.getValue(getConnectionProperty(face));
     }
 
     /**
@@ -138,7 +147,7 @@ public class VersatileGearboxBlock extends KineticBlock implements IBE<Versatile
     }
 
     /**
-     * 获取创造模式/UI显示用的物品栈
+     * 获取创造模式/UI 显示用的物品栈
      * <p>
      * 此方法不破坏方块，仅返回表示该方块的物品栈，用于创造模式物品栏和提示显示。
      * 返回值不受战利品表影响，直接返回表示方块的物品。
@@ -157,13 +166,17 @@ public class VersatileGearboxBlock extends KineticBlock implements IBE<Versatile
     }
 
     /**
-     * 判断指定面是否有传动轴接口（六面轴版本）
+     * 判断指定面是否有传动轴接口。
      * <p>
      * 只有当该面状态有传动轴（FWD/REV）时才返回 true。
+     * 从 BlockEntity 的 NBT 面状态数据读取，而非 BlockState 的 BooleanProperty。
      */
     @Override
     public boolean hasShaftTowards(LevelReader world, BlockPos pos, BlockState state, Direction face) {
-        return getShaftState(face, state).shouldRenderShaft();
+        if (world.getBlockEntity(pos) instanceof AdvancedGearboxBlockEntity be) {
+            return be.getShaftState(face).shouldRenderShaft();
+        }
+        return false;
     }
 
     /**
@@ -174,21 +187,16 @@ public class VersatileGearboxBlock extends KineticBlock implements IBE<Versatile
     @Override
     protected boolean areStatesKineticallyEquivalent(BlockState oldState, BlockState newState) {
         return super.areStatesKineticallyEquivalent(oldState, newState)
-            && oldState.getValue(DOWN_STATE) == newState.getValue(DOWN_STATE)
-            && oldState.getValue(UP_STATE) == newState.getValue(UP_STATE)
-            && oldState.getValue(NORTH_STATE) == newState.getValue(NORTH_STATE)
-            && oldState.getValue(SOUTH_STATE) == newState.getValue(SOUTH_STATE)
-            && oldState.getValue(WEST_STATE) == newState.getValue(WEST_STATE)
-            && oldState.getValue(EAST_STATE) == newState.getValue(EAST_STATE);
+            && oldState.getValue(UPDATE_DATA) == newState.getValue(UPDATE_DATA);
     }
 
     /**
-     * 获取方块的旋转轴（IRotate 接口要求）
+     * 获取方块的旋转轴。
      * <p>
-     * 【蓝图兼容性】始终返回 Y 轴，使方块在任何情况下都保持相同的视觉朝向。
-     * 方块本身没有方向属性，所有面的功能通过绝对方向系统处理。
+     * AdvancedGearbox 支持六个面的传动轴连接，轴方向由绝对方向（东/西/南/北/上/下）
+     * 而非方块朝向决定，因此视觉模型始终保持固定方向，旋转轴固定为 Y 轴。
      *
-     * @param state 方块状态
+     * @param state 方块状态（未使用，固定返回 Y 轴）
      * @return 固定为 Y 轴
      */
     @Override
@@ -216,27 +224,27 @@ public class VersatileGearboxBlock extends KineticBlock implements IBE<Versatile
     public BlockState rotate(BlockState state, Rotation rotation) {
         if (rotation == Rotation.NONE) return state;
 
-        VersatileGearboxShaftState north = state.getValue(NORTH_STATE);
-        VersatileGearboxShaftState south = state.getValue(SOUTH_STATE);
-        VersatileGearboxShaftState west = state.getValue(WEST_STATE);
-        VersatileGearboxShaftState east = state.getValue(EAST_STATE);
+        boolean north = state.getValue(NORTH_CONNECTED);
+        boolean south = state.getValue(SOUTH_CONNECTED);
+        boolean west = state.getValue(WEST_CONNECTED);
+        boolean east = state.getValue(EAST_CONNECTED);
 
         return switch (rotation) {
             case CLOCKWISE_90 -> state
-                    .setValue(NORTH_STATE, west)
-                    .setValue(SOUTH_STATE, east)
-                    .setValue(WEST_STATE, south)
-                    .setValue(EAST_STATE, north);
+                    .setValue(NORTH_CONNECTED, west)
+                    .setValue(SOUTH_CONNECTED, east)
+                    .setValue(WEST_CONNECTED, south)
+                    .setValue(EAST_CONNECTED, north);
             case CLOCKWISE_180 -> state
-                    .setValue(NORTH_STATE, south)
-                    .setValue(SOUTH_STATE, north)
-                    .setValue(WEST_STATE, east)
-                    .setValue(EAST_STATE, west);
+                    .setValue(NORTH_CONNECTED, south)
+                    .setValue(SOUTH_CONNECTED, north)
+                    .setValue(WEST_CONNECTED, east)
+                    .setValue(EAST_CONNECTED, west);
             default -> state
-                    .setValue(NORTH_STATE, east)
-                    .setValue(SOUTH_STATE, west)
-                    .setValue(WEST_STATE, north)
-                    .setValue(EAST_STATE, south);
+                    .setValue(NORTH_CONNECTED, east)
+                    .setValue(SOUTH_CONNECTED, west)
+                    .setValue(WEST_CONNECTED, north)
+                    .setValue(EAST_CONNECTED, south);
         };
     }
 
@@ -256,18 +264,18 @@ public class VersatileGearboxBlock extends KineticBlock implements IBE<Versatile
     @Override
     public BlockState mirror(BlockState state, Mirror mirror) {
         if (mirror == Mirror.LEFT_RIGHT) {
-            VersatileGearboxShaftState north = state.getValue(NORTH_STATE);
-            VersatileGearboxShaftState south = state.getValue(SOUTH_STATE);
+            boolean north = state.getValue(NORTH_CONNECTED);
+            boolean south = state.getValue(SOUTH_CONNECTED);
             return state
-                    .setValue(NORTH_STATE, south)
-                    .setValue(SOUTH_STATE, north);
+                    .setValue(NORTH_CONNECTED, south)
+                    .setValue(SOUTH_CONNECTED, north);
         }
         if (mirror == Mirror.FRONT_BACK) {
-            VersatileGearboxShaftState west = state.getValue(WEST_STATE);
-            VersatileGearboxShaftState east = state.getValue(EAST_STATE);
+            boolean west = state.getValue(WEST_CONNECTED);
+            boolean east = state.getValue(EAST_CONNECTED);
             return state
-                    .setValue(WEST_STATE, east)
-                    .setValue(EAST_STATE, west);
+                    .setValue(WEST_CONNECTED, east)
+                    .setValue(EAST_CONNECTED, west);
         }
         return state;
     }
@@ -291,15 +299,9 @@ public class VersatileGearboxBlock extends KineticBlock implements IBE<Versatile
     }
 
     /**
-     * 扳手右键交互：循环切换点击面的轴状态
+     * 扳手右键交互：切换点击面的纹理连接状态
      * <p>
-     * 状态切换顺序：FWD（同向）→ REV（反向）→ OFF（关闭）→ FWD
-     * <p>
-     * 实现要点：
-     * 1. 仅服务端处理：客户端直接返回，避免重复操作
-     * 2. 使用 BlockState.cycle() 自动按枚举顺序切换状态
-     * 3. 调用 switchToBlockState() 触发 Create 的动力网络重建
-     * 4. 播放音效并触发玩家挥臂动画
+     * 状态切换：true（连接）↔ false（未连接）
      *
      * @param state   当前方块状态
      * @param context 扳手使用上下文（包含玩家、位置、点击面等）
@@ -308,20 +310,30 @@ public class VersatileGearboxBlock extends KineticBlock implements IBE<Versatile
     protected InteractionResult onWrenchRightClick(BlockState state, UseOnContext context) {
         Level level = context.getLevel();
 
-        // 提取交互上下文信息
         BlockPos pos = context.getClickedPos();
         Player player = context.getPlayer();
         Direction clickedFace = context.getClickedFace();
 
-        // cycle() 按枚举声明顺序自动切换：FWD → REV → OFF → FWD
-        BlockState newState = state.cycle(getStateProperty(clickedFace));
-        // 通知 Create 动力网络：方块状态已变更，需要重新计算连接关系
+        // 从 BlockEntity 的 NBT 获取当前面状态（作为真实数据源）并写入新状态
+        boolean currentState = false;
+        if (level.getBlockEntity(pos) instanceof AdvancedGearboxBlockEntity be) {
+            // 先切换状态
+            be.cycleShaftState(clickedFace);
+            
+            // 读取切换后的状态（使用切换后的值）
+            AdvancedGearboxShaftState shaftState = be.getShaftState(clickedFace);
+            currentState = shaftState.hasTextureConnection();
+        }
+        
+        // 创建新状态，使用切换后的布尔值，并翻转 UPDATE_DATA 属性
+        BlockState newState = state.setValue(getConnectionProperty(clickedFace), currentState)
+                .setValue(UPDATE_DATA, !state.getValue(UPDATE_DATA));
+
+        // 通知 Create 动力网络，BlockState 已变更
         KineticBlockEntity.switchToBlockState(level, pos, newState);
 
-        // 播放扳手交互音效
         playRotateSound(level, pos);
 
-        // 触发玩家挥臂动画（仅当玩家存在时）
         if (player != null) {
             player.swing(context.getHand());
         }
@@ -338,12 +350,12 @@ public class VersatileGearboxBlock extends KineticBlock implements IBE<Versatile
 
     // ===== IBE 接口实现 =====
     @Override
-    public Class<VersatileGearboxBlockEntity> getBlockEntityClass() {
-        return VersatileGearboxBlockEntity.class;
+    public Class<AdvancedGearboxBlockEntity> getBlockEntityClass() {
+        return AdvancedGearboxBlockEntity.class;
     }
 
     @Override
-    public BlockEntityType<? extends VersatileGearboxBlockEntity> getBlockEntityType() {
-        return CVGBlockEntityTypes.VERSATILE_GEARBOX.get();
+    public BlockEntityType<? extends AdvancedGearboxBlockEntity> getBlockEntityType() {
+        return CVGBlockEntityTypes.ADVANCED_GEARBOX.get();
     }
 }
