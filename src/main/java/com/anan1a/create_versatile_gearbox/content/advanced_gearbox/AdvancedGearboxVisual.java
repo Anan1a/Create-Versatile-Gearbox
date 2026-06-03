@@ -90,7 +90,7 @@ public class AdvancedGearboxVisual extends KineticBlockEntityVisual<AdvancedGear
         for (Direction direction : Iterate.directions) {
             // 跳过 OFF 面：不创建实例，此时显示安山岩机壳纹理
             // 使用枚举的统一方法判断，便于扩展新状态
-            if (!blockEntity.getShaftState(direction).shouldRenderShaft())
+            if (!blockEntity.getShaftState(direction).hasShaft())
                 continue;
 
             // 创建旋转实例并配置
@@ -126,14 +126,11 @@ public class AdvancedGearboxVisual extends KineticBlockEntityVisual<AdvancedGear
      */
     protected void updateSourceFacing() {
         // 检查是否有动力源且位置有效
-        if (blockEntity.hasSource() && blockEntity.source != null) {
+        if (blockEntity.hasSource()) {
             // 计算动力源与自身位置的偏移向量
             BlockPos offset = blockEntity.source.subtract(pos);
             // 从偏移向量获取最接近的方向（即动力源所在的面）
             sourceFacing = Direction.getNearest(offset.getX(), offset.getY(), offset.getZ());
-        } else {
-            // 无动力源时设为 null，此时各面速度均为基础速度（无方向修正）
-            sourceFacing = null;
         }
     }
 

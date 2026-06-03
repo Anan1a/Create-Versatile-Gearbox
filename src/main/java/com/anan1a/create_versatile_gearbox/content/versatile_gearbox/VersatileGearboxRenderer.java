@@ -67,7 +67,7 @@ public class VersatileGearboxRenderer extends KineticBlockEntityRenderer<Versati
         }
 
         for (Direction direction : Iterate.directions) {
-            if (!VersatileGearboxBlock.getShaftState(direction, be.getBlockState()).shouldRenderShaft())
+            if (!VersatileGearboxBlock.getShaftState(direction, be.getBlockState()).hasShaft())
                 continue;
             renderShaftHalf(be, pos, sourceFacing, baseSpeed, direction, ms, buffer, light);
         }

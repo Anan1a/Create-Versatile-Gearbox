@@ -108,7 +108,7 @@ public class AdvancedGearboxBlockEntity extends SplitShaftBlockEntity implements
      * @param face 要切换的面方向
      */
     public void cycleShaftState(Direction face) {
-        AdvancedGearboxShaftState current = faceStatesNbt.get(face);
+        AdvancedGearboxShaftState current = getShaftState(face);
         setShaftState(face, current.next());
     }
 
@@ -198,14 +198,9 @@ public class AdvancedGearboxBlockEntity extends SplitShaftBlockEntity implements
      */
     @Override
     public float getRotationSpeedModifier(Direction face) {
-        // 1. 输出面无传动轴 → 断开
-        if (!faceStatesNbt.get(face).shouldRenderShaft()) return 0;
-
-        // 2. 无动力源或动力源面无传动轴 → 断开（getSourceFacing() 无源时返回 null）
+        // 获取动力源面
         Direction source = getSourceFacing();
-        if (source == null || !faceStatesNbt.get(source).shouldRenderShaft()) return 0;
-
-        // 3. 计算旋转方向
+        // 计算旋转方向
         return getRotationSpeedModifier(face, source);
     }
 
@@ -230,15 +225,14 @@ public class AdvancedGearboxBlockEntity extends SplitShaftBlockEntity implements
      */
     public float getRotationSpeedModifier(Direction face, Direction source) {
         // 获取动力源面状态
-        AdvancedGearboxShaftState sourceState = faceStatesNbt.get(source);
-
-        // 如果动力源面关闭（非传动轴状态），所有输出都停止
-        if (!sourceState.shouldRenderShaft()) return 0;
+        AdvancedGearboxShaftState sourceState = getShaftState(source);
+        // 如果动力源面关闭（非传动轴状态），返回 0（不输入动力）
+        if (!sourceState.hasShaft()) return 0;
 
         // 获取输出面状态
-        AdvancedGearboxShaftState faceState = faceStatesNbt.get(face);
+        AdvancedGearboxShaftState faceState = getShaftState(face);
         // 如果输出面关闭（非传动轴状态），返回 0（不输出动力）
-        if (!faceState.shouldRenderShaft()) return 0;
+        if (!faceState.hasShaft()) return 0;
 
         // 轴方向修正：AxisDirection.getStep() 返回 POSITIVE=1, NEGATIVE=-1
         return face.getAxisDirection().getStep() * source.getAxisDirection().getStep()
@@ -263,14 +257,11 @@ public class AdvancedGearboxBlockEntity extends SplitShaftBlockEntity implements
      *
      * @param baseSpeed    基础速度（来自动力网络）
      * @param direction    要计算的方向
-     * @param sourceFacing 动力源方向（可为 null）
+     * @param sourceFacing 动力源方向
      * @return 该方向的旋转速度（负数表示反向旋转）
      */
     public float getSpeedForDirection(float baseSpeed, Direction direction, Direction sourceFacing) {
-        if (baseSpeed != 0 && sourceFacing != null) {
-            return baseSpeed * getRotationSpeedModifier(direction, sourceFacing);
-        }
-        return baseSpeed;
+        return baseSpeed != 0 ? baseSpeed * getRotationSpeedModifier(direction, sourceFacing) : 0;
     }
 
     @Override

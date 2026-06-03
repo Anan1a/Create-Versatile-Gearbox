@@ -78,7 +78,7 @@ public class AdvancedGearboxRenderer extends KineticBlockEntityRenderer<Advanced
         for (Direction direction : Iterate.directions) {
             // 跳过无轴状态组的半轴（不渲染）
             // 使用枚举的统一方法判断，便于扩展新状态（如 PARTIAL、LOCKED 等）
-            if (!be.getShaftState(direction).shouldRenderShaft())
+            if (!be.getShaftState(direction).hasShaft())
                 continue;
             // 渲染该方向的半轴
             renderShaftHalf(be, pos, sourceFacing, baseSpeed, direction, ms, buffer, light);

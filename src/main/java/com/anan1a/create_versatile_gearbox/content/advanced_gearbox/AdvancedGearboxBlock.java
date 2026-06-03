@@ -174,7 +174,7 @@ public class AdvancedGearboxBlock extends KineticBlock implements IBE<AdvancedGe
     @Override
     public boolean hasShaftTowards(LevelReader world, BlockPos pos, BlockState state, Direction face) {
         if (world.getBlockEntity(pos) instanceof AdvancedGearboxBlockEntity be) {
-            return be.getShaftState(face).shouldRenderShaft();
+            return be.getShaftState(face).hasShaft();
         }
         return false;
     }

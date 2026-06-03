@@ -14,12 +14,13 @@ public enum AdvancedGearboxShaftState implements StringRepresentable {
     OFF(false, true, 0);   // 关闭（不输出动力），有纹理连接，倍率 0
 
     /**
-     * 该状态是否渲染传动轴。
+     * 该面是否有传动轴。
      * <p>
-     * 统一管理渲染逻辑，便于扩展新状态（如 PARTIAL、LOCKED 等）。
-     * Renderer 和 Visual 都应使用此方法判断。
+     * 有轴 = 渲染半轴模型 + 可进行动力传输。
+     * 无轴（OFF）= 不渲染、不传动力（`hasShaftTowards` 返回 false）。
+     * Renderer、Visual、动力网络判断都应使用此方法。
      */
-    private final boolean shouldRenderShaft;
+    private final boolean hasShaft;
 
     /**
      * 该状态是否显示纹理连接效果。
@@ -36,8 +37,8 @@ public enum AdvancedGearboxShaftState implements StringRepresentable {
      */
     private final int modifier;
 
-    AdvancedGearboxShaftState(boolean shouldRenderShaft, boolean hasTextureConnection, int modifier) {
-        this.shouldRenderShaft = shouldRenderShaft;
+    AdvancedGearboxShaftState(boolean hasShaft, boolean hasTextureConnection, int modifier) {
+        this.hasShaft = hasShaft;
         this.hasTextureConnection = hasTextureConnection;
         this.modifier = modifier;
     }
@@ -71,12 +72,12 @@ public enum AdvancedGearboxShaftState implements StringRepresentable {
     }
 
     /**
-     * 判断该状态是否应该渲染传动轴。
+     * 判断该面是否有传动轴。
      *
-     * @return true 表示渲染传动轴，false 表示不渲染
+     * @return true 表示有轴（渲染 + 可传动力），false 表示无轴
      */
-    public boolean shouldRenderShaft() {
-        return shouldRenderShaft;
+    public boolean hasShaft() {
+        return hasShaft;
     }
 
     /**

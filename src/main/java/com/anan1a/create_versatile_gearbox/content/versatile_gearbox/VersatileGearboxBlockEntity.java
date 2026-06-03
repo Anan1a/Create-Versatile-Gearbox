@@ -32,16 +32,11 @@ public class VersatileGearboxBlockEntity extends SplitShaftBlockEntity {
      */
     @Override
     public float getRotationSpeedModifier(Direction face) {
+        // 获取方块状态
         BlockState state = getBlockState();
-
-        // 1. 输出面无传动轴 → 断开
-        if (!VersatileGearboxBlock.getShaftState(face, state).shouldRenderShaft()) return 0;
-
-        // 2. 无动力源或动力源面无传动轴 → 断开（getSourceFacing() 无源时返回 null）
+        // 获取动力源面
         Direction source = getSourceFacing();
-        if (source == null || !VersatileGearboxBlock.getShaftState(source, state).shouldRenderShaft()) return 0;
-
-        // 3. 计算旋转方向
+        // 计算旋转方向
         return getRotationSpeedModifier(face, source, state);
     }
 
@@ -65,14 +60,13 @@ public class VersatileGearboxBlockEntity extends SplitShaftBlockEntity {
     public static float getRotationSpeedModifier(Direction face, Direction source, BlockState state) {
         // 获取动力源面状态
         VersatileGearboxShaftState sourceState = VersatileGearboxBlock.getShaftState(source, state);
-
-        // 如果动力源面关闭（非传动轴状态），所有输出都停止
-        if (!sourceState.shouldRenderShaft()) return 0;
+        // 如果动力源面关闭（非传动轴状态），返回 0（不输入动力）
+        if (!sourceState.hasShaft()) return 0;
 
         // 获取输出面状态
         VersatileGearboxShaftState faceState = VersatileGearboxBlock.getShaftState(face, state);
         // 如果输出面关闭（非传动轴状态），返回 0（不输出动力）
-        if (!faceState.shouldRenderShaft()) return 0;
+        if (!faceState.hasShaft()) return 0;
 
         // 轴方向修正：AxisDirection.getStep() 返回 POSITIVE=1, NEGATIVE=-1
         return face.getAxisDirection().getStep() * source.getAxisDirection().getStep()
@@ -94,10 +88,7 @@ public class VersatileGearboxBlockEntity extends SplitShaftBlockEntity {
      * @return 该方向的旋转速度（负数表示反向旋转）
      */
     public float getSpeedForDirection(float baseSpeed, Direction direction, Direction sourceFacing) {
-        if (baseSpeed != 0 && sourceFacing != null) {
-            return baseSpeed * getRotationSpeedModifier(direction, sourceFacing, getBlockState());
-        }
-        return baseSpeed;
+        return baseSpeed != 0 ? baseSpeed * getRotationSpeedModifier(direction, sourceFacing, getBlockState()) : 0;
     }
 
     @Override

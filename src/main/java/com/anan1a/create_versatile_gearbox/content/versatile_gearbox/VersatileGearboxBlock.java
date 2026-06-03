@@ -163,7 +163,7 @@ public class VersatileGearboxBlock extends KineticBlock implements IBE<Versatile
      */
     @Override
     public boolean hasShaftTowards(LevelReader world, BlockPos pos, BlockState state, Direction face) {
-        return getShaftState(face, state).shouldRenderShaft();
+        return getShaftState(face, state).hasShaft();
     }
 
     /**
