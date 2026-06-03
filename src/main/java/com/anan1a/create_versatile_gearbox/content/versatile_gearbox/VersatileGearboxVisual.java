@@ -81,7 +81,8 @@ public class VersatileGearboxVisual extends KineticBlockEntityVisual<VersatileGe
         // 遍历六个方向（DOWN, UP, NORTH, SOUTH, WEST, EAST）
         for (Direction direction : Iterate.directions) {
             // 跳过 OFF 面：不创建实例，此时显示机壳纹理
-            if (VersatileGearboxBlock.getShaftState(direction, blockState) == VersatileGearboxShaftState.OFF)
+            // 使用枚举的统一方法判断，便于扩展新状态
+            if (!VersatileGearboxBlock.getShaftState(direction, blockEntity.getBlockState()).shouldRenderShaft())
                 continue;
 
             // 创建旋转实例并配置
@@ -99,27 +100,13 @@ public class VersatileGearboxVisual extends KineticBlockEntityVisual<VersatileGe
     /**
      * 计算指定方向的旋转速度。
      * <p>
-     * 基础速度来自动力网络，如果有动力源则乘以该方向的旋转倍率
-     * （由 {@link VersatileGearboxBlockEntity#getRotationSpeedModifier} 计算，
-     *  考虑同向/反向/关闭三种状态的传动比）。
-     * <p>
-     * OFF 面的倍率为 0，因此速度为 0，Flywheel 不会渲染无效旋转。
+     * 使用 BE 的统一方法，与 Renderer 保持一致。
      *
      * @param direction 要计算的方向
      * @return 该方向的旋转速度（负数表示反向旋转）
      */
     private float getSpeed(Direction direction) {
-        // 获取动力网络的基础速度（来自主轴）
-        float speed = blockEntity.getSpeed();
-        
-        // 仅当有速度且有动力源时，应用方向倍率
-        // getRotationSpeedModifier 计算该方向相对于动力源的传动比
-        if (speed != 0 && sourceFacing != null) {
-            speed *= VersatileGearboxBlockEntity.getRotationSpeedModifier(direction, sourceFacing, blockState);
-        }
-        
-        // 返回最终速度，负数表示反向旋转
-        return speed;
+        return blockEntity.getSpeedForDirection(blockEntity.getSpeed(), direction, sourceFacing);
     }
 
     /**

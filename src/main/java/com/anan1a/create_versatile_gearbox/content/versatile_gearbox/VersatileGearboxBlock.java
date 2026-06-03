@@ -62,6 +62,9 @@ public class VersatileGearboxBlock extends KineticBlock implements IBE<Versatile
     public static final EnumProperty<VersatileGearboxShaftState> WEST_STATE = STATE_PROPERTIES[4];
     public static final EnumProperty<VersatileGearboxShaftState> EAST_STATE = STATE_PROPERTIES[5];
 
+    /** 默认面状态：所有面初始化为 FWD（有轴、正向） */
+    public static final VersatileGearboxShaftState DEFAULT_SHAFT_STATE = VersatileGearboxShaftState.FWD;
+
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         // KineticBlock 没有方向属性，只需添加六个面的状态
@@ -75,14 +78,14 @@ public class VersatileGearboxBlock extends KineticBlock implements IBE<Versatile
      */
     public VersatileGearboxBlock(Properties properties) {
         super(properties);
-        // 初始化默认状态：所有面同向旋转
+        // 初始化默认状态：所有面初始化为 DEFAULT_SHAFT_STATE
         this.registerDefaultState(this.defaultBlockState()
-                .setValue(DOWN_STATE, VersatileGearboxShaftState.FWD)
-                .setValue(UP_STATE, VersatileGearboxShaftState.FWD)
-                .setValue(NORTH_STATE, VersatileGearboxShaftState.FWD)
-                .setValue(SOUTH_STATE, VersatileGearboxShaftState.FWD)
-                .setValue(WEST_STATE, VersatileGearboxShaftState.FWD)
-                .setValue(EAST_STATE, VersatileGearboxShaftState.FWD)
+                .setValue(DOWN_STATE, DEFAULT_SHAFT_STATE)
+                .setValue(UP_STATE, DEFAULT_SHAFT_STATE)
+                .setValue(NORTH_STATE, DEFAULT_SHAFT_STATE)
+                .setValue(SOUTH_STATE, DEFAULT_SHAFT_STATE)
+                .setValue(WEST_STATE, DEFAULT_SHAFT_STATE)
+                .setValue(EAST_STATE, DEFAULT_SHAFT_STATE)
         );
     }
 
@@ -156,11 +159,11 @@ public class VersatileGearboxBlock extends KineticBlock implements IBE<Versatile
     /**
      * 判断指定面是否有传动轴接口（六面轴版本）
      * <p>
-     * 只有当该面状态不为 OFF 时才返回 true。
+     * 只有当该面状态有传动轴（FWD/REV）时才返回 true。
      */
     @Override
     public boolean hasShaftTowards(LevelReader world, BlockPos pos, BlockState state, Direction face) {
-        return getShaftState(face, state) != VersatileGearboxShaftState.OFF;
+        return getShaftState(face, state).shouldRenderShaft();
     }
 
     /**

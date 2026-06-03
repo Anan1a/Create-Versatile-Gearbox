@@ -14,7 +14,6 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Direction.Axis;
-import net.minecraft.world.level.block.state.BlockState;
 
 /**
  * 万能变速箱渲染器（六面轴版本）
@@ -58,7 +57,6 @@ public class VersatileGearboxRenderer extends KineticBlockEntityRenderer<Versati
         if (VisualizationManager.supportsVisualization(be.getLevel()))
             return;
 
-        BlockState state = be.getBlockState();
         BlockPos pos = be.getBlockPos();
         float baseSpeed = be.getSpeed();
 
@@ -69,25 +67,10 @@ public class VersatileGearboxRenderer extends KineticBlockEntityRenderer<Versati
         }
 
         for (Direction direction : Iterate.directions) {
-            if (!shouldRenderShaftHalf(state, direction))
+            if (!VersatileGearboxBlock.getShaftState(direction, be.getBlockState()).shouldRenderShaft())
                 continue;
-            renderShaftHalf(be, state, pos, sourceFacing, baseSpeed, direction, ms, buffer, light);
+            renderShaftHalf(be, pos, sourceFacing, baseSpeed, direction, ms, buffer, light);
         }
-    }
-
-    /**
-     * 检查是否应该渲染指定方向的半轴
-     * <p>
-     * 【三状态版本】OFF 状态不渲染半轴，FWD/REV 状态渲染半轴。
-     * <p>
-     * 【性能优化】直接接受 BlockState 参数，避免重复调用 getBlockState()
-     *
-     * @param state     方块状态
-     * @param direction 要检查的方向
-     * @return true 表示渲染该半轴
-     */
-    protected boolean shouldRenderShaftHalf(BlockState state, Direction direction) {
-        return VersatileGearboxBlock.getShaftState(direction, state) != VersatileGearboxShaftState.OFF;
     }
 
     /**
@@ -99,7 +82,6 @@ public class VersatileGearboxRenderer extends KineticBlockEntityRenderer<Versati
      * 【性能优化】参数预计算传递，避免每帧重复计算
      *
      * @param be          方块实体
-     * @param state       方块状态
      * @param pos         方块位置
      * @param sourceFacing 动力源方向
      * @param baseSpeed   基础速度
@@ -108,21 +90,18 @@ public class VersatileGearboxRenderer extends KineticBlockEntityRenderer<Versati
      * @param buffer      渲染缓冲区
      * @param light       光照值
      */
-    protected void renderShaftHalf(VersatileGearboxBlockEntity be, BlockState state, BlockPos pos,
+    protected void renderShaftHalf(VersatileGearboxBlockEntity be, BlockPos pos,
                                    Direction sourceFacing, float baseSpeed, Direction direction,
                                    PoseStack ms, MultiBufferSource buffer, int light) {
         final Axis shaftAxis = direction.getAxis();
 
         // 获取缓存的半轴模型（Create API）
         SuperByteBuffer shaftBuffer = CachedBuffers.partialFacing(
-                AllPartialModels.SHAFT_HALF, state, direction);
+                AllPartialModels.SHAFT_HALF, be.getBlockState(), direction);
 
-        // 计算该方向的实际速度（考虑翻转属性）
-        float speedForDirection = baseSpeed;
-        if (speedForDirection != 0 && sourceFacing != null) {
-            float modifier = VersatileGearboxBlockEntity.getRotationSpeedModifier(direction, sourceFacing, state);
-            speedForDirection *= modifier;
-        }
+        // 计算该方向的实际速度（考虑传动比）
+        // 使用 BE 的统一方法，与 Visual 保持一致
+        float speedForDirection = be.getSpeedForDirection(baseSpeed, direction, sourceFacing);
 
         // 使用修正后的速度计算旋转角度
         float angle = getAngleForDirection(be, pos, shaftAxis, speedForDirection);
