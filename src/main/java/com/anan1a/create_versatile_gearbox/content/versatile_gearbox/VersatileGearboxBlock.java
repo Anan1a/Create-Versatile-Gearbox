@@ -304,10 +304,6 @@ public class VersatileGearboxBlock extends KineticBlock implements IBE<Versatile
      */
     protected InteractionResult onWrenchRightClick(BlockState state, UseOnContext context) {
         Level level = context.getLevel();
-        // 仅服务端处理：避免客户端和服务端重复执行
-        if (level.isClientSide) {
-            return InteractionResult.SUCCESS;
-        }
 
         // 提取交互上下文信息
         BlockPos pos = context.getClickedPos();

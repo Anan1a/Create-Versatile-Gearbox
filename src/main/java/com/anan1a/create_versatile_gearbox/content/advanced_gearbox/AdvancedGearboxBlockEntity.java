@@ -49,7 +49,7 @@ public class AdvancedGearboxBlockEntity extends SplitShaftBlockEntity implements
      * BlockState 中也保留了一份相同的数据（由 {@link AdvancedGearboxBlock} 维护），
      * 主要用于 {@code hasShaftTowards()}（动力网络查询）和蓝图 rotate/mirror。
      */
-    private final FaceStateContainer<AdvancedGearboxShaftState> faceStates =
+    private final FaceStateContainer<AdvancedGearboxShaftState> faceStatesNbt =
         FaceStateContainer.of(AdvancedGearboxShaftState.FWD);
 
     public AdvancedGearboxBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
@@ -61,7 +61,7 @@ public class AdvancedGearboxBlockEntity extends SplitShaftBlockEntity implements
      * 返回值是 clone，修改不影响内部状态。
      */
     public AdvancedGearboxShaftState[] getFaceStatesArray() {
-        return faceStates.toArray();
+        return faceStatesNbt.toArray();
     }
 
     /**
@@ -73,7 +73,7 @@ public class AdvancedGearboxBlockEntity extends SplitShaftBlockEntity implements
      * @return 该面的传动轴状态
      */
     public AdvancedGearboxShaftState getShaftState(Direction face) {
-        return faceStates.get(face);
+        return faceStatesNbt.get(face);
     }
 
     /**
@@ -90,7 +90,7 @@ public class AdvancedGearboxBlockEntity extends SplitShaftBlockEntity implements
      * @param value 新的状态值
      */
     public void setShaftState(Direction face, AdvancedGearboxShaftState value) {
-        faceStates.set(face, value);
+        faceStatesNbt.set(face, value);
         setChanged();
         requestModelDataUpdate();
     }
@@ -107,7 +107,7 @@ public class AdvancedGearboxBlockEntity extends SplitShaftBlockEntity implements
      * @param face 要切换的面方向
      */
     public void cycleShaftState(Direction face) {
-        AdvancedGearboxShaftState current = faceStates.get(face);
+        AdvancedGearboxShaftState current = faceStatesNbt.get(face);
         setShaftState(face, current.next());
     }
 
@@ -129,7 +129,7 @@ public class AdvancedGearboxBlockEntity extends SplitShaftBlockEntity implements
     @Override
     protected void write(CompoundTag tag, HolderLookup.Provider registries, boolean clientPacket) {
         super.write(tag, registries, clientPacket);
-        tag.put("face_states", faceStates.toNbt());
+        tag.put("face_states", faceStatesNbt.toNbt());
     }
 
     /**
@@ -139,7 +139,7 @@ public class AdvancedGearboxBlockEntity extends SplitShaftBlockEntity implements
      * 在 {@code load()}（final）内部被调用。覆写此方法以恢复自定义 NBT 数据。
      * <p>
      * <b>缺失键处理</b>：新放置的方块没有 {@code "face_states"} 键，
-     * 此时保持 {@link #faceStates} 初始默认值（全 FWD），不报错。
+     * 此时保持 {@link #faceStatesNbt} 初始默认值（全 FWD），不报错。
      *
      * @param tag          数据源 NBT（来自磁盘或客户端数据包）
      * @param registries   注册表查找器（用于反序列化注册表引用）
@@ -149,7 +149,7 @@ public class AdvancedGearboxBlockEntity extends SplitShaftBlockEntity implements
     protected void read(CompoundTag tag, HolderLookup.Provider registries, boolean clientPacket) {
         super.read(tag, registries, clientPacket);
         if (tag.contains("face_states")) {
-            faceStates.fromNbt(tag.getCompound("face_states"));
+            faceStatesNbt.fromNbt(tag.getCompound("face_states"));
         }
         if (clientPacket) {
             requestModelDataUpdate();
@@ -174,16 +174,14 @@ public class AdvancedGearboxBlockEntity extends SplitShaftBlockEntity implements
      */
     @Override
     public float getRotationSpeedModifier(Direction face) {
-        // 1. 检查输出面状态
-        if (faceStates.get(face) == AdvancedGearboxShaftState.OFF) return 0;
-        // 2. 检查是否有动力源
-        if (!hasSource()) return 0;
+        // 1. 输出面无传动轴 → 断开
+        if (!faceStatesNbt.get(face).shouldRenderShaft()) return 0;
 
-        // 3. 检查输入面状态
+        // 2. 无动力源或动力源面无传动轴 → 断开（getSourceFacing() 无源时返回 null）
         Direction source = getSourceFacing();
-        if (faceStates.get(source) == AdvancedGearboxShaftState.OFF) return 0;
+        if (source == null || !faceStatesNbt.get(source).shouldRenderShaft()) return 0;
 
-        // 4. 计算旋转方向
+        // 3. 计算旋转方向
         return getRotationSpeedModifier(face, source);
     }
 
@@ -208,33 +206,19 @@ public class AdvancedGearboxBlockEntity extends SplitShaftBlockEntity implements
      */
     public float getRotationSpeedModifier(Direction face, Direction source) {
         // 获取动力源面状态
-        AdvancedGearboxShaftState sourceState = faceStates.get(source);
+        AdvancedGearboxShaftState sourceState = faceStatesNbt.get(source);
 
-        // 如果动力源面关闭，所有输出都停止
-        if (sourceState == AdvancedGearboxShaftState.OFF) return 0;
+        // 如果动力源面关闭（非传动轴状态），所有输出都停止
+        if (!sourceState.shouldRenderShaft()) return 0;
 
         // 获取输出面状态
-        AdvancedGearboxShaftState faceState = faceStates.get(face);
-        // 如果输出面关闭，返回 0（不输出动力）
-        if (faceState == AdvancedGearboxShaftState.OFF) return 0;
+        AdvancedGearboxShaftState faceState = faceStatesNbt.get(face);
+        // 如果输出面关闭（非传动轴状态），返回 0（不输出动力）
+        if (!faceState.shouldRenderShaft()) return 0;
 
         // 轴方向修正
         int axisAdjust = face.getAxisDirection() == source.getAxisDirection() ? 1 : -1;
-        return axisAdjust * getStateModifier(faceState) * getStateModifier(sourceState);
-    }
-
-    /**
-     * 将面状态枚举转换为数值倍率。
-     *
-     * @param state 面状态
-     * @return FWD=1, REV=-1, OFF=0
-     */
-    private static int getStateModifier(AdvancedGearboxShaftState state) {
-        return switch (state) {
-            case FWD -> 1;
-            case REV -> -1;
-            case OFF -> 0;
-        };
+        return axisAdjust * faceState.getModifier() * sourceState.getModifier();
     }
 
     /**
@@ -292,24 +276,37 @@ public class AdvancedGearboxBlockEntity extends SplitShaftBlockEntity implements
      */
     @Override
     public void transform(BlockEntity blockEntity, StructureTransform transform) {
-        AdvancedGearboxShaftState[] oldStates = faceStates.toArray();
+        // 快照旧状态：先复制所有面的状态，后续循环会覆写 faceStatesNbt，
+        // 但读取旧值时必须用这份快照，避免刚写入的面影响后续面的映射。
+        AdvancedGearboxShaftState[] oldStates = faceStatesNbt.toArray();
 
         for (Direction newFace : Direction.values()) {
+            // 逆向映射：从新位置反推出变换前的旧方向，再用旧方向从快照中取值。
+            // 例如顺时针旋转 90° 后，新 NORTH 位置上的状态来自旧 WEST 面。
             Direction oldFace = newFace;
 
-            // Step 1: 应用旋转（反向旋转 = 与正向相同的旋转方向）
+            // Step 1: 应用旋转
+            // 使用逆时针（getCounterClockWise）实现正向旋转映射：
+            //   CLOCKWISE_90 (ordinal=1) → 1 次逆时针 → 等效顺时针 90°
+            //   CLOCKWISE_180 (ordinal=2) → 2 次逆时针 → 180°
+            //   COUNTERCLOCKWISE_90 (ordinal=3) → 3 次逆时针 → 等效逆时针 90°
+            // 仅处理水平方向（绕 Y 轴旋转），UP/DOWN 不受水平旋转影响。
             if (transform.rotation != null && transform.rotationAxis == Direction.Axis.Y) {
                 for (int i = 0; i < transform.rotation.ordinal(); i++) {
                     oldFace = oldFace.getCounterClockWise(transform.rotationAxis);
                 }
             }
 
-            // Step 2: 应用镜像（反向镜像 = 正向镜像，同一个 API）
+            // Step 2: 应用镜像
+            //   LEFT_RIGHT → NORTH ↔ SOUTH 交换
+            //   FRONT_BACK → WEST ↔ EAST 交换
+            // 镜像对 UP/DOWN 无影响（mirror() 内部保证返回自身）。
             if (transform.mirror != null) {
                 oldFace = transform.mirror.mirror(oldFace);
             }
 
-            faceStates.set(newFace, oldStates[oldFace.get3DDataValue()]);
+            // 将旧方向的状态赋给新位置
+            faceStatesNbt.set(newFace, oldStates[oldFace.get3DDataValue()]);
         }
     }
 }

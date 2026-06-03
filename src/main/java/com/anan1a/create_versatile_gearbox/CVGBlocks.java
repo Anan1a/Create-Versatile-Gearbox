@@ -209,7 +209,7 @@ public class CVGBlocks {
 			// ========== 外壳连接性规则 ==========
 			.onRegister(CreateRegistrate.casingConnectivity((block, cc) -> {
 				cc.make(block, AllSpriteShifts.ANDESITE_CASING,
-						(s, f) -> AdvancedGearboxBlock.getShaftState(f, s) == AdvancedGearboxShaftState.OFF);
+						(s, f) -> AdvancedGearboxBlock.getConnectionState(f, s));
 			}))
 
 			// ========== Blockstate 生成 ==========
