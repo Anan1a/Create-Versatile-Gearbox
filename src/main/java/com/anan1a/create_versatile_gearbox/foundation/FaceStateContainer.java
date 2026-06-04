@@ -38,8 +38,8 @@ import net.minecraft.util.StringRepresentable;
  * states.set(face, ShaftState.FWD);
  *
  * // NBT 序列化
- * tag.put("FaceStateData", states.toNbt());
- * states.fromNbt(tag.getCompound("FaceStateData"));
+ * nbt.put("FaceStateData", states.toNbt());
+ * states.fromNbt(nbt.getCompound("FaceStateData"));
  *
  * // 导出到 ModelData（渲染管线）
  * return ModelData.builder()
@@ -210,21 +210,21 @@ public final class FaceStateContainer<T extends Enum<T> & StringRepresentable> {
      * 静态工厂版，适合直接从 NBT 一步创建：
      * <pre>{@code
      * FaceStateContainer<AdvancedGearboxShaftState> states =
-     *     FaceStateContainer.fromNbt(tag.getCompound("FaceStateData"), AdvancedGearboxShaftState.OFF);
+     *     FaceStateContainer.fromNbt(nbt.getCompound("FaceStateData"), AdvancedGearboxShaftState.OFF);
      * }</pre>
      * <p>
      * 内部先创建全默认容器，再调用 {@link #fromNbt(CompoundTag)} 覆写已有的值，
      * NBT 中缺失的键保持 defaultValue。
      *
-     * @param tag          NBT 数据（六个方向名键）
+     * @param nbt          NBT 数据（六个方向名键）
      * @param defaultValue 默认值（缺失键时使用）
      * @param <T>          面状态枚举类型
      * @return 反序列化后的容器
      */
     @SuppressWarnings("unchecked")
-    public static <T extends Enum<T> & StringRepresentable> FaceStateContainer<T> fromNbt(CompoundTag tag, T defaultValue) {
+    public static <T extends Enum<T> & StringRepresentable> FaceStateContainer<T> fromNbt(CompoundTag nbt, T defaultValue) {
         FaceStateContainer<T> container = new FaceStateContainer<>(defaultValue);
-        container.fromNbt(tag);
+        container.fromNbt(nbt);
         return container;
     }
 
@@ -351,14 +351,14 @@ public final class FaceStateContainer<T extends Enum<T> & StringRepresentable> {
      * @return 包含 6 个面状态的 CompoundTag
      */
     public CompoundTag toNbt() {
-        CompoundTag tag = new CompoundTag();
+        CompoundTag nbt = new CompoundTag();
         for (int i = 0; i < 6; i++) {
             CompoundTag faceTag = new CompoundTag();
             faceTag.putString(FACE_STATE_KEY,
                 states[i] != null ? states[i].getSerializedName() : defaultValue.getSerializedName());
-            tag.put(DIRECTION_KEYS[i], faceTag);
+            nbt.put(DIRECTION_KEYS[i], faceTag);
         }
-        return tag;
+        return nbt;
     }
 
     /**
@@ -374,14 +374,14 @@ public final class FaceStateContainer<T extends Enum<T> & StringRepresentable> {
      * 此方法覆写的是容器已有的值。如果只想读取而不修改已有容器，请使用
      * 静态工厂 {@link #fromNbt(CompoundTag, Object)} 创建新容器。
      *
-     * @param tag 包含面状态的 NBT
+     * @param nbt 包含面状态的 NBT
      */
-    public void fromNbt(CompoundTag tag) {
+    public void fromNbt(CompoundTag nbt) {
         for (int i = 0; i < 6; i++) {
             String key = DIRECTION_KEYS[i];
-            if (tag.contains(key)) {
+            if (nbt.contains(key)) {
                 // 每个方向键对应一个独立复合标签：{ "DOWN": { "FaceState": "fwd" } }
-                CompoundTag faceTag = tag.getCompound(key);
+                CompoundTag faceTag = nbt.getCompound(key);
                 states[i] = enumValueOf(faceTag.getString(FACE_STATE_KEY));
             } else {
                 // NBT 中没有此方向的数据（可能是新初始化的 BlockEntity）
