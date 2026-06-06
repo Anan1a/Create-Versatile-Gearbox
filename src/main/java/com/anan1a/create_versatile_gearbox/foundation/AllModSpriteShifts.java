@@ -1,12 +1,12 @@
 package com.anan1a.create_versatile_gearbox.foundation;
 
-import static com.anan1a.create_versatile_gearbox.CreateVersatileGearbox.MODID;
+// import static com.anan1a.create_versatile_gearbox.CreateVersatileGearbox.MODID;
 
-import com.simibubi.create.foundation.block.connected.AllCTTypes;
-import com.simibubi.create.foundation.block.connected.CTSpriteShiftEntry;
-import com.simibubi.create.foundation.block.connected.CTSpriteShifter;
+// import com.simibubi.create.foundation.block.connected.AllCTTypes;
+// import com.simibubi.create.foundation.block.connected.CTSpriteShiftEntry;
+// import com.simibubi.create.foundation.block.connected.CTSpriteShifter;
 
-import net.minecraft.resources.ResourceLocation;
+// import net.minecraft.resources.ResourceLocation;
 
 /**
  * 自定义连接纹理配置

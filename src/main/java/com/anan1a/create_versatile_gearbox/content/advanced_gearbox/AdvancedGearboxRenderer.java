@@ -62,17 +62,6 @@ public class AdvancedGearboxRenderer extends KineticBlockEntityRenderer<Advanced
 
         // 获取方块位置和基础速度
         BlockPos pos = be.getBlockPos();
-        float baseSpeed = be.getSpeed();
-
-        // 计算动力源方向（用于确定各面旋转方向）
-        // 从 BE 的 source 字段（动力源位置）推算动力输入方向
-        Direction sourceFacing = null;
-        if (baseSpeed != 0 && be.hasSource() && be.source != null) {
-            // 计算动力源与自身位置的偏移向量
-            BlockPos sourceOffset = be.source.subtract(pos);
-            // 从偏移向量获取最接近的方向（即动力源所在的面）
-            sourceFacing = Direction.getNearest(sourceOffset.getX(), sourceOffset.getY(), sourceOffset.getZ());
-        }
 
         // 遍历六个方向，渲染所有无轴状态组的半轴
         for (Direction direction : Iterate.directions) {
@@ -81,7 +70,7 @@ public class AdvancedGearboxRenderer extends KineticBlockEntityRenderer<Advanced
             if (!be.getShaftState(direction).hasShaft())
                 continue;
             // 渲染该方向的半轴
-            renderShaftHalf(be, pos, sourceFacing, baseSpeed, direction, ms, buffer, light);
+            renderShaftHalf(be, pos, direction, ms, buffer, light);
         }
     }
 
@@ -95,15 +84,12 @@ public class AdvancedGearboxRenderer extends KineticBlockEntityRenderer<Advanced
      *
      * @param be          方块实体
      * @param pos         方块位置
-     * @param sourceFacing 动力源方向
-     * @param baseSpeed   基础速度
      * @param direction   半轴方向
      * @param ms          姿态栈
      * @param buffer      渲染缓冲区
      * @param light       光照值
      */
-    protected void renderShaftHalf(AdvancedGearboxBlockEntity be, BlockPos pos,
-                                   Direction sourceFacing, float baseSpeed, Direction direction,
+    protected void renderShaftHalf(AdvancedGearboxBlockEntity be, BlockPos pos, Direction direction,
                                    PoseStack ms, MultiBufferSource buffer, int light) {
         final Axis shaftAxis = direction.getAxis();
 
@@ -115,7 +101,7 @@ public class AdvancedGearboxRenderer extends KineticBlockEntityRenderer<Advanced
 
         // 计算该方向的实际速度（考虑传动比）
         // 使用 BE 的统一方法，与 Visual 保持一致
-        float speedForDirection = be.getSpeedForDirection(baseSpeed, direction, sourceFacing);
+        float speedForDirection = be.getSpeedForDirection(direction);
 
         // 使用修正后的速度计算旋转角度
         // 负速度会产生负角度，实现反向旋转

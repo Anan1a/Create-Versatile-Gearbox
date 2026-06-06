@@ -58,18 +58,11 @@ public class VersatileGearboxRenderer extends KineticBlockEntityRenderer<Versati
             return;
 
         BlockPos pos = be.getBlockPos();
-        float baseSpeed = be.getSpeed();
-
-        Direction sourceFacing = null;
-        if (baseSpeed != 0 && be.hasSource() && be.source != null) {
-            BlockPos sourceOffset = be.source.subtract(pos);
-            sourceFacing = Direction.getNearest(sourceOffset.getX(), sourceOffset.getY(), sourceOffset.getZ());
-        }
 
         for (Direction direction : Iterate.directions) {
             if (!VersatileGearboxBlock.getShaftState(direction, be.getBlockState()).hasShaft())
                 continue;
-            renderShaftHalf(be, pos, sourceFacing, baseSpeed, direction, ms, buffer, light);
+            renderShaftHalf(be, pos, direction, ms, buffer, light);
         }
     }
 
@@ -83,15 +76,12 @@ public class VersatileGearboxRenderer extends KineticBlockEntityRenderer<Versati
      *
      * @param be          方块实体
      * @param pos         方块位置
-     * @param sourceFacing 动力源方向
-     * @param baseSpeed   基础速度
      * @param direction   半轴方向
      * @param ms          姿态栈
      * @param buffer      渲染缓冲区
      * @param light       光照值
      */
-    protected void renderShaftHalf(VersatileGearboxBlockEntity be, BlockPos pos,
-                                   Direction sourceFacing, float baseSpeed, Direction direction,
+    protected void renderShaftHalf(VersatileGearboxBlockEntity be, BlockPos pos, Direction direction,
                                    PoseStack ms, MultiBufferSource buffer, int light) {
         final Axis shaftAxis = direction.getAxis();
 
@@ -101,7 +91,7 @@ public class VersatileGearboxRenderer extends KineticBlockEntityRenderer<Versati
 
         // 计算该方向的实际速度（考虑传动比）
         // 使用 BE 的统一方法，与 Visual 保持一致
-        float speedForDirection = be.getSpeedForDirection(baseSpeed, direction, sourceFacing);
+        float speedForDirection = be.getSpeedForDirection(direction);
 
         // 使用修正后的速度计算旋转角度
         float angle = getAngleForDirection(be, pos, shaftAxis, speedForDirection);

@@ -58,14 +58,6 @@ public class AdvancedGearboxBlockEntity extends SplitShaftBlockEntity implements
     }
 
     /**
-     * 供同包 Model 直接读取面状态数组（绕过 ModelData 机制）。
-     * 返回值是 clone，修改不影响内部状态。
-     */
-    public AdvancedGearboxShaftState[] getFaceStatesArray() {
-        return faceStatesNbt.toArray();
-    }
-
-    /**
      * 获取指定面的传动轴状态。
      * <p>
      * 直接委托给 {@link FaceStateContainer#get(Direction)}，O(1) 数组索引。
@@ -124,7 +116,6 @@ public class AdvancedGearboxBlockEntity extends SplitShaftBlockEntity implements
      *   <li><b>BE 级钩子</b>（{@code BlockEntity.getModelData}）—
      *       由 NeoForge 在 {@code renderSingleBlock} 等路径中调用，覆盖单方块物理化渲染。</li>
      * </ul>
-     * 两个钩子写入相同数据，在 {@link AdvancedGearboxModel#resolveState} 统一读取。
      *
      * @return 包含面状态数组的 ModelData
      */
@@ -183,90 +174,40 @@ public class AdvancedGearboxBlockEntity extends SplitShaftBlockEntity implements
     // ===== 动力传输逻辑 =====
 
     /**
-     * 计算指定输出面的旋转速度倍率（覆盖模式）。
+     * 计算指定面的旋转速度倍率（单参数版，供 Create 动力网络调用）。
      * <p>
-     * 【判断流程】
-     * <ol>
-     *   <li>输出面为 OFF → 返回 0（不输出动力）</li>
-     *   <li>无动力源 → 返回 0（无动力可传）</li>
-     *   <li>动力源面为 OFF → 返回 0（动力被切断）</li>
-     *   <li>正常 → 委托给 {@link #getRotationSpeedModifier(Direction, Direction)}</li>
-     * </ol>
+     * 仅考虑该面自身的轴向和状态，不与动力源面做联合计算。
+     * 公式：{@code axisStep × modifier}
+     * <ul>
+     *   <li>{@code axisStep} = 该面的轴方向（POSITIVE=1, NEGATIVE=-1）</li>
+     *   <li>{@code modifier} = 该面状态的倍率（FWD=1, REV=-1, OFF=0 ...）</li>
+     * </ul>
      *
-     * @param face 输出面方向
-     * @return 旋转速度倍率（0=关闭，1=同向，-1=反向）
+     * @param face 要计算的面方向
+     * @return 旋转速度倍率（-1=反向, 0=关闭, 1=正向）
      */
     @Override
     public float getRotationSpeedModifier(Direction face) {
-        // 获取动力源面
-        Direction source = getSourceFacing();
-        // 计算旋转方向
-        return getRotationSpeedModifier(face, source);
+        // 计算旋转速度倍率：轴方向 × 状态倍率
+        return face.getAxisDirection().getStep()
+                * getShaftState(face).getModifier();
     }
 
     /**
-     * 根据动力源面计算指定输出面的旋转速度倍率（双参数版）。
+     * 计算指定方向的实际旋转速度（Renderer / Visual 统一入口）。
      * <p>
-     * 三状态计算逻辑：
-     * <pre>
-     * modifier = axisAdjust × faceModifier × sourceModifier
+     * 从动力网络读取基础速度，叠加该面的倍率后返回。
+     * 速度 = 0 时直接返回 0（无动力传入）。
+     * 倍率为 0 时也返回 0（该面关闭）。
      *
-     * axisAdjust: 轴方向对齐时 +1，相反时 -1
-     *   faceModifier: FWD=+1, REV=-1, OFF=0
-     * sourceModifier: FWD=+1, REV=-1, OFF=0
-     * </pre>
-     * <p>
-     * 示例：source=REV(-1), face=FWD(+1), 轴同向(+1)
-     * → modifier = 1 × 1 × (-1) = -1（相对于动力源反转输出）
-     *
-     * @param face   输出面
-     * @param source 动力源面
-     * @return 旋转速度倍率（-1 ~ 1）
+     * @param direction 要计算的方向
+     * @return 该方向的旋转速度（正=正向旋转，负=反向旋转，0=静止）
      */
-    public float getRotationSpeedModifier(Direction face, Direction source) {
-        // 获取动力源面状态
-        AdvancedGearboxShaftState sourceState = getShaftState(source);
-        // 如果动力源面关闭（非传动轴状态），返回 0（不输入动力）
-        if (!sourceState.hasShaft()) return 0;
-
-        // 获取输出面状态
-        AdvancedGearboxShaftState faceState = getShaftState(face);
-        // 如果输出面关闭（非传动轴状态），返回 0（不输出动力）
-        if (!faceState.hasShaft()) return 0;
-
-        // 轴方向修正：AxisDirection.getStep() 返回 POSITIVE=1, NEGATIVE=-1
-        return face.getAxisDirection().getStep() * source.getAxisDirection().getStep()
-                * faceState.getModifier() * sourceState.getModifier();
-    }
-
-    /**
-     * 计算指定方向的实际旋转速度。
-     * <p>
-     * 统一 Renderer 和 Visual 的速度计算逻辑：
-     * <ol>
-     *   <li>使用传入的基础速度（避免重复调用 getSpeed()）</li>
-     *   <li>如果有速度且有动力源，应用方向倍率</li>
-     * </ol>
-     * <p>
-     * 倍率由 {@link #getRotationSpeedModifier(Direction, Direction)} 计算：
-     * <ul>
-     *   <li>FWD 面：正向传动（倍率为 1）</li>
-     *   <li>REV 面：反向传动（倍率为 -1）</li>
-     *   <li>OFF 面：断开（倍率为 0，速度归零）</li>
-     * </ul>
-     *
-     * @param baseSpeed    基础速度（来自动力网络）
-     * @param direction    要计算的方向
-     * @param sourceFacing 动力源方向
-     * @return 该方向的旋转速度（负数表示反向旋转）
-     */
-    public float getSpeedForDirection(float baseSpeed, Direction direction, Direction sourceFacing) {
-        return baseSpeed != 0 ? baseSpeed * getRotationSpeedModifier(direction, sourceFacing) : 0;
-    }
-
-    @Override
-    protected boolean isNoisy() {
-        return true;
+    public float getSpeedForDirection(Direction direction) {
+        float baseSpeed = getSpeed();
+        return baseSpeed != 0
+                ? baseSpeed * getRotationSpeedModifier(direction)
+                : 0;
     }
 
     // ===== 蓝图变换 =====
