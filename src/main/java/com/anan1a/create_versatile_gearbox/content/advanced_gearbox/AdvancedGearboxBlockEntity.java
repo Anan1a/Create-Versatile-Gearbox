@@ -1,6 +1,6 @@
 package com.anan1a.create_versatile_gearbox.content.advanced_gearbox;
 
-import com.anan1a.create_versatile_gearbox.foundation.FaceStateContainer;
+import com.anan1a.create_versatile_gearbox.foundation.EnumFaceContainer;
 import com.simibubi.create.api.contraption.transformable.TransformableBlockEntity;
 import com.simibubi.create.content.contraptions.StructureTransform;
 import com.simibubi.create.content.kinetics.transmission.SplitShaftBlockEntity;
@@ -22,10 +22,10 @@ import net.neoforged.neoforge.client.model.data.ModelData;
  * 支持每个输出面独立翻转（通过扳手切换）。
  * <p>
  * <b>状态存储方案</b><br>
- * 状态通过 {@link FaceStateContainer} 以 NBT 格式存储，替代 BlockState 属性，
+ * 状态通过 {@link EnumFaceContainer} 以 NBT 格式存储，替代 BlockState 属性，
  * 突破枚举属性数量上限，支持后续扩展更多面变种。
  * <p>
- * 数据流：NBT（磁盘/网络）↔ FaceStateContainer（运行时）→ toArray() → ModelData（渲染）
+ * 数据流：NBT（磁盘/网络）↔ EnumFaceContainer（运行时）→ toArray() → ModelData（渲染）
  * <ul>
  *   <li>{@link #write(CompoundTag, HolderLookup.Provider, boolean)} → 持久化到 NBT</li>
  *   <li>{@link #read(CompoundTag, HolderLookup.Provider, boolean)} → 从 NBT 恢复</li>
@@ -50,8 +50,8 @@ public class AdvancedGearboxBlockEntity extends SplitShaftBlockEntity implements
      * BlockState 中也保留了一份相同的数据（由 {@link AdvancedGearboxBlock} 维护），
      * 主要用于 {@code hasShaftTowards()}（动力网络查询）和蓝图 rotate/mirror。
      */
-    private final FaceStateContainer<AdvancedGearboxShaftState> faceStatesNbt =
-        FaceStateContainer.of(AdvancedGearboxBlock.DEFAULT_SHAFT_STATE);
+    private final EnumFaceContainer<AdvancedGearboxShaftState> faceStatesNbt =
+        EnumFaceContainer.of(AdvancedGearboxBlock.DEFAULT_SHAFT_STATE);
 
     public AdvancedGearboxBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
@@ -60,7 +60,7 @@ public class AdvancedGearboxBlockEntity extends SplitShaftBlockEntity implements
     /**
      * 获取指定面的传动轴状态。
      * <p>
-     * 直接委托给 {@link FaceStateContainer#get(Direction)}，O(1) 数组索引。
+     * 直接委托给 {@link EnumFaceContainer#get(Direction)}，O(1) 数组索引。
      *
      * @param face 要查询的面方向
      * @return 该面的传动轴状态
