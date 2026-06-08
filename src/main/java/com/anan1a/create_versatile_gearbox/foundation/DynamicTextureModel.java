@@ -14,8 +14,8 @@ import com.simibubi.create.foundation.model.BakedQuadHelper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.model.BakedQuad;
-import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
@@ -242,16 +242,7 @@ public class DynamicTextureModel<T> {
      * @return 加载的精灵，如果加载失败则返回 null
      */
     private static TextureAtlasSprite getOrCreateCachedSprite(ResourceLocation location) {
-        // 第一步：尝试从全局缓存读取
-        // ConcurrentHashMap.get() 是线程安全的，无需额外同步
-        TextureAtlasSprite cached = GLOBAL_TEXTURE_CACHE.get(location);
-        if (cached != null) {
-            // 缓存命中，直接返回已加载的精灵
-            return cached;
-        }
-
-        // 第二步：缓存未命中，从 TextureAtlas 懒加载
-        // computeIfAbsent 是原子操作，确保多线程不会重复加载
+        // computeIfAbsent 是原子操作，确保多线程不会重复加载相同纹理
         return GLOBAL_TEXTURE_CACHE.computeIfAbsent(location, loc -> {
             // 获取 Minecraft 实例（客户端专用）
             Minecraft mc = Minecraft.getInstance();
@@ -262,9 +253,9 @@ public class DynamicTextureModel<T> {
             }
             try {
                 // 从方块纹理图集（block textures atlas）获取指定纹理
-                // TextureAtlas.LOCATION_BLOCKS 是 Minecraft 的主方块纹理图集
+                // InventoryMenu.BLOCK_ATLAS 是 Minecraft 的主方块纹理图集
                 // apply() 方法会从图集中查找并加载该纹理
-                return mc.getTextureAtlas(TextureAtlas.LOCATION_BLOCKS).apply(loc);
+                return mc.getTextureAtlas(InventoryMenu.BLOCK_ATLAS).apply(loc);
             } catch (Exception e) {
                 // 纹理加载失败（可能资源包缺失或资源位置错误）
                 LOGGER.error("Failed to load texture: {}", loc, e);
