@@ -9,9 +9,11 @@ import net.minecraft.util.StringRepresentable;
  * <b>无轴状态</b>：OFF（不输出动力）
  */
 public enum AdvancedGearboxShaftState implements StringRepresentable {
-    FWD(true, false, 1),   // 同向旋转（与动力源同方向），无纹理连接，倍率 1
-    REV(true, false, -1),  // 反向旋转（与动力源反方向），无纹理连接，倍率 -1
-    OFF(false, true, 0);   // 关闭（不输出动力），有纹理连接，倍率 0
+    FWD(true, false, 1),    // 同向旋转（与动力源同方向），无纹理连接，倍率 1
+    REV(true, false, -1),    // 反向旋转（与动力源反方向），无纹理连接，倍率 -1
+    OFF(false, true, 0),    // 关闭（不输出动力），有纹理连接，倍率 0
+    VAR(true, false, 0),    // 变化（与动力源同方向），无纹理连接，倍率 0
+    CFG(false, false, 0);     // 配置面（无轴、无纹理连接、不参与倍率计算，用作滑条交互面）
 
     /**
      * 该面是否有传动轴。
@@ -67,7 +69,9 @@ public enum AdvancedGearboxShaftState implements StringRepresentable {
         return switch (this) {
             case FWD -> REV;
             case REV -> OFF;
-            case OFF -> FWD;
+            case OFF -> VAR;
+            case VAR -> CFG;
+            case CFG -> FWD;
         };
     }
 

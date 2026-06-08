@@ -76,7 +76,8 @@ public class AdvancedGearboxModel extends BakedModelWrapperWithData {
                     TEXTURE_FWD_CORE,
                     Map.of(
                         AdvancedGearboxShaftState.FWD, TEXTURE_FWD_CORE,
-                        AdvancedGearboxShaftState.REV, TEXTURE_REV_CORE
+                        AdvancedGearboxShaftState.REV, TEXTURE_REV_CORE,
+                        AdvancedGearboxShaftState.VAR, ResourceLocation.fromNamespaceAndPath(MODID, TEXTURE_BASE + "core")
                     )
             ),
             // 齿轮箱外壳纹理映射：OFF→andesite_casing（隐藏轴）
