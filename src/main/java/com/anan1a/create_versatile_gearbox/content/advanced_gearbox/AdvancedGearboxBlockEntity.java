@@ -126,51 +126,6 @@ public class AdvancedGearboxBlockEntity extends SplitShaftBlockEntity implements
                 .build();
     }
 
-    // ===== NBT 读写（通过 SmartBlockEntity 的 write/read 钩子）=====
-
-    /**
-     * 写入 NBT：序列化面状态到持久化/网络数据包。
-     * <p>
-     * {@code write()} 是 {@link com.simibubi.create.foundation.blockEntity.SmartBlockEntity}
-     * 提供的非 final 钩子，在 {@code saveAdditional()}（final）内部被调用。
-     * 覆写此方法以写入自定义 NBT 数据。
-     * <p>
-     * 序列化格式：{@code {"FaceStateData": {"DOWN":{"FaceState":"fwd"},"UP":{"FaceState":"rev"},...}}}
-     *
-     * @param tag          目标 NBT（最终写入磁盘或发往客户端）
-     * @param registries   注册表查找器（用于序列化注册表引用）
-     * @param clientPacket true=发送给客户端同步，false=保存到磁盘
-     */
-    @Override
-    protected void write(CompoundTag tag, HolderLookup.Provider registries, boolean clientPacket) {
-        super.write(tag, registries, clientPacket);
-        tag.put("FaceStateData", faceStatesNbt.toNbt());
-    }
-
-    /**
-     * 读取 NBT：从持久化/网络数据包恢复面状态。
-     * <p>
-     * {@code read()} 是 SmartBlockEntity 提供的非 final 钩子，
-     * 在 {@code load()}（final）内部被调用。覆写此方法以恢复自定义 NBT 数据。
-     * <p>
-     * <b>缺失键处理</b>：新放置的方块没有 {@code "FaceStateData"} 键，
-     * 此时保持 {@link #faceStatesNbt} 初始默认值（全 FWD），不报错。
-     *
-     * @param tag          数据源 NBT（来自磁盘或客户端数据包）
-     * @param registries   注册表查找器（用于反序列化注册表引用）
-     * @param clientPacket true=来自客户端同步包，false=来自磁盘加载
-     */
-    @Override
-    protected void read(CompoundTag tag, HolderLookup.Provider registries, boolean clientPacket) {
-        super.read(tag, registries, clientPacket);
-        if (tag.contains("FaceStateData")) {
-            faceStatesNbt.fromNbt(tag.getCompound("FaceStateData"));
-        }
-        if (clientPacket) {
-            requestModelDataUpdate();
-        }
-    }
-
     // ===== 动力传输逻辑 =====
 
     /**
@@ -232,37 +187,73 @@ public class AdvancedGearboxBlockEntity extends SplitShaftBlockEntity implements
      */
     @Override
     public void transform(BlockEntity blockEntity, StructureTransform transform) {
-        // 快照旧状态：先复制所有面的状态，后续循环会覆写 faceStatesNbt，
-        // 但读取旧值时必须用这份快照，避免刚写入的面影响后续面的映射。
+        // 快照旧状态，避免刚写入的面影响后续映射
         AdvancedGearboxShaftState[] oldStates = faceStatesNbt.toArray();
 
         for (Direction newFace : Direction.values()) {
-            // 逆向映射：从新位置反推出变换前的旧方向，再用旧方向从快照中取值。
-            // 例如顺时针旋转 90° 后，新 NORTH 位置上的状态来自旧 WEST 面。
+            // 逆向映射：从新位置反推出变换前的旧方向，再从快照取值
             Direction oldFace = newFace;
 
-            // Step 1: 应用旋转
-            // 使用逆时针（getCounterClockWise）实现正向旋转映射：
-            //   CLOCKWISE_90 (ordinal=1) → 1 次逆时针 → 等效顺时针 90°
-            //   CLOCKWISE_180 (ordinal=2) → 2 次逆时针 → 180°
-            //   COUNTERCLOCKWISE_90 (ordinal=3) → 3 次逆时针 → 等效逆时针 90°
-            // 仅处理水平方向（绕 Y 轴旋转），UP/DOWN 不受水平旋转影响。
+            // 绕 Y 轴旋转：getCounterClockWise 是"逆时针"，
+            // 循环调用 n 次可实现"顺时针旋转 n 个 90°"的映射效果
             if (transform.rotation != null && transform.rotationAxis == Direction.Axis.Y) {
-                for (int i = 0; i < transform.rotation.ordinal(); i++) {
+                int steps = transform.rotation.ordinal();
+                for (int i = 0; i < steps; i++) {
                     oldFace = oldFace.getCounterClockWise(transform.rotationAxis);
                 }
             }
 
-            // Step 2: 应用镜像
-            //   LEFT_RIGHT → NORTH ↔ SOUTH 交换
-            //   FRONT_BACK → WEST ↔ EAST 交换
-            // 镜像对 UP/DOWN 无影响（mirror() 内部保证返回自身）。
+            // 镜像：LEFT_RIGHT ↔ N/S，FRONT_BACK ↔ W/E
             if (transform.mirror != null) {
                 oldFace = transform.mirror.mirror(oldFace);
             }
 
-            // 将旧方向的状态赋给新位置
             faceStatesNbt.set(newFace, oldStates[oldFace.get3DDataValue()]);
+        }
+    }
+
+    // ===== NBT 读写（通过 SmartBlockEntity 的 write/read 钩子）=====
+
+    /**
+     * 写入 NBT：序列化面状态到持久化/网络数据包。
+     * <p>
+     * {@code write()} 是 {@link com.simibubi.create.foundation.blockEntity.SmartBlockEntity}
+     * 提供的非 final 钩子，在 {@code saveAdditional()}（final）内部被调用。
+     * 覆写此方法以写入自定义 NBT 数据。
+     * <p>
+     * 序列化格式：{@code {"FaceStateData": {"DOWN":{"FaceState":"fwd"},"UP":{"FaceState":"rev"},...}}}
+     *
+     * @param tag          目标 NBT（最终写入磁盘或发往客户端）
+     * @param registries   注册表查找器（用于序列化注册表引用）
+     * @param clientPacket true=发送给客户端同步，false=保存到磁盘
+     */
+    @Override
+    protected void write(CompoundTag tag, HolderLookup.Provider registries, boolean clientPacket) {
+        super.write(tag, registries, clientPacket);
+        tag.put(EnumFaceContainer.FACE_ROOT_KEY, faceStatesNbt.toNbt());
+    }
+
+    /**
+     * 读取 NBT：从持久化/网络数据包恢复面状态。
+     * <p>
+     * {@code read()} 是 SmartBlockEntity 提供的非 final 钩子，
+     * 在 {@code load()}（final）内部被调用。覆写此方法以恢复自定义 NBT 数据。
+     * <p>
+     * <b>缺失键处理</b>：新放置的方块没有 {@code "FaceStateData"} 键，
+     * 此时保持 {@link #faceStatesNbt} 初始默认值（全 FWD），不报错。
+     *
+     * @param tag          数据源 NBT（来自磁盘或客户端数据包）
+     * @param registries   注册表查找器（用于反序列化注册表引用）
+     * @param clientPacket true=来自客户端同步包，false=来自磁盘加载
+     */
+    @Override
+    protected void read(CompoundTag tag, HolderLookup.Provider registries, boolean clientPacket) {
+        super.read(tag, registries, clientPacket);
+        if (tag.contains(EnumFaceContainer.FACE_ROOT_KEY)) {
+            faceStatesNbt.fromNbt(tag.getCompound(EnumFaceContainer.FACE_ROOT_KEY));
+        }
+        if (clientPacket) {
+            requestModelDataUpdate();
         }
     }
 }
