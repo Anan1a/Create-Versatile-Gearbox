@@ -1,0 +1,107 @@
+package com.anan1a.create_versatile_gearbox.content.advanced_gearbox;
+
+import java.util.List;
+
+import com.anan1a.create_versatile_gearbox.foundation.behaviour.value.FaceMultiplierBehaviour;
+import com.anan1a.create_versatile_gearbox.foundation.behaviour.value.FaceSpeedBehaviour;
+import com.anan1a.create_versatile_gearbox.foundation.behaviour.FaceValueBoxTransform;
+import com.simibubi.create.foundation.blockEntity.behaviour.BehaviourType;
+import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
+import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.ScrollValueBehaviour;
+import com.simibubi.create.infrastructure.config.AllConfigs;
+
+import net.minecraft.core.Direction;
+import net.minecraft.network.chat.Component;
+
+/**
+ * 高级齿轮箱的配置行为管理器。
+ * <p>
+ * 每面注册两个滑条：
+ * <ul>
+ *   <li>转速值 — 双排 CCW/CW，独立配置</li>
+ *   <li>倍率值 — 双排 ÷/×，离散选择 2^0~2^8 或 1/2^1~1/2^8</li>
+ * </ul>
+ * 每个滑条绑定该面的交互框，只在对应面激活且 ShaftState=CFG 时显示。
+ * <p>
+ * 值变更时通过 callback 写入 {@link AdvancedGearboxFaceContainer}，
+ * NBT 持久化由 FaceContainer 统一管理，滑条不参与序列化。
+ */
+public class AdvancedGearboxConfigBehaviours {
+
+    // ===== BehaviourType 数组（同一 BE 内区分不同面的同类型滑条） =====
+
+    // 转速滑条类型 — SmartBlockEntity 内部 Map 用此作为 key，同 key 会互相覆盖
+    public static final BehaviourType<?>[] FACE_SPEED_TYPES = new BehaviourType[6];
+    // 倍率滑条类型
+    public static final BehaviourType<?>[] FACE_MULTIPLIER_TYPES = new BehaviourType[6];
+    static {
+        for (Direction dir : Direction.values()) {
+            int i = dir.get3DDataValue();
+            FACE_SPEED_TYPES[i] = new BehaviourType<>("face_speed_" + dir.getName());
+            FACE_MULTIPLIER_TYPES[i] = new BehaviourType<>("face_multiplier_" + dir.getName());
+        }
+    }
+
+    private final AdvancedGearboxFaceContainer faceData;
+    private final ScrollValueBehaviour[] speedBehaviours;
+    private final ScrollValueBehaviour[] multiplierBehaviours;
+
+    /**
+     * 构造 12 个滑条（6 速度 + 6 倍率）并注册到 behaviours 列表。
+     *
+     * @param be       所属 BlockEntity
+     * @param faceData 面数据容器（NBT 由它统一管理）
+     * @param list     behaviour 列表（从 addBehaviours 传入）
+     */
+    public AdvancedGearboxConfigBehaviours(AdvancedGearboxBlockEntity be,
+                                           AdvancedGearboxFaceContainer faceData,
+                                           List<BlockEntityBehaviour> list) {
+        this.faceData = faceData;
+        this.speedBehaviours = new ScrollValueBehaviour[6];
+        this.multiplierBehaviours = new ScrollValueBehaviour[6];
+
+        int maxRotationSpeed = AllConfigs.server().kinetics.maxRotationSpeed.get();
+        int maxExponent = (int) (Math.log(maxRotationSpeed) / Math.log(2));
+
+        for (Direction dir : Direction.values()) {
+            int i = dir.get3DDataValue();
+
+            // ---- 速度值滑条（双排 CCW/CW，值域 ±maxRotationSpeed） ----
+            FaceSpeedBehaviour speed = new FaceSpeedBehaviour(
+                    Component.translatable("gui.advanced_gearbox.face_speed", dir.getName()),
+                    be,
+                    new FaceValueBoxTransform(dir, 4, 12, () -> be.getShaftState(dir) == AdvancedGearboxShaftState.CFG),
+                    i, 0, FACE_SPEED_TYPES[i],
+                    maxRotationSpeed
+            );
+            speed.withCallback(val -> faceData.setSpeedValue(dir, val));
+            speedBehaviours[i] = speed;
+            list.add(speed);
+
+            // ---- 倍率值滑条（双排 ÷/×，离散指数 -8~8） ----
+            FaceMultiplierBehaviour multiplier = new FaceMultiplierBehaviour(
+                    Component.translatable("gui.advanced_gearbox.face_multiplier", dir.getName()),
+                    be,
+                    new FaceValueBoxTransform(dir, 4, 4, () -> be.getShaftState(dir) == AdvancedGearboxShaftState.CFG),
+                    i, 1, FACE_MULTIPLIER_TYPES[i],
+                    maxExponent
+            );
+            multiplier.withCallback(val -> faceData.setMultiplier(dir, multiplier.indexToMultiplier(val)));
+            multiplierBehaviours[i] = multiplier;
+            list.add(multiplier);
+        }
+    }
+
+    /**
+     * 从 faceData 将各面数据同步到滑条的 value 字段。
+     * <p>
+     * 在 BlockEntity.read() 中 faceData.fromNbt() 之后调用。
+     */
+    public void syncFromFaceData() {
+        for (Direction dir : Direction.values()) {
+            int i = dir.get3DDataValue();
+            speedBehaviours[i].value = faceData.getSpeedValue(dir);
+            multiplierBehaviours[i].value = ((FaceMultiplierBehaviour) multiplierBehaviours[i]).multiplierToIndex(faceData.getMultiplier(dir));
+        }
+    }
+}

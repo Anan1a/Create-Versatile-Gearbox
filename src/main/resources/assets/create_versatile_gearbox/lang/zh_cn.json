@@ -28,5 +28,8 @@
   "create_versatile_gearbox.ponder.versatile_gearbox_shaft_control.text_2": "使用扳手点击可以将轴切换为停用状态",
   "create_versatile_gearbox.ponder.versatile_gearbox_shaft_control.text_3": "停用后，该面不再传输动力",
   "create_versatile_gearbox.ponder.versatile_gearbox_shaft_control.text_4": "再次点击可以重新激活该面",
-  "create_versatile_gearbox.ponder.versatile_gearbox_shaft_control.text_5": "轴被重新激活，恢复动力传输"
+  "create_versatile_gearbox.ponder.versatile_gearbox_shaft_control.text_5": "轴被重新激活，恢复动力传输",
+
+  "gui.advanced_gearbox.face_speed": "转速 (%s)",
+  "gui.advanced_gearbox.face_multiplier": "倍率 (%s)"
 }

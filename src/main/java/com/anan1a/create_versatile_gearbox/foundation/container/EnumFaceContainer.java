@@ -1,4 +1,4 @@
-package com.anan1a.create_versatile_gearbox.foundation;
+package com.anan1a.create_versatile_gearbox.foundation.container;
 
 import java.util.Arrays;
 
@@ -192,6 +192,25 @@ public class EnumFaceContainer<T extends Enum<T> & StringRepresentable> extends 
             if (s != defaultValue) return false;
         }
         return true;
+    }
+
+    // ===== 蓝图变换 =====
+
+    /**
+     * 按重映射索引重新排列 6 个面的枚举状态。
+     * <p>
+     * 子类若新增其他数据数组，应覆写此方法：先 {@code super.transform(remap)}，
+     * 再重排自己的数组。
+     */
+    @Override
+    public void transform(int[] remap) {
+        if (remap == null || remap.length != 6) {
+            throw new IllegalArgumentException("remap must be an int[6]");
+        }
+        T[] oldStates = toArray();
+        for (int newIdx = 0; newIdx < 6; newIdx++) {
+            states[newIdx] = oldStates[remap[newIdx]];
+        }
     }
 
     // ===== 数据导出 =====

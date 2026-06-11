@@ -1,4 +1,4 @@
-package com.anan1a.create_versatile_gearbox.foundation;
+package com.anan1a.create_versatile_gearbox.foundation.container;
 
 import java.util.Objects;
 
@@ -126,6 +126,20 @@ public abstract class FaceStateContainer {
      * @param face    当前处理的面方向
      */
     protected abstract void readFace(CompoundTag faceTag, Direction face);
+
+    /**
+     * 蓝图变换：按重映射索引重新排列 6 个面的数据。
+     * <p>
+     * 子类在此方法中将所有数据数组按 {@code remap} 重排。
+     * 例如旋转 90° 时，NORTH 的数据迁到 EAST，EAST 到 SOUTH 等。
+     * <p>
+     * remap 数组长度必须为 6，索引 i 表示新位置 Direction.from3DDataValue(i)，
+     * 值 remap[i] 表示该位置应从旧方向 Direction.from3DDataValue(remap[i]) 拷贝数据。
+     *
+     * @param remap 重映射索引数组
+     * @throws IllegalArgumentException 如果 remap 为 null 或长度 != 6
+     */
+    public abstract void transform(int[] remap);
 
     // ===== 通用枚举工具 =====
 
