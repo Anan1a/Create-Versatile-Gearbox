@@ -62,19 +62,4 @@ public class EnumFaceContainer<T extends Enum<T> & StringRepresentable> extends 
         stateSlot.set(face, java.util.Objects.requireNonNull(value, "value must not be null"));
         return this;
     }
-
-    // ===== 数据导出 =====
-
-    /**
-     * 返回内部状态数组的副本（D/U/N/S/W/E 顺序）。
-     */
-    @SuppressWarnings("unchecked")
-    public T[] toArray() {
-        T[] result = (T[]) java.lang.reflect.Array.newInstance(defaultValue.getDeclaringClass(), 6);
-        Direction[] directions = Direction.values();
-        for (int i = 0; i < 6; i++) {
-            result[i] = stateSlot.get(directions[i]);
-        }
-        return result;
-    }
 }

@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.anan1a.create_versatile_gearbox.foundation.DynamicTextureModel;
+import com.anan1a.create_versatile_gearbox.foundation.container.CompositeFaceContainer;
 
 import static com.anan1a.create_versatile_gearbox.CreateVersatileGearbox.MODID;
 
@@ -34,7 +35,7 @@ public class AdvancedGearboxModel extends DynamicTextureModel<AdvancedGearboxSha
      * {@link #gatherModelData} 透传到 {@link ModelData}，
      * {@link #resolveState} 再从中读取当前面的状态。
      */
-    public static final ModelProperty<AdvancedGearboxShaftState[]> FACE_STATES =
+    public static final ModelProperty<Map<String, Object>[]> FACE_STATES =
             new ModelProperty<>();
 
     /** 高级齿轮箱方块纹理的基础路径。 */
@@ -104,11 +105,13 @@ public class AdvancedGearboxModel extends DynamicTextureModel<AdvancedGearboxSha
      */
     @Override
     protected AdvancedGearboxShaftState resolveState(BlockState state, Direction face, ModelData data) {
-        // 从 ModelData 中读取面状态数组（由 gatherModelData 写入）
         if (data != null && data.has(FACE_STATES)) {
-            AdvancedGearboxShaftState[] states = data.get(FACE_STATES);
-            if (states != null && states.length == 6) {
-                return states[face.get3DDataValue()]; // face→0~5 索引
+            // 从 ModelData 中取出由 gatherModelData 透传的面映射数据数组
+            Map<String, Object>[] fieldData = data.get(FACE_STATES);
+            // 按字段键名 "FaceState" 和方向从映射数组中查找该面的枚举状态
+            AdvancedGearboxShaftState shaftState = CompositeFaceContainer.getFieldValue(fieldData, "FaceState", face);
+            if (shaftState != null) {
+                return shaftState;
             }
         }
         return AdvancedGearboxShaftState.OFF;

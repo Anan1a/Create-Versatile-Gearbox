@@ -22,6 +22,9 @@ import net.minecraft.nbt.CompoundTag;
  * }
  * </pre>
  * <p>
+ * 所有字段按注册时的 NBT 键名存储。可通过 {@link #getFieldValue(Map[], String, Direction)} 按
+ * 字段键名和方向直接查找，或通过 {@link #toArray()} 导出每个方向所有字段的映射。
+ * <p>
  * 使用示例：
  * <pre>{@code
  * CompositeFaceContainer container = new CompositeFaceContainer();
@@ -30,6 +33,10 @@ import net.minecraft.nbt.CompoundTag;
  *     new EnumSerializer<>(MyEnum.OFF, MyEnum.values()));
  *
  * stateField.set(dir, MyEnum.FWD);
+ *
+ * // 导出全部方向数据并从中查找
+ * Map<String, Object>[] all = container.toArray();
+ * MyEnum state = CompositeFaceContainer.getFieldValue(all, "FaceState", dir);
  *
  * // 序列化
  * CompoundTag nbt = new CompoundTag();
@@ -83,6 +90,46 @@ public class CompositeFaceContainer {
     @SuppressWarnings("unchecked")
     public <T> FieldSlot<T> getField(String key) {
         return (FieldSlot<T>) fields.get(key);
+    }
+
+    // ===== 数据查找与导出 =====
+
+    /**
+     * 按字段键名和方向查找值。
+     *
+     * @param data {@link #toArray()} 导出的数据数组
+     * @param key  字段的 NBT 键名
+     * @param face 面方向
+     * @param <T>  字段值的类型
+     * @return 该字段在该方向的值，数据无效或字段不存在时返回 null
+     */
+    @SuppressWarnings("unchecked")
+    public static <T> T getFieldValue(Map<String, Object>[] data, String key, Direction face) {
+        if (data == null || data.length != 6) return null;
+        Map<String, Object> map = data[face.get3DDataValue()];
+        return map != null ? (T) map.get(key) : null;
+    }
+
+    /**
+     * 导出 6 个方向所有字段的映射数组（D/U/N/S/W/E 顺序）。
+     * <p>
+     * 每个元素为 {@code Map<String, Object>}，键为字段的 NBT 键名，值为该字段的值。
+     * 返回的映射和数组均为新创建，修改不影响容器内部状态。
+     *
+     * @return 长度为 6 的映射数组
+     */
+    @SuppressWarnings("unchecked")
+    public Map<String, Object>[] toArray() {
+        Map<String, Object>[] result = new Map[6];
+        Direction[] directions = Direction.values();
+        for (int i = 0; i < 6; i++) {
+            Map<String, Object> map = new LinkedHashMap<>();
+            for (FieldSlot<?> slot : fields.values()) {
+                map.put(slot.key(), slot.get(directions[i]));
+            }
+            result[i] = map;
+        }
+        return result;
     }
 
     // ===== NBT 序列化 =====
