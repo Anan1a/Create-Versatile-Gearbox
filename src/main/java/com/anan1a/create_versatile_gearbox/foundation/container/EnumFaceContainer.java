@@ -29,17 +29,14 @@ public class EnumFaceContainer<T extends Enum<T> & StringRepresentable> extends 
     public static final String FACE_STATE_KEY = "FaceState";
     /** 枚举状态字段槽。 */
     private final FieldSlot<T> stateSlot;
-    /** 默认状态值（子类访问需要）。 */
-    protected final T defaultValue;
 
     /**
      * 构造全默认值的容器。
      */
-    protected EnumFaceContainer(T defaultValue) {
-        this.defaultValue = java.util.Objects.requireNonNull(defaultValue, "defaultValue must not be null");
+    protected EnumFaceContainer(T defaultState) {
         this.stateSlot = add(
                 FACE_STATE_KEY,
-                new EnumSerializer<>(defaultValue, defaultValue.getDeclaringClass().getEnumConstants()));
+                new EnumSerializer<>(defaultState, defaultState.getDeclaringClass().getEnumConstants()));
     }
 
     // ===== 面访问 =====

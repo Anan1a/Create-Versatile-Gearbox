@@ -103,7 +103,7 @@ public class AdvancedGearboxConfigBehaviours {
                     new FaceValueBoxTransform(dir, 12, 12, () -> be.getShaftState(dir) == AdvancedGearboxShaftState.CFG),
                     i, 2
             );
-            // example.withCallback(val -> faceData.setExample(dir, val));
+            example.withCallback(val -> faceData.setOptionMode(dir, val));
             exampleBehaviours[i] = example;
             list.add(example);
         }
@@ -119,7 +119,7 @@ public class AdvancedGearboxConfigBehaviours {
             int i = dir.get3DDataValue();
             speedBehaviours[i].value = faceData.getSpeedValue(dir);
             multiplierBehaviours[i].value = ((FaceMultiplierBehaviour) multiplierBehaviours[i]).multiplierToIndex(faceData.getMultiplier(dir));
-            // exampleBehaviours[i].value = faceData.getExample(dir);
+            exampleBehaviours[i].value = faceData.getOptionMode(dir);
         }
     }
 }

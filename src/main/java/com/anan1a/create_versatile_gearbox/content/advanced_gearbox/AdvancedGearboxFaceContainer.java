@@ -28,17 +28,18 @@ public class AdvancedGearboxFaceContainer extends EnumFaceContainer<AdvancedGear
 
     /** NBT 键名：每面转速值（int）。 */
     public static final String SPEED_VALUE_KEY = "SpeedValue";
-    /** 转速默认值。 */
-    private static final int DEFAULT_SPEED_VALUE = 16;
     /** 转速字段槽。 */
     private final FieldSlot<Integer> speedValueSlot;
 
     /** NBT 键名：每面倍率值（float）。 */
     public static final String MULTIPLIER_KEY = "Multiplier";
-    /** 倍率默认值。 */
-    private static final float DEFAULT_MULTIPLIER = 1.0f;
     /** 倍率字段槽。 */
     private final FieldSlot<Float> multiplierSlot;
+
+    /** NBT 键名：每面选项模式序数。 */
+    public static final String OPTION_MODE_KEY = "OptionMode";
+    /** 选项模式序数字段槽。 */
+    private final FieldSlot<Integer> optionModeSlot;
 
     /**
      * 构造全默认值的容器。
@@ -47,7 +48,10 @@ public class AdvancedGearboxFaceContainer extends EnumFaceContainer<AdvancedGear
      * SpeedValue = 16，Multiplier = 1.0。
      */
     public AdvancedGearboxFaceContainer() {
-        this(AdvancedGearboxBlock.DEFAULT_SHAFT_STATE);
+        this(AdvancedGearboxBlock.DEFAULT_SHAFT_STATE,
+            16,
+            1.0f,
+            0);
     }
 
     /**
@@ -55,10 +59,14 @@ public class AdvancedGearboxFaceContainer extends EnumFaceContainer<AdvancedGear
      *
      * @param defaultState 默认面状态
      */
-    public AdvancedGearboxFaceContainer(AdvancedGearboxShaftState defaultState) {
+    public AdvancedGearboxFaceContainer(AdvancedGearboxShaftState defaultState,
+                                        int defaultSpeedValue,
+                                        float defaultMultiplier,
+                                        int defaultOptionMode) {
         super(defaultState);
-        this.speedValueSlot = add(SPEED_VALUE_KEY, new IntSerializer(DEFAULT_SPEED_VALUE));
-        this.multiplierSlot = add(MULTIPLIER_KEY, new FloatSerializer(DEFAULT_MULTIPLIER));
+        this.speedValueSlot = add(SPEED_VALUE_KEY, new IntSerializer(defaultSpeedValue));
+        this.multiplierSlot = add(MULTIPLIER_KEY, new FloatSerializer(defaultMultiplier));
+        this.optionModeSlot = add(OPTION_MODE_KEY, new IntSerializer(defaultOptionMode));
     }
 
     // ===== SpeedValue 访问 =====
@@ -96,6 +104,25 @@ public class AdvancedGearboxFaceContainer extends EnumFaceContainer<AdvancedGear
      */
     public AdvancedGearboxFaceContainer setMultiplier(Direction face, float value) {
         multiplierSlot.set(face, value);
+        return this;
+    }
+
+    // ===== OptionMode 访问 =====
+
+    /**
+     * 获取指定面的选项模式序数。
+     */
+    public int getOptionMode(Direction face) {
+        return optionModeSlot.get(face);
+    }
+
+    /**
+     * 设置指定面的选项模式序数。
+     *
+     * @return 自身
+     */
+    public AdvancedGearboxFaceContainer setOptionMode(Direction face, int value) {
+        optionModeSlot.set(face, value);
         return this;
     }
 }

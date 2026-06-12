@@ -109,7 +109,7 @@ public class AdvancedGearboxModel extends DynamicTextureModel<AdvancedGearboxSha
             // 从 ModelData 中取出由 gatherModelData 透传的面映射数据数组
             Map<String, Object>[] fieldData = data.get(FACE_STATES);
             // 按字段键名 "FaceState" 和方向从映射数组中查找该面的枚举状态
-            AdvancedGearboxShaftState shaftState = CompositeFaceContainer.getFieldValue(fieldData, "FaceState", face);
+            AdvancedGearboxShaftState shaftState = CompositeFaceContainer.getFieldValue(fieldData, AdvancedGearboxFaceContainer.FACE_STATE_KEY, face);
             if (shaftState != null) {
                 return shaftState;
             }
