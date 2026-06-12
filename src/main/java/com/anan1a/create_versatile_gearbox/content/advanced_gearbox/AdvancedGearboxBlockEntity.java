@@ -77,8 +77,6 @@ public class AdvancedGearboxBlockEntity extends SplitShaftBlockEntity implements
 
     /**
      * 获取指定面的转速值。
-     * <p>
-     * 直接委托给容器，容器中存 int 无需转换。
      */
     public int getSpeedValue(Direction face) {
         return faceData.getSpeedValue(face);
@@ -93,14 +91,9 @@ public class AdvancedGearboxBlockEntity extends SplitShaftBlockEntity implements
 
     /**
      * 获取指定面的选项模式枚举。
-     * <p>
-     * 容器中存储的是序数（int），此处转为枚举供逻辑判断使用。
-     *
-     * @param face 要查询的面方向
-     * @return 该面的选项模式
      */
     public Mode getOptionMode(Direction face) {
-        return Mode.values()[faceData.getOptionMode(face)];
+        return faceData.resolveOptionMode(face);
     }
 
     // ===== 面状态访问 =====

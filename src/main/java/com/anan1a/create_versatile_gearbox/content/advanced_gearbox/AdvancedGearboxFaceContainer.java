@@ -4,6 +4,7 @@ import com.anan1a.create_versatile_gearbox.foundation.container.EnumFaceContaine
 import com.anan1a.create_versatile_gearbox.foundation.container.FieldSlot;
 import com.anan1a.create_versatile_gearbox.foundation.container.serializer.FloatSerializer;
 import com.anan1a.create_versatile_gearbox.foundation.container.serializer.IntSerializer;
+import com.anan1a.create_versatile_gearbox.foundation.behaviour.option.FaceExampleOptionBehaviour.Mode;
 
 import net.minecraft.core.Direction;
 
@@ -108,6 +109,13 @@ public class AdvancedGearboxFaceContainer extends EnumFaceContainer<AdvancedGear
     }
 
     // ===== OptionMode 访问 =====
+
+    /**
+     * 获取指定面的选项模式枚举（从序数转换）。
+     */
+    public Mode resolveOptionMode(Direction face) {
+        return Mode.values()[optionModeSlot.get(face)];
+    }
 
     /**
      * 获取指定面的选项模式序数。
