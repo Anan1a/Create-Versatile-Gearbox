@@ -11,12 +11,12 @@ import net.createmod.catnip.lang.Lang;
 import net.minecraft.network.chat.Component;
 
 /**
- * 示例选项滑条，展示如何继承 {@link AbstractFaceOptionBehaviour}。
+ * 面旋转模式滑条，控制该面使用绝对旋向还是相对旋向的转速/倍率。
  * <p>
  * 实例化时坐标 (12, 12)，添加方式：
  * <pre>{@code
- * behaviours.add(new FaceExampleOptionBehaviour(
- *     Component.literal("示例模式"),
+ * behaviours.add(new FaceRotationModeBehaviour(
+ *     Component.translatable("gui.advanced_gearbox.face_rotation_mode", dir.getName()),
  *     be,
  *     new FaceValueBoxTransform(dir, 12, 12, () -> condition),
  *     faceIndex,
@@ -24,20 +24,22 @@ import net.minecraft.network.chat.Component;
  * ));
  * }</pre>
  */
-public class FaceExampleOptionBehaviour extends AbstractFaceOptionBehaviour<FaceExampleOptionBehaviour.Mode> {
+public class FaceRotationModeBehaviour extends AbstractFaceOptionBehaviour<FaceRotationModeBehaviour.Mode> {
 
-    /** 选项枚举，实现 INamedIconOptions 以支持 Create 的选项滑条 UI。 */
+    /** 选项枚举：控制参考系 × 控制值类型，NONE 表示不使用。 */
     public enum Mode implements INamedIconOptions {
-        OPTION_A(AllIcons.I_NONE),
-        OPTION_B(AllIcons.I_NONE),
-        OPTION_C(AllIcons.I_NONE);
+        NONE(AllIcons.I_NONE),
+        ABSOLUTE_SPEED(AllIcons.I_NONE),
+        ABSOLUTE_MULTIPLIER(AllIcons.I_NONE),
+        RELATIVE_SPEED(AllIcons.I_NONE),
+        RELATIVE_MULTIPLIER(AllIcons.I_NONE);
 
         private final String translationKey;
         private final AllIcons icon;
 
         Mode(AllIcons icon) {
             this.icon = icon;
-            this.translationKey = "create_versatile_gearbox.example." + Lang.asId(name());
+            this.translationKey = "create_versatile_gearbox.rotation_mode." + Lang.asId(name());
         }
 
         @Override
@@ -51,13 +53,13 @@ public class FaceExampleOptionBehaviour extends AbstractFaceOptionBehaviour<Face
         }
     }
 
-    public FaceExampleOptionBehaviour(Component label, SmartBlockEntity be,
-                                       FaceValueBoxTransform slot, int faceIndex, int ordinal) {
+    public FaceRotationModeBehaviour(Component label, SmartBlockEntity be,
+                                      FaceValueBoxTransform slot, int faceIndex, int ordinal) {
         super(Mode.class, label, be, slot, faceIndex, ordinal);
     }
 
     @Override
     public BehaviourType<?> getType() {
-        return AdvancedGearboxConfigBehaviours.FACE_EXAMPLE_TYPES[faceIndex];
+        return AdvancedGearboxConfigBehaviours.FACE_ROTATION_MODE_TYPES[faceIndex];
     }
 }

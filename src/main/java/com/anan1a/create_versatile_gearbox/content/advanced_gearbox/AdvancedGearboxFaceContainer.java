@@ -4,7 +4,7 @@ import com.anan1a.create_versatile_gearbox.foundation.container.EnumFaceContaine
 import com.anan1a.create_versatile_gearbox.foundation.container.FieldSlot;
 import com.anan1a.create_versatile_gearbox.foundation.container.serializer.FloatSerializer;
 import com.anan1a.create_versatile_gearbox.foundation.container.serializer.IntSerializer;
-import com.anan1a.create_versatile_gearbox.foundation.behaviour.option.FaceExampleOptionBehaviour.Mode;
+import com.anan1a.create_versatile_gearbox.foundation.behaviour.option.FaceRotationModeBehaviour.Mode;
 
 import net.minecraft.core.Direction;
 

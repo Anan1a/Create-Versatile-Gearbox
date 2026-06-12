@@ -19,9 +19,11 @@
 
   "gui.advanced_gearbox.face_speed": "Speed (%s)",
   "gui.advanced_gearbox.face_multiplier": "Multiplier (%s)",
-  "gui.advanced_gearbox.face_example": "Example (%s)",
+  "gui.advanced_gearbox.face_rotation_mode": "Rotation Mode (%s)",
 
-  "create_versatile_gearbox.example.option_a": "Option A",
-  "create_versatile_gearbox.example.option_b": "Option B",
-  "create_versatile_gearbox.example.option_c": "Option C"
+  "create_versatile_gearbox.rotation_mode.none": "None",
+  "create_versatile_gearbox.rotation_mode.absolute_speed": "Absolute Direction Speed",
+  "create_versatile_gearbox.rotation_mode.absolute_multiplier": "Absolute Direction Multiplier",
+  "create_versatile_gearbox.rotation_mode.relative_speed": "Relative Direction Speed",
+  "create_versatile_gearbox.rotation_mode.relative_multiplier": "Relative Direction Multiplier"
 }

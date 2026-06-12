@@ -32,9 +32,11 @@
 
   "gui.advanced_gearbox.face_speed": "转速 (%s)",
   "gui.advanced_gearbox.face_multiplier": "倍率 (%s)",
-  "gui.advanced_gearbox.face_example": "示例 (%s)",
+  "gui.advanced_gearbox.face_rotation_mode": "旋向模式 (%s)",
 
-  "create_versatile_gearbox.example.option_a": "选项 A",
-  "create_versatile_gearbox.example.option_b": "选项 B",
-  "create_versatile_gearbox.example.option_c": "选项 C"
+  "create_versatile_gearbox.rotation_mode.none": "无",
+  "create_versatile_gearbox.rotation_mode.absolute_speed": "绝对旋向转速",
+  "create_versatile_gearbox.rotation_mode.absolute_multiplier": "绝对旋向倍率",
+  "create_versatile_gearbox.rotation_mode.relative_speed": "相对旋向转速",
+  "create_versatile_gearbox.rotation_mode.relative_multiplier": "相对旋向倍率"
 }
