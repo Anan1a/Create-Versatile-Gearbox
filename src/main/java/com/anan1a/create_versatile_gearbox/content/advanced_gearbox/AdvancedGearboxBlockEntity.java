@@ -45,7 +45,7 @@ public class AdvancedGearboxBlockEntity extends SplitShaftBlockEntity implements
      * <p>
      * 数据流关系：
      * <ul>
-     *   <li>NBT 持久化 → {@link #write}/{@link #read} 调 faceData.toNbt()/fromNbt()</li>
+     *   <li>NBT 持久化 → {@link #write}/{@link #read} 调 faceData.writeToRoot()/readFromRoot()</li>
      *   <li>动力计算 → getShaftState/getSpeedValue/getMultiplier 直接从 faceData 读</li>
      *   <li>渲染管线 → getModelData() 调 faceData.toArray() 导出</li>
      *   <li>扳手交互 → setShaftState() 调 faceData.set() 修改</li>
@@ -76,13 +76,13 @@ public class AdvancedGearboxBlockEntity extends SplitShaftBlockEntity implements
     /**
      * 获取指定面的传动轴状态。
      * <p>
-     * 直接委托给 {@link AdvancedGearboxFaceContainer#get(Direction)}，O(1) 数组索引。
+     * 直接委托给 {@link AdvancedGearboxFaceContainer#getState(Direction)}，O(1) 数组索引。
      *
      * @param face 要查询的面方向
      * @return 该面的传动轴状态
      */
     public AdvancedGearboxShaftState getShaftState(Direction face) {
-        return faceData.get(face);
+        return faceData.getState(face);
     }
 
     /**
@@ -99,7 +99,7 @@ public class AdvancedGearboxBlockEntity extends SplitShaftBlockEntity implements
      * @param value 新的状态值
      */
     public void setShaftState(Direction face, AdvancedGearboxShaftState value) {
-        faceData.set(face, value);
+        faceData.setState(face, value);
         setChanged();
         requestModelDataUpdate();
     }
@@ -235,7 +235,7 @@ public class AdvancedGearboxBlockEntity extends SplitShaftBlockEntity implements
      * 写入 NBT：序列化面状态（枚举 + 转速 + 倍率）到磁盘/网络数据包。
      * <p>
      * {@code write()} 是 SmartBlockEntity 的非 final 钩子，在 {@code saveAdditional()}
-     * 内部被调用。覆写后通过 {@code faceData.toNbt()} 将全部六面数据写入 {@code "FaceStateData"} 根键。
+     * 内部被调用。覆写后通过 {@code faceData.writeToRoot(tag)} 和 {@code faceData.readFromRoot(tag)} 持久化。
      * <p>
      * 序列化格式（每个面包含枚举状态 + 转速值 + 倍率值）：
      * {@code {"FaceStateData": {"DOWN":{"FaceState":"fwd","SpeedValue":0,"Multiplier":1.0},"UP":{...}}}}
@@ -247,7 +247,7 @@ public class AdvancedGearboxBlockEntity extends SplitShaftBlockEntity implements
     @Override
     protected void write(CompoundTag tag, HolderLookup.Provider registries, boolean clientPacket) {
         super.write(tag, registries, clientPacket);
-        tag.put(AdvancedGearboxFaceContainer.FACE_ROOT_KEY, faceData.toNbt());
+        faceData.writeToRoot(tag);
     }
 
     /**
@@ -266,9 +266,7 @@ public class AdvancedGearboxBlockEntity extends SplitShaftBlockEntity implements
     @Override
     protected void read(CompoundTag tag, HolderLookup.Provider registries, boolean clientPacket) {
         super.read(tag, registries, clientPacket);
-        if (tag.contains(AdvancedGearboxFaceContainer.FACE_ROOT_KEY)) {
-            faceData.fromNbt(tag.getCompound(AdvancedGearboxFaceContainer.FACE_ROOT_KEY));
-        }
+        faceData.readFromRoot(tag);
         // 将 faceData 中的转速值同步到各面滑条
         if (sliderHelper != null) {
             sliderHelper.syncFromFaceData();

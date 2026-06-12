@@ -2,6 +2,7 @@ package com.anan1a.create_versatile_gearbox.content.advanced_gearbox;
 
 import java.util.List;
 
+import com.anan1a.create_versatile_gearbox.foundation.behaviour.option.FaceExampleOptionBehaviour;
 import com.anan1a.create_versatile_gearbox.foundation.behaviour.value.FaceMultiplierBehaviour;
 import com.anan1a.create_versatile_gearbox.foundation.behaviour.value.FaceSpeedBehaviour;
 import com.anan1a.create_versatile_gearbox.foundation.behaviour.FaceValueBoxTransform;
@@ -34,17 +35,22 @@ public class AdvancedGearboxConfigBehaviours {
     public static final BehaviourType<?>[] FACE_SPEED_TYPES = new BehaviourType[6];
     // 倍率滑条类型
     public static final BehaviourType<?>[] FACE_MULTIPLIER_TYPES = new BehaviourType[6];
+    // 示例选项滑条类型
+    public static final BehaviourType<?>[] FACE_EXAMPLE_TYPES = new BehaviourType[6];
+
     static {
         for (Direction dir : Direction.values()) {
             int i = dir.get3DDataValue();
             FACE_SPEED_TYPES[i] = new BehaviourType<>("face_speed_" + dir.getName());
             FACE_MULTIPLIER_TYPES[i] = new BehaviourType<>("face_multiplier_" + dir.getName());
+            FACE_EXAMPLE_TYPES[i] = new BehaviourType<>("face_example_" + dir.getName());
         }
     }
 
     private final AdvancedGearboxFaceContainer faceData;
     private final ScrollValueBehaviour[] speedBehaviours;
     private final ScrollValueBehaviour[] multiplierBehaviours;
+    private final FaceExampleOptionBehaviour[] exampleBehaviours;
 
     /**
      * 构造 12 个滑条（6 速度 + 6 倍率）并注册到 behaviours 列表。
@@ -59,6 +65,7 @@ public class AdvancedGearboxConfigBehaviours {
         this.faceData = faceData;
         this.speedBehaviours = new ScrollValueBehaviour[6];
         this.multiplierBehaviours = new ScrollValueBehaviour[6];
+        this.exampleBehaviours = new FaceExampleOptionBehaviour[6];
 
         int maxRotationSpeed = AllConfigs.server().kinetics.maxRotationSpeed.get();
         int maxExponent = (int) (Math.log(maxRotationSpeed) / Math.log(2));
@@ -89,19 +96,30 @@ public class AdvancedGearboxConfigBehaviours {
             multiplier.withCallback(val -> faceData.setMultiplier(dir, multiplier.indexToMultiplier(val)));
             multiplierBehaviours[i] = multiplier;
             list.add(multiplier);
+
+            FaceExampleOptionBehaviour example = new FaceExampleOptionBehaviour(
+                    Component.translatable("gui.advanced_gearbox.face_example", dir.getName()),
+                    be,
+                    new FaceValueBoxTransform(dir, 12, 12, () -> be.getShaftState(dir) == AdvancedGearboxShaftState.CFG),
+                    i, 2
+            );
+            // example.withCallback(val -> faceData.setExample(dir, val));
+            exampleBehaviours[i] = example;
+            list.add(example);
         }
     }
 
     /**
      * 从 faceData 将各面数据同步到滑条的 value 字段。
      * <p>
-     * 在 BlockEntity.read() 中 faceData.fromNbt() 之后调用。
+     * 在 BlockEntity.read() 中 faceData.readFromRoot() 之后调用。
      */
     public void syncFromFaceData() {
         for (Direction dir : Direction.values()) {
             int i = dir.get3DDataValue();
             speedBehaviours[i].value = faceData.getSpeedValue(dir);
             multiplierBehaviours[i].value = ((FaceMultiplierBehaviour) multiplierBehaviours[i]).multiplierToIndex(faceData.getMultiplier(dir));
+            // exampleBehaviours[i].value = faceData.getExample(dir);
         }
     }
 }
