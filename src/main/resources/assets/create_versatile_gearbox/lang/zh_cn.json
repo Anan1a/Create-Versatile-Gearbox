@@ -31,5 +31,10 @@
   "create_versatile_gearbox.ponder.versatile_gearbox_shaft_control.text_5": "轴被重新激活，恢复动力传输",
 
   "gui.advanced_gearbox.face_speed": "转速 (%s)",
-  "gui.advanced_gearbox.face_multiplier": "倍率 (%s)"
+  "gui.advanced_gearbox.face_multiplier": "倍率 (%s)",
+  "gui.advanced_gearbox.face_example": "示例 (%s)",
+
+  "create_versatile_gearbox.example.option_a": "选项 A",
+  "create_versatile_gearbox.example.option_b": "选项 B",
+  "create_versatile_gearbox.example.option_c": "选项 C"
 }

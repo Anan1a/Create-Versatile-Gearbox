@@ -18,5 +18,10 @@
   "create_versatile_gearbox.configuration.items.tooltip": "A list of items to log during common setup",
 
   "gui.advanced_gearbox.face_speed": "Speed (%s)",
-  "gui.advanced_gearbox.face_multiplier": "Multiplier (%s)"
+  "gui.advanced_gearbox.face_multiplier": "Multiplier (%s)",
+  "gui.advanced_gearbox.face_example": "Example (%s)",
+
+  "create_versatile_gearbox.example.option_a": "Option A",
+  "create_versatile_gearbox.example.option_b": "Option B",
+  "create_versatile_gearbox.example.option_c": "Option C"
 }

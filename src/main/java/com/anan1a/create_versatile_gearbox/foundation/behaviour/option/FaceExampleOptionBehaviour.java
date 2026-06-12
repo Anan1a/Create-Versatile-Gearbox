@@ -6,6 +6,7 @@ import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
 import com.simibubi.create.foundation.blockEntity.behaviour.BehaviourType;
 import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.INamedIconOptions;
 import com.simibubi.create.foundation.gui.AllIcons;
+import net.createmod.catnip.lang.Lang;
 
 import net.minecraft.network.chat.Component;
 
@@ -27,24 +28,26 @@ public class FaceExampleOptionBehaviour extends AbstractFaceOptionBehaviour<Face
 
     /** 选项枚举，实现 INamedIconOptions 以支持 Create 的选项滑条 UI。 */
     public enum Mode implements INamedIconOptions {
-        OPTION_A("示例 A"),
-        OPTION_B("示例 B"),
-        OPTION_C("示例 C");
+        OPTION_A(AllIcons.I_NONE),
+        OPTION_B(AllIcons.I_NONE),
+        OPTION_C(AllIcons.I_NONE);
 
-        private final String displayName;
+        private final String translationKey;
+        private final AllIcons icon;
 
-        Mode(String displayName) {
-            this.displayName = displayName;
+        Mode(AllIcons icon) {
+            this.icon = icon;
+            this.translationKey = "create_versatile_gearbox.example." + Lang.asId(name());
         }
 
         @Override
         public AllIcons getIcon() {
-            return AllIcons.I_NONE;
+            return icon;
         }
 
         @Override
         public String getTranslationKey() {
-            return displayName;
+            return translationKey;
         }
     }
 

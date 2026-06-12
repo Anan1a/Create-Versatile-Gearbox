@@ -7,6 +7,8 @@ import com.simibubi.create.content.contraptions.StructureTransform;
 import com.simibubi.create.content.kinetics.transmission.SplitShaftBlockEntity;
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
 
+import com.anan1a.create_versatile_gearbox.foundation.behaviour.option.FaceExampleOptionBehaviour.Mode;
+
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -69,6 +71,36 @@ public class AdvancedGearboxBlockEntity extends SplitShaftBlockEntity implements
 
     public AdvancedGearboxBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
+    }
+
+    // ===== 选项模式访问 =====
+
+    /**
+     * 获取指定面的转速值。
+     * <p>
+     * 直接委托给容器，容器中存 int 无需转换。
+     */
+    public int getSpeedValue(Direction face) {
+        return faceData.getSpeedValue(face);
+    }
+
+    /**
+     * 获取指定面的倍率值。
+     */
+    public float getMultiplier(Direction face) {
+        return faceData.getMultiplier(face);
+    }
+
+    /**
+     * 获取指定面的选项模式枚举。
+     * <p>
+     * 容器中存储的是序数（int），此处转为枚举供逻辑判断使用。
+     *
+     * @param face 要查询的面方向
+     * @return 该面的选项模式
+     */
+    public Mode getOptionMode(Direction face) {
+        return Mode.values()[faceData.getOptionMode(face)];
     }
 
     // ===== 面状态访问 =====
