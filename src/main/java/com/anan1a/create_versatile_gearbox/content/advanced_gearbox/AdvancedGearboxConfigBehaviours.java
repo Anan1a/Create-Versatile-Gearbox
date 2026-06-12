@@ -119,7 +119,7 @@ public class AdvancedGearboxConfigBehaviours {
             int i = dir.get3DDataValue();
             speedBehaviours[i].value = faceData.getSpeedValue(dir);
             multiplierBehaviours[i].value = ((FaceMultiplierBehaviour) multiplierBehaviours[i]).multiplierToIndex(faceData.getMultiplier(dir));
-            rotationModeBehaviours[i].value = faceData.getOptionMode(dir);
+            rotationModeBehaviours[i].clampValue(faceData.getOptionMode(dir));
         }
     }
 }

@@ -9,6 +9,7 @@ import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.ScrollOp
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.util.Mth;
 
 /**
  * 面绑定选项滑条的抽象基类。
@@ -28,12 +29,22 @@ public abstract class AbstractFaceOptionBehaviour<E extends Enum<E> & INamedIcon
     protected final int faceIndex;
     /** 滑条类型序数，用于计算 netId 偏移：netId = faceIndex + ordinal * 6。 */
     protected final int ordinal;
+    private final int maxIndex;
 
     public AbstractFaceOptionBehaviour(Class<E> enum_, Component label, SmartBlockEntity be,
                                        FaceValueBoxTransform slot, int faceIndex, int ordinal) {
         super(enum_, label, be, slot);
         this.faceIndex = faceIndex;
         this.ordinal = ordinal;
+        this.maxIndex = enum_.getEnumConstants().length - 1;
+    }
+
+    /**
+     * 从 faceData 同步滑条值时使用，直接赋值不触发回调/NBT写入/网络包。
+     * 超出范围的旧数据会被钳位到合法区间。
+     */
+    public void clampValue(int raw) {
+        this.value = Mth.clamp(raw, 0, maxIndex);
     }
 
     // 子类必须返回对应 BehaviourType，防止 Map 去重时覆盖

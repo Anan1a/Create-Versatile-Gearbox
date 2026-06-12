@@ -2,6 +2,7 @@ package com.anan1a.create_versatile_gearbox.foundation.behaviour.option;
 
 import com.anan1a.create_versatile_gearbox.content.advanced_gearbox.AdvancedGearboxConfigBehaviours;
 import com.anan1a.create_versatile_gearbox.foundation.behaviour.FaceValueBoxTransform;
+import com.anan1a.create_versatile_gearbox.foundation.gui.CVGIcons;
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
 import com.simibubi.create.foundation.blockEntity.behaviour.BehaviourType;
 import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.INamedIconOptions;
@@ -28,11 +29,11 @@ public class FaceRotationModeBehaviour extends AbstractFaceOptionBehaviour<FaceR
 
     /** 选项枚举：控制参考系 × 控制值类型，NONE 表示不使用。 */
     public enum Mode implements INamedIconOptions {
-        NONE(AllIcons.I_NONE),
-        ABSOLUTE_SPEED(AllIcons.I_NONE),
-        ABSOLUTE_MULTIPLIER(AllIcons.I_NONE),
-        RELATIVE_SPEED(AllIcons.I_NONE),
-        RELATIVE_MULTIPLIER(AllIcons.I_NONE);
+        NONE(CVGIcons.I_NONE),
+        ABSOLUTE_SPEED(CVGIcons.I_ABSOLUTE_SPEED),
+        ABSOLUTE_MULTIPLIER(CVGIcons.I_ABSOLUTE_MULTIPLIER),
+        RELATIVE_SPEED(CVGIcons.I_RELATIVE_SPEED),
+        RELATIVE_MULTIPLIER(CVGIcons.I_RELATIVE_MULTIPLIER);
 
         private final String translationKey;
         private final AllIcons icon;
