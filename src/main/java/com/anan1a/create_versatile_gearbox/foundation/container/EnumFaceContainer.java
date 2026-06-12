@@ -27,10 +27,8 @@ public class EnumFaceContainer<T extends Enum<T> & StringRepresentable> extends 
 
     /** 每个方向复合标签内，面状态值的键名。 */
     public static final String FACE_STATE_KEY = "FaceState";
-
     /** 枚举状态字段槽。 */
     private final FieldSlot<T> stateSlot;
-
     /** 默认状态值（子类访问需要）。 */
     protected final T defaultValue;
 

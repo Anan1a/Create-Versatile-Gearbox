@@ -24,24 +24,19 @@ import net.minecraft.core.Direction;
  * <p>
  * 所有字段由父类的内部 {@code CompositeFaceContainer} 统一管理序列化和变换。
  */
-public class AdvancedGearboxFaceContainer
-        extends EnumFaceContainer<AdvancedGearboxShaftState> {
+public class AdvancedGearboxFaceContainer extends EnumFaceContainer<AdvancedGearboxShaftState> {
 
     /** NBT 键名：每面转速值（int）。 */
     public static final String SPEED_VALUE_KEY = "SpeedValue";
-
-    /** NBT 键名：每面倍率值（float）。 */
-    public static final String MULTIPLIER_KEY = "Multiplier";
-
     /** 转速默认值。 */
     private static final int DEFAULT_SPEED_VALUE = 16;
-
-    /** 倍率默认值。 */
-    private static final float DEFAULT_MULTIPLIER = 1.0f;
-
     /** 转速字段槽。 */
     private final FieldSlot<Integer> speedValueSlot;
 
+    /** NBT 键名：每面倍率值（float）。 */
+    public static final String MULTIPLIER_KEY = "Multiplier";
+    /** 倍率默认值。 */
+    private static final float DEFAULT_MULTIPLIER = 1.0f;
     /** 倍率字段槽。 */
     private final FieldSlot<Float> multiplierSlot;
 
