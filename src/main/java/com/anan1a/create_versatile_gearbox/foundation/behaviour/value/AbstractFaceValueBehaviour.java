@@ -45,10 +45,8 @@ public abstract class AbstractFaceValueBehaviour extends ScrollValueBehaviour {
     /** 内部值 → 显示文本。由子类实现具体格式。 */
     public abstract String formatValue(Integer index);
 
-    /** 由子类提供设置面板上的文本格式。 */
-    protected MutableComponent formatSettings(ValueSettings settings) {
-        return Component.literal(formatValue(settings.value()));
-    }
+    /** 由子类提供设置面板上（ValueSettings → 显示文本）的格式转换。 */
+    protected abstract MutableComponent formatSettings(ValueSettings settings);
 
     // NBT 由 AdvancedGearboxFaceContainer 统一管理
     @Override

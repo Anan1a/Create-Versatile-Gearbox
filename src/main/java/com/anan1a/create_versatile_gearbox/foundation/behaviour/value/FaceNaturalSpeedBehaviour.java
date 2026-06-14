@@ -4,11 +4,13 @@ import java.util.List;
 
 import com.anan1a.create_versatile_gearbox.foundation.behaviour.FaceValueBoxTransform;
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
+import com.simibubi.create.foundation.blockEntity.behaviour.ValueSettingsBehaviour.ValueSettings;
 import com.simibubi.create.foundation.blockEntity.behaviour.ValueSettingsBoard;
 import com.simibubi.create.foundation.blockEntity.behaviour.ValueSettingsFormatter;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.BlockHitResult;
 
@@ -43,5 +45,10 @@ public class FaceNaturalSpeedBehaviour extends AbstractFaceValueBehaviour {
     @Override
     public String formatValue(Integer index) {
         return index.toString();
+    }
+
+    @Override
+    protected MutableComponent formatSettings(ValueSettings settings) {
+        return Component.literal(formatValue(settings.value()));
     }
 }
