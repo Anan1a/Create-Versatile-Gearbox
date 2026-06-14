@@ -14,7 +14,7 @@ import net.minecraft.network.chat.Component;
  * <p>
  * 实例化时坐标 (12, 12)，添加方式：
  * <pre>{@code
- * behaviours.add(new FaceRotationModeBehaviour(
+ * behaviours.add(new RotationModeBehaviour(
  *     Component.translatable("gui.advanced_gearbox.face_rotation_mode", dir.getName()),
  *     be,
  *     new FaceValueBoxTransform(dir, 12, 12, () -> condition),
@@ -23,7 +23,7 @@ import net.minecraft.network.chat.Component;
  * ));
  * }</pre>
  */
-public class FaceRotationModeBehaviour extends AbstractFaceOptionBehaviour<FaceRotationModeBehaviour.Mode> {
+public class RotationModeBehaviour extends AbstractOptionBehaviour<RotationModeBehaviour.Mode> {
 
     /** 选项枚举：控制参考系 × 控制值类型，NONE 表示不使用。 */
     public enum Mode implements INamedIconOptions {
@@ -54,9 +54,9 @@ public class FaceRotationModeBehaviour extends AbstractFaceOptionBehaviour<FaceR
 
     private static final String TYPE_PREFIX = "face_rotation_mode_";
 
-    public FaceRotationModeBehaviour(Component label, SmartBlockEntity be,
-                                      FaceValueBoxTransform slot, int netId,
-                                      String typeSuffix) {
+    public RotationModeBehaviour(Component label, SmartBlockEntity be,
+                                 FaceValueBoxTransform slot, int netId,
+                                 String typeSuffix) {
         super(Mode.class, label, be, slot, netId, TYPE_PREFIX + typeSuffix);
     }
 }

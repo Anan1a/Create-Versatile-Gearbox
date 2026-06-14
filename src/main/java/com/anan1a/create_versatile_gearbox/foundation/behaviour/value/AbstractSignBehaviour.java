@@ -2,7 +2,6 @@ package com.anan1a.create_versatile_gearbox.foundation.behaviour.value;
 
 import com.anan1a.create_versatile_gearbox.foundation.behaviour.FaceValueBoxTransform;
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
-import com.simibubi.create.foundation.blockEntity.behaviour.ValueSettingsBehaviour.ValueSettings;
 
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -13,11 +12,11 @@ import net.minecraft.world.entity.player.Player;
  * <p>
  * 提供双排值映射（row 0=负值，row 1=正值，col=绝对值）及停转 (col 0=0) 的默认实现。
  */
-public abstract class AbstractDualRowValueBehaviour extends AbstractFaceValueBehaviour {
+public abstract class AbstractSignBehaviour extends AbstractValueBehaviour {
 
-    public AbstractDualRowValueBehaviour(Component label, SmartBlockEntity be,
-                                         FaceValueBoxTransform slot, int netId,
-                                         String typeName) {
+    public AbstractSignBehaviour(Component label, SmartBlockEntity be,
+                                 FaceValueBoxTransform slot, int netId,
+                                 String typeName) {
         super(label, be, slot, netId, typeName);
     }
 

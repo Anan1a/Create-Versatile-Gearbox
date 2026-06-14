@@ -19,7 +19,7 @@ import net.minecraft.util.Mth;
  *
  * @param <E> 实现了 {@link INamedIconOptions} 的枚举类型
  */
-public abstract class AbstractFaceOptionBehaviour<E extends Enum<E> & INamedIconOptions>
+public abstract class AbstractOptionBehaviour<E extends Enum<E> & INamedIconOptions>
         extends ScrollOptionBehaviour<E> {
 
     /** 该滑条的 netId（由调用方决定，用于区分不同面/不同类型）。 */
@@ -28,9 +28,9 @@ public abstract class AbstractFaceOptionBehaviour<E extends Enum<E> & INamedIcon
     private final BehaviourType<?> type;
     private final int maxIndex;
 
-    public AbstractFaceOptionBehaviour(Class<E> enum_, Component label, SmartBlockEntity be,
-                                       FaceValueBoxTransform slot, int netId,
-                                       String typeName) {
+    public AbstractOptionBehaviour(Class<E> enum_, Component label, SmartBlockEntity be,
+                                   FaceValueBoxTransform slot, int netId,
+                                   String typeName) {
         super(enum_, label, be, slot);
         this.netId = netId;
         this.type = new BehaviourType<>(typeName);

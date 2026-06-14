@@ -2,9 +2,9 @@ package com.anan1a.create_versatile_gearbox.content.advanced_gearbox;
 
 import java.util.List;
 
-import com.anan1a.create_versatile_gearbox.foundation.behaviour.option.FaceRotationModeBehaviour;
-import com.anan1a.create_versatile_gearbox.foundation.behaviour.value.FaceMultiplierBehaviour;
-import com.anan1a.create_versatile_gearbox.foundation.behaviour.value.FaceSpeedBehaviour;
+import com.anan1a.create_versatile_gearbox.foundation.behaviour.option.RotationModeBehaviour;
+import com.anan1a.create_versatile_gearbox.foundation.behaviour.value.MultiplierBehaviour;
+import com.anan1a.create_versatile_gearbox.foundation.behaviour.value.SpeedBehaviour;
 import com.anan1a.create_versatile_gearbox.foundation.behaviour.FaceValueBoxTransform;
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
 import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.ScrollValueBehaviour;
@@ -31,7 +31,7 @@ public class AdvancedGearboxConfigBehaviours {
     private final AdvancedGearboxFaceContainer faceData;
     private final ScrollValueBehaviour[] speedBehaviours;
     private final ScrollValueBehaviour[] multiplierBehaviours;
-    private final FaceRotationModeBehaviour[] rotationModeBehaviours;
+    private final RotationModeBehaviour[] rotationModeBehaviours;
 
     /**
      * 构造 12 个滑条（6 速度 + 6 倍率）并注册到 behaviours 列表。
@@ -46,7 +46,7 @@ public class AdvancedGearboxConfigBehaviours {
         this.faceData = faceData;
         this.speedBehaviours = new ScrollValueBehaviour[6];
         this.multiplierBehaviours = new ScrollValueBehaviour[6];
-        this.rotationModeBehaviours = new FaceRotationModeBehaviour[6];
+        this.rotationModeBehaviours = new RotationModeBehaviour[6];
 
         int maxRotationSpeed = AllConfigs.server().kinetics.maxRotationSpeed.get();
         int maxExponent = (int) (Math.log(maxRotationSpeed) / Math.log(2));
@@ -56,7 +56,7 @@ public class AdvancedGearboxConfigBehaviours {
             int i = dir.get3DDataValue();
 
             // ---- 速度值滑条（双排 CCW/CW，值域 ±maxRotationSpeed） ----
-            FaceSpeedBehaviour speed = new FaceSpeedBehaviour(
+            SpeedBehaviour speed = new SpeedBehaviour(
                     Component.translatable("gui.advanced_gearbox.face_speed", dir.getName()),
                     be,
                     new FaceValueBoxTransform(dir, 4, 12, () -> be.getShaftState(dir) == AdvancedGearboxShaftState.CFG),
@@ -68,7 +68,7 @@ public class AdvancedGearboxConfigBehaviours {
             list.add(speed);
 
             // ---- 倍率值滑条（双排 ÷/×，离散指数 -8~8） ----
-            FaceMultiplierBehaviour multiplier = new FaceMultiplierBehaviour(
+            MultiplierBehaviour multiplier = new MultiplierBehaviour(
                     Component.translatable("gui.advanced_gearbox.face_multiplier", dir.getName()),
                     be,
                     new FaceValueBoxTransform(dir, 4, 4, () -> be.getShaftState(dir) == AdvancedGearboxShaftState.CFG),
@@ -79,7 +79,7 @@ public class AdvancedGearboxConfigBehaviours {
             multiplierBehaviours[i] = multiplier;
             list.add(multiplier);
 
-            FaceRotationModeBehaviour rotationMode = new FaceRotationModeBehaviour(
+            RotationModeBehaviour rotationMode = new RotationModeBehaviour(
                     Component.translatable("gui.advanced_gearbox.face_rotation_mode", dir.getName()),
                     be,
                     new FaceValueBoxTransform(dir, 12, 12, () -> be.getShaftState(dir) == AdvancedGearboxShaftState.CFG),
@@ -100,7 +100,7 @@ public class AdvancedGearboxConfigBehaviours {
         for (Direction dir : Direction.values()) {
             int i = dir.get3DDataValue();
             speedBehaviours[i].value = faceData.getSpeedValue(dir);
-            multiplierBehaviours[i].value = ((FaceMultiplierBehaviour) multiplierBehaviours[i]).multiplierToIndex(faceData.getMultiplier(dir));
+            multiplierBehaviours[i].value = ((MultiplierBehaviour) multiplierBehaviours[i]).multiplierToIndex(faceData.getMultiplier(dir));
             rotationModeBehaviours[i].clampValue(faceData.getOptionMode(dir));
         }
     }

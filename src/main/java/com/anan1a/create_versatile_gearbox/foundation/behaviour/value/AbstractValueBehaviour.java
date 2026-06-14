@@ -16,16 +16,16 @@ import net.minecraft.network.chat.MutableComponent;
  * 提供 {@link BehaviourType} 存储、netId、NBT no-op 等公共逻辑。
  * 子类需实现 {@link #formatValue(Integer)}，以及 {@link #getValueSettings()} / {@link #setValueSettings(Player, ValueSettings, boolean)}。
  */
-public abstract class AbstractFaceValueBehaviour extends ScrollValueBehaviour {
+public abstract class AbstractValueBehaviour extends ScrollValueBehaviour {
 
     /** 该滑条的 netId（由调用方决定，用于区分不同面/不同类型）。 */
     private final int netId;
     /** 该滑条的 BehaviourType（由子类传前缀，父类在此统一构造）。 */
     private final BehaviourType<?> type;
 
-    public AbstractFaceValueBehaviour(Component label, SmartBlockEntity be,
-                                      FaceValueBoxTransform slot, int netId,
-                                      String typeName) {
+    public AbstractValueBehaviour(Component label, SmartBlockEntity be,
+                                  FaceValueBoxTransform slot, int netId,
+                                  String typeName) {
         super(label, be, slot);
         this.netId = netId;
         this.type = new BehaviourType<>(typeName);

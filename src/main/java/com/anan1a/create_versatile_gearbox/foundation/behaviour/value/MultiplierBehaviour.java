@@ -23,14 +23,14 @@ import net.minecraft.world.phys.BlockHitResult;
  * </ul>
  * "0" 位于两行 col 0（内部值 v=0），"-1" 位于 - 行 col M+1，"1" 位于 + 行 col M+1。
  */
-public class FaceMultiplierBehaviour extends AbstractDualRowValueBehaviour {
+public class MultiplierBehaviour extends AbstractSignBehaviour {
 
     private static final String TYPE_PREFIX = "face_multiplier_";
     private final int maxExponent;
 
-    public FaceMultiplierBehaviour(Component label, SmartBlockEntity be,
-                                   FaceValueBoxTransform slot, int netId,
-                                   String typeSuffix, int maxExponent) {
+    public MultiplierBehaviour(Component label, SmartBlockEntity be,
+                               FaceValueBoxTransform slot, int netId,
+                               String typeSuffix, int maxExponent) {
         super(label, be, slot, netId, TYPE_PREFIX + typeSuffix);
         this.maxExponent = maxExponent;
         // 值域 [-(2M+1), 2M+1]，v=0 为停转，正负各 2M+1 个倍率值
