@@ -15,7 +15,7 @@ import net.minecraft.world.phys.BlockHitResult;
 /**
  * 面绑定滑条的抽象基类。
  * <p>
- * 提供双排 (±) 值映射、停转 (col 0=0)、{@link BehaviourType} 存储、netId 计算、NBT no-op 等公共逻辑。
+ * 提供双排 (±) 值映射、停转 (col 0=0)、{@link BehaviourType} 存储、netId、NBT no-op 等公共逻辑。
  * 子类只需实现：
  * <ul>
  *   <li>{@link #createBoard(Player, BlockHitResult)} — 创建 UI 面板</li>
@@ -24,20 +24,17 @@ import net.minecraft.world.phys.BlockHitResult;
  */
 public abstract class AbstractFaceValueBehaviour extends ScrollValueBehaviour {
 
-    /** 绑定的面索引（0-5）。 */
-    protected final int faceIndex;
-    /** 滑条类型序数，用于计算 netId 偏移：netId = faceIndex + ordinal * 6。 */
-    protected final int ordinal;
-    /** 该滑条的 BehaviourType（由外部传入，每面独立，防止 Map 去重时覆盖）。 */
+    /** 该滑条的 netId（由调用方决定，用于区分不同面/不同类型）。 */
+    private final int netId;
+    /** 该滑条的 BehaviourType（由子类传前缀，父类在此统一构造）。 */
     private final BehaviourType<?> type;
 
     public AbstractFaceValueBehaviour(Component label, SmartBlockEntity be,
-                                      FaceValueBoxTransform slot, int faceIndex, int ordinal,
-                                      BehaviourType<?> type) {
+                                      FaceValueBoxTransform slot, int netId,
+                                      String typeName) {
         super(label, be, slot);
-        this.faceIndex = faceIndex;
-        this.ordinal = ordinal;
-        this.type = type;
+        this.netId = netId;
+        this.type = new BehaviourType<>(typeName);
         // 子类通过 formatValue() 实现具体文本格式，父类在此统一注册 formatter
         withFormatter(this::formatValue);
     }
@@ -47,10 +44,9 @@ public abstract class AbstractFaceValueBehaviour extends ScrollValueBehaviour {
         return type;
     }
 
-    // 每个面用唯一 netId，保证服务端能正确区分各面滑条
     @Override
     public int netId() {
-        return faceIndex + ordinal * 6;
+        return netId;
     }
 
     // 将内部值按符号映射到两行 UI，col 0=0（停转）：

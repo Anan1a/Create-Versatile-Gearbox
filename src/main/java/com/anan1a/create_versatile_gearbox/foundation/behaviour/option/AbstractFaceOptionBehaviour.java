@@ -14,28 +14,26 @@ import net.minecraft.util.Mth;
 /**
  * 面绑定选项滑条的抽象基类。
  * <p>
- * 提供面索引 / netId 计算、NBT no-op 等公共逻辑。
- * 子类只需实现：
- * <ul>
- *   <li>{@link #getType()} — 返回对应 BehaviourType</li>
- * </ul>
+ * 提供 {@link BehaviourType} 构造、netId、NBT no-op 等公共逻辑。
+ * 子类只需传入类型前缀和方向名。
  *
  * @param <E> 实现了 {@link INamedIconOptions} 的枚举类型
  */
 public abstract class AbstractFaceOptionBehaviour<E extends Enum<E> & INamedIconOptions>
         extends ScrollOptionBehaviour<E> {
 
-    /** 绑定的面索引（0-5）。 */
-    protected final int faceIndex;
-    /** 滑条类型序数，用于计算 netId 偏移：netId = faceIndex + ordinal * 6。 */
-    protected final int ordinal;
+    /** 该滑条的 netId（由调用方决定，用于区分不同面/不同类型）。 */
+    private final int netId;
+    /** 该滑条的 BehaviourType（由于类传前缀，父类在此统一构造）。 */
+    private final BehaviourType<?> type;
     private final int maxIndex;
 
     public AbstractFaceOptionBehaviour(Class<E> enum_, Component label, SmartBlockEntity be,
-                                       FaceValueBoxTransform slot, int faceIndex, int ordinal) {
+                                       FaceValueBoxTransform slot, int netId,
+                                       String typeName) {
         super(enum_, label, be, slot);
-        this.faceIndex = faceIndex;
-        this.ordinal = ordinal;
+        this.netId = netId;
+        this.type = new BehaviourType<>(typeName);
         this.maxIndex = enum_.getEnumConstants().length - 1;
     }
 
@@ -47,14 +45,14 @@ public abstract class AbstractFaceOptionBehaviour<E extends Enum<E> & INamedIcon
         this.value = Mth.clamp(raw, 0, maxIndex);
     }
 
-    // 子类必须返回对应 BehaviourType，防止 Map 去重时覆盖
     @Override
-    public abstract BehaviourType<?> getType();
+    public BehaviourType<?> getType() {
+        return type;
+    }
 
-    // 每个面用唯一 netId，保证服务端能正确区分各面滑条
     @Override
     public int netId() {
-        return faceIndex + ordinal * 6;
+        return netId;
     }
 
     // NBT 由外部统一管理

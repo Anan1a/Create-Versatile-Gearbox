@@ -1,10 +1,8 @@
 package com.anan1a.create_versatile_gearbox.foundation.behaviour.option;
 
-import com.anan1a.create_versatile_gearbox.content.advanced_gearbox.AdvancedGearboxConfigBehaviours;
 import com.anan1a.create_versatile_gearbox.foundation.behaviour.FaceValueBoxTransform;
 import com.anan1a.create_versatile_gearbox.foundation.gui.CVGIcons;
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
-import com.simibubi.create.foundation.blockEntity.behaviour.BehaviourType;
 import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.INamedIconOptions;
 import com.simibubi.create.foundation.gui.AllIcons;
 import net.createmod.catnip.lang.Lang;
@@ -20,8 +18,8 @@ import net.minecraft.network.chat.Component;
  *     Component.translatable("gui.advanced_gearbox.face_rotation_mode", dir.getName()),
  *     be,
  *     new FaceValueBoxTransform(dir, 12, 12, () -> condition),
- *     faceIndex,
- *     0  // ordinal
+ *     faceIndex + 6 * 0, // netId
+ *     dir.getName()
  * ));
  * }</pre>
  */
@@ -54,13 +52,11 @@ public class FaceRotationModeBehaviour extends AbstractFaceOptionBehaviour<FaceR
         }
     }
 
-    public FaceRotationModeBehaviour(Component label, SmartBlockEntity be,
-                                      FaceValueBoxTransform slot, int faceIndex, int ordinal) {
-        super(Mode.class, label, be, slot, faceIndex, ordinal);
-    }
+    private static final String TYPE_PREFIX = "face_rotation_mode_";
 
-    @Override
-    public BehaviourType<?> getType() {
-        return AdvancedGearboxConfigBehaviours.FACE_ROTATION_MODE_TYPES[faceIndex];
+    public FaceRotationModeBehaviour(Component label, SmartBlockEntity be,
+                                      FaceValueBoxTransform slot, int netId,
+                                      String typeSuffix) {
+        super(Mode.class, label, be, slot, netId, TYPE_PREFIX + typeSuffix);
     }
 }

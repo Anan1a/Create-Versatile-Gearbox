@@ -4,7 +4,6 @@ import java.util.List;
 
 import com.anan1a.create_versatile_gearbox.foundation.behaviour.FaceValueBoxTransform;
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
-import com.simibubi.create.foundation.blockEntity.behaviour.BehaviourType;
 import com.simibubi.create.foundation.blockEntity.behaviour.ValueSettingsBoard;
 import com.simibubi.create.foundation.blockEntity.behaviour.ValueSettingsFormatter;
 
@@ -26,13 +25,13 @@ import net.minecraft.world.phys.BlockHitResult;
  */
 public class FaceMultiplierBehaviour extends AbstractFaceValueBehaviour {
 
-    /** 来自配置的最大指数（如 256 → 8），全局统一。 */
+    private static final String TYPE_PREFIX = "face_multiplier_";
     private final int maxExponent;
 
     public FaceMultiplierBehaviour(Component label, SmartBlockEntity be,
-                                   FaceValueBoxTransform slot, int faceIndex, int ordinal,
-                                   BehaviourType<?> type, int maxExponent) {
-        super(label, be, slot, faceIndex, ordinal, type);
+                                   FaceValueBoxTransform slot, int netId,
+                                   String typeSuffix, int maxExponent) {
+        super(label, be, slot, netId, TYPE_PREFIX + typeSuffix);
         this.maxExponent = maxExponent;
         // 值域 [-(2M+1), 2M+1]，v=0 为停转，正负各 2M+1 个倍率值
         between(-maxExponent * 2 - 1, maxExponent * 2 + 1);

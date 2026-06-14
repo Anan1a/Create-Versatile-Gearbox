@@ -6,7 +6,6 @@ import com.anan1a.create_versatile_gearbox.foundation.behaviour.option.FaceRotat
 import com.anan1a.create_versatile_gearbox.foundation.behaviour.value.FaceMultiplierBehaviour;
 import com.anan1a.create_versatile_gearbox.foundation.behaviour.value.FaceSpeedBehaviour;
 import com.anan1a.create_versatile_gearbox.foundation.behaviour.FaceValueBoxTransform;
-import com.simibubi.create.foundation.blockEntity.behaviour.BehaviourType;
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
 import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.ScrollValueBehaviour;
 import com.simibubi.create.infrastructure.config.AllConfigs;
@@ -28,24 +27,6 @@ import net.minecraft.network.chat.Component;
  * NBT 持久化由 FaceContainer 统一管理，滑条不参与序列化。
  */
 public class AdvancedGearboxConfigBehaviours {
-
-    // ===== BehaviourType 数组（同一 BE 内区分不同面的同类型滑条） =====
-
-    // 转速滑条类型 — SmartBlockEntity 内部 Map 用此作为 key，同 key 会互相覆盖
-    public static final BehaviourType<?>[] FACE_SPEED_TYPES = new BehaviourType[6];
-    // 倍率滑条类型
-    public static final BehaviourType<?>[] FACE_MULTIPLIER_TYPES = new BehaviourType[6];
-    // 旋转模式滑条类型
-    public static final BehaviourType<?>[] FACE_ROTATION_MODE_TYPES = new BehaviourType[6];
-
-    static {
-        for (Direction dir : Direction.values()) {
-            int i = dir.get3DDataValue();
-            FACE_SPEED_TYPES[i] = new BehaviourType<>("face_speed_" + dir.getName());
-            FACE_MULTIPLIER_TYPES[i] = new BehaviourType<>("face_multiplier_" + dir.getName());
-            FACE_ROTATION_MODE_TYPES[i] = new BehaviourType<>("face_rotation_mode_" + dir.getName());
-        }
-    }
 
     private final AdvancedGearboxFaceContainer faceData;
     private final ScrollValueBehaviour[] speedBehaviours;
@@ -70,6 +51,7 @@ public class AdvancedGearboxConfigBehaviours {
         int maxRotationSpeed = AllConfigs.server().kinetics.maxRotationSpeed.get();
         int maxExponent = (int) (Math.log(maxRotationSpeed) / Math.log(2));
 
+        int netId = 0;
         for (Direction dir : Direction.values()) {
             int i = dir.get3DDataValue();
 
@@ -78,7 +60,7 @@ public class AdvancedGearboxConfigBehaviours {
                     Component.translatable("gui.advanced_gearbox.face_speed", dir.getName()),
                     be,
                     new FaceValueBoxTransform(dir, 4, 12, () -> be.getShaftState(dir) == AdvancedGearboxShaftState.CFG),
-                    i, 0, FACE_SPEED_TYPES[i],
+                    netId++, dir.getName(),
                     maxRotationSpeed
             );
             speed.withCallback(val -> faceData.setSpeedValue(dir, val));
@@ -90,7 +72,7 @@ public class AdvancedGearboxConfigBehaviours {
                     Component.translatable("gui.advanced_gearbox.face_multiplier", dir.getName()),
                     be,
                     new FaceValueBoxTransform(dir, 4, 4, () -> be.getShaftState(dir) == AdvancedGearboxShaftState.CFG),
-                    i, 1, FACE_MULTIPLIER_TYPES[i],
+                    netId++, dir.getName(),
                     maxExponent
             );
             multiplier.withCallback(val -> faceData.setMultiplier(dir, multiplier.indexToMultiplier(val)));
@@ -101,7 +83,7 @@ public class AdvancedGearboxConfigBehaviours {
                     Component.translatable("gui.advanced_gearbox.face_rotation_mode", dir.getName()),
                     be,
                     new FaceValueBoxTransform(dir, 12, 12, () -> be.getShaftState(dir) == AdvancedGearboxShaftState.CFG),
-                    i, 2
+                    netId++, dir.getName()
             );
             rotationMode.withCallback(val -> faceData.setOptionMode(dir, val));
             rotationModeBehaviours[i] = rotationMode;

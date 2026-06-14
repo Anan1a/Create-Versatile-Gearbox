@@ -4,7 +4,6 @@ import java.util.List;
 
 import com.anan1a.create_versatile_gearbox.foundation.behaviour.FaceValueBoxTransform;
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
-import com.simibubi.create.foundation.blockEntity.behaviour.BehaviourType;
 import com.simibubi.create.foundation.blockEntity.behaviour.ValueSettingsBoard;
 import com.simibubi.create.foundation.blockEntity.behaviour.ValueSettingsFormatter;
 
@@ -20,13 +19,13 @@ import net.minecraft.world.phys.BlockHitResult;
  */
 public class FaceSpeedBehaviour extends AbstractFaceValueBehaviour {
 
-    /** 来自配置的最大转速值（如 -256~256）。 */
+    private static final String TYPE_PREFIX = "face_speed_";
     private final int maxValue;
 
     public FaceSpeedBehaviour(Component label, SmartBlockEntity be,
-                              FaceValueBoxTransform slot, int faceIndex, int ordinal,
-                              BehaviourType<?> type, int maxValue) {
-        super(label, be, slot, faceIndex, ordinal, type);
+                              FaceValueBoxTransform slot, int netId,
+                              String typeSuffix, int maxValue) {
+        super(label, be, slot, netId, TYPE_PREFIX + typeSuffix);
         this.maxValue = maxValue;
         // 值域 [-maxValue, maxValue]
         between(-maxValue, maxValue);
