@@ -6,7 +6,6 @@ import com.anan1a.create_versatile_gearbox.foundation.behaviour.FaceValueBoxTran
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
 import com.simibubi.create.foundation.blockEntity.behaviour.ValueSettingsBoard;
 import com.simibubi.create.foundation.blockEntity.behaviour.ValueSettingsFormatter;
-import com.simibubi.create.foundation.blockEntity.behaviour.ValueSettingsBehaviour.ValueSettings;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
@@ -39,21 +38,6 @@ public class FaceNaturalSpeedBehaviour extends AbstractFaceValueBehaviour {
                 List.of(Component.literal("\u27f3").withStyle(ChatFormatting.BOLD)),
                 new ValueSettingsFormatter(this::formatSettings)
         );
-    }
-
-    // 单排：row 固定 0，col 直接等于值
-    @Override
-    public ValueSettings getValueSettings() {
-        return new ValueSettings(0, value);
-    }
-
-    // 单排：col 直接作为值
-    @Override
-    public void setValueSettings(Player player, ValueSettings valueSetting, boolean ctrlDown) {
-        if (valueSetting.equals(getValueSettings()))
-            return;
-        setValue(valueSetting.value());
-        playFeedbackSound(this);
     }
 
     @Override

@@ -17,7 +17,7 @@ import net.minecraft.world.phys.BlockHitResult;
  * <p>
  * 双排 +/- 离散选择，值域 {@code [-maxValue, maxValue]}，col 0 为停转。
  */
-public class FaceSpeedBehaviour extends AbstractFaceValueBehaviour {
+public class FaceSpeedBehaviour extends AbstractDualRowValueBehaviour {
 
     private static final String TYPE_PREFIX = "face_speed_";
     private final int maxValue;

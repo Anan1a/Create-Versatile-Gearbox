@@ -23,7 +23,7 @@ import net.minecraft.world.phys.BlockHitResult;
  * </ul>
  * "0" 位于两行 col 0（内部值 v=0），"-1" 位于 - 行 col M+1，"1" 位于 + 行 col M+1。
  */
-public class FaceMultiplierBehaviour extends AbstractFaceValueBehaviour {
+public class FaceMultiplierBehaviour extends AbstractDualRowValueBehaviour {
 
     private static final String TYPE_PREFIX = "face_multiplier_";
     private final int maxExponent;
