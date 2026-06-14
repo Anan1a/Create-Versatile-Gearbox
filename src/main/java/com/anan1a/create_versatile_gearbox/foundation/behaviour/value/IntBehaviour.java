@@ -13,18 +13,18 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.BlockHitResult;
 
 /**
- * 每个面的滑条 behaviour，继承 AbstractValueBehaviour。
+ * 双排整数域滑条，值域 {@code [-maxValue, maxValue]}，col 0 为停转。
  * <p>
- * 双排 +/- 离散选择，值域 {@code [-maxValue, maxValue]}，col 0 为停转。
+ * Row 0 = 负值，Row 1 = 正值，值对称分布。用于需要符号选择且数值连续的场景。
  */
-public class SpeedBehaviour extends AbstractSignBehaviour {
+public class IntBehaviour extends AbstractSignedBehaviour {
 
-    private static final String TYPE_PREFIX = "face_speed_";
+    private static final String TYPE_PREFIX = "int_";
     private final int maxValue;
 
-    public SpeedBehaviour(Component label, SmartBlockEntity be,
-                          FaceValueBoxTransform slot, int netId,
-                          String typeSuffix, int maxValue) {
+    public IntBehaviour(Component label, SmartBlockEntity be,
+                        FaceValueBoxTransform slot, int netId,
+                        String typeSuffix, int maxValue) {
         super(label, be, slot, netId, TYPE_PREFIX + typeSuffix);
         this.maxValue = maxValue;
         // 值域 [-maxValue, maxValue]

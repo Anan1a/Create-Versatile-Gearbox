@@ -18,14 +18,14 @@ import net.minecraft.world.phys.BlockHitResult;
  * <p>
  * 只有一排，col 值直接对应内部值，无符号无停转特殊处理。
  */
-public class NaturalSpeedBehaviour extends AbstractValueBehaviour {
+public class CountBehaviour extends AbstractValueBehaviour {
 
-    private static final String TYPE_PREFIX = "face_natural_speed_";
+    private static final String TYPE_PREFIX = "count_";
     private final int maxValue;
 
-    public NaturalSpeedBehaviour(Component label, SmartBlockEntity be,
-                                 FaceValueBoxTransform slot, int netId,
-                                 String typeSuffix, int maxValue) {
+    public CountBehaviour(Component label, SmartBlockEntity be,
+                          FaceValueBoxTransform slot, int netId,
+                          String typeSuffix, int maxValue) {
         super(label, be, slot, netId, TYPE_PREFIX + typeSuffix);
         this.maxValue = maxValue;
         between(0, maxValue);

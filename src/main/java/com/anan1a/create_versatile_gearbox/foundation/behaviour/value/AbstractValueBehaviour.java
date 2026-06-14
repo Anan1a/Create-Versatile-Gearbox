@@ -11,10 +11,12 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 
 /**
- * 面绑定滑条的抽象基类。
+ * 数值滑条的抽象基类。
  * <p>
  * 提供 {@link BehaviourType} 存储、netId、NBT no-op 等公共逻辑。
- * 子类需实现 {@link #formatValue(Integer)}，以及 {@link #getValueSettings()} / {@link #setValueSettings(Player, ValueSettings, boolean)}。
+ * 子类需实现 {@link #formatValue(Integer)}、{@link #formatSettings(ValueSettings)}，
+ * 以及可选的 {@link #getValueSettings()} / {@link #setValueSettings(Player, ValueSettings, boolean)} 覆写。
+ * 构造时传入拼接好的完整类型名（{@code TYPE_PREFIX + typeSuffix}）。
  */
 public abstract class AbstractValueBehaviour extends ScrollValueBehaviour {
 

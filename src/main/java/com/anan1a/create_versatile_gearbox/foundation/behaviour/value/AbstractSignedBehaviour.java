@@ -12,11 +12,11 @@ import net.minecraft.world.entity.player.Player;
  * <p>
  * 提供双排值映射（row 0=负值，row 1=正值，col=绝对值）及停转 (col 0=0) 的默认实现。
  */
-public abstract class AbstractSignBehaviour extends AbstractValueBehaviour {
+public abstract class AbstractSignedBehaviour extends AbstractValueBehaviour {
 
-    public AbstractSignBehaviour(Component label, SmartBlockEntity be,
-                                 FaceValueBoxTransform slot, int netId,
-                                 String typeName) {
+    public AbstractSignedBehaviour(Component label, SmartBlockEntity be,
+                                   FaceValueBoxTransform slot, int netId,
+                                   String typeName) {
         super(label, be, slot, netId, typeName);
     }
 

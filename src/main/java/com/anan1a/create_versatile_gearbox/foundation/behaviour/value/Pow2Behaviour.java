@@ -13,31 +13,31 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.BlockHitResult;
 
 /**
- * 每面倍率值滑条，双排 ± 离散选择，col 0 为停转档位 0。
+ * 双排指数幂滑条，内部值 v = 0 为停转，v ≠ 0 对应 2 的幂次。
  * <p>
  * 值域 {@code [-(2M+1), 2M+1]}，其中 M = {@code maxExponent}。
  * 两行各 {@code 2M+2} 个槽位，col 0=停转，col 1~2M+1=倍率：
  * <ul>
- *   <li>Row 0（负乘 -）：v ∈ [-(2M+1), -1]，col = -v，左到右 -1/256 → -1 → -256</li>
- *   <li>Row 1（正乘 +）：v ∈ [0, 2M+1]，col = v，左到右 0 → +1/256 → +1 → +256</li>
+ *   <li>Row 0（负幂 -）：v ∈ [-(2M+1), -1]，col = -v，左到右 -1/256 → -1 → -256</li>
+ *   <li>Row 1（正幂 +）：v ∈ [0, 2M+1]，col = v，左到右 0 → +1/256 → +1 → +256</li>
  * </ul>
  * "0" 位于两行 col 0（内部值 v=0），"-1" 位于 - 行 col M+1，"1" 位于 + 行 col M+1。
  */
-public class MultiplierBehaviour extends AbstractSignBehaviour {
+public class Pow2Behaviour extends AbstractSignedBehaviour {
 
-    private static final String TYPE_PREFIX = "face_multiplier_";
+    private static final String TYPE_PREFIX = "pow2_";
     private final int maxExponent;
 
-    public MultiplierBehaviour(Component label, SmartBlockEntity be,
-                               FaceValueBoxTransform slot, int netId,
-                               String typeSuffix, int maxExponent) {
+    public Pow2Behaviour(Component label, SmartBlockEntity be,
+                         FaceValueBoxTransform slot, int netId,
+                         String typeSuffix, int maxExponent) {
         super(label, be, slot, netId, TYPE_PREFIX + typeSuffix);
         this.maxExponent = maxExponent;
         // 值域 [-(2M+1), 2M+1]，v=0 为停转，正负各 2M+1 个倍率值
         between(-maxExponent * 2 - 1, maxExponent * 2 + 1);
     }
 
-    // 滑条 UI：双排设计，第一排=负乘(-)，第二排=正乘(+)，每行 col 0=停转，col 1~2M+1=倍率
+    // 滑条 UI：双排设计，第一排=负幂(-)，第二排=正幂(+)，每行 col 0=停转，col 1~2M+1=倍率
     @Override
     public ValueSettingsBoard createBoard(Player player, BlockHitResult hitResult) {
         return new ValueSettingsBoard(

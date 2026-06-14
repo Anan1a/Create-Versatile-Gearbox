@@ -12,10 +12,10 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
 
 /**
- * 面绑定选项滑条的抽象基类。
+ * 选项滑条的抽象基类。
  * <p>
- * 提供 {@link BehaviourType} 构造、netId、NBT no-op 等公共逻辑。
- * 子类只需传入类型前缀和方向名。
+ * 提供 {@link BehaviourType} 构造、netId、NBT no-op、值钳位等公共逻辑。
+ * 子类需在构造器中传入拼接好的完整类型名（{@code TYPE_PREFIX + typeSuffix}）。
  *
  * @param <E> 实现了 {@link INamedIconOptions} 的枚举类型
  */

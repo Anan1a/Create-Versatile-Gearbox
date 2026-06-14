@@ -7,7 +7,7 @@ import com.simibubi.create.content.contraptions.StructureTransform;
 import com.simibubi.create.content.kinetics.transmission.SplitShaftBlockEntity;
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
 
-import com.anan1a.create_versatile_gearbox.foundation.behaviour.option.RotationModeBehaviour.Mode;
+import com.anan1a.create_versatile_gearbox.foundation.behaviour.option.RotModeBehaviour.Mode;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
