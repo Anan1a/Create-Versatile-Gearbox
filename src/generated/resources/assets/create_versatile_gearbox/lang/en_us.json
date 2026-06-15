@@ -23,7 +23,13 @@
   "create_versatile_gearbox.ponder.versatile_gearbox_usage.text_2": "Gearbox can receive power input from any face",
   "create_versatile_gearbox.ponder.versatile_gearbox_usage.text_3": "And transmit power to all other faces",
   "create_versatile_gearbox.ponder.versatile_gearbox_usage.text_4": "Right-click a face with a wrench to toggle shaft state",
+  "create_versatile_gearbox.rotation_mode.absolute_forward": "Absolute Forward",
+  "create_versatile_gearbox.rotation_mode.absolute_reverse": "Absolute Reverse",
+  "create_versatile_gearbox.rotation_mode.none": "None",
+  "create_versatile_gearbox.rotation_mode.relative_forward": "Relative Forward",
+  "create_versatile_gearbox.rotation_mode.relative_reverse": "Relative Reverse",
   "gui.advanced_gearbox.face_multiplier": "Multiplier (%s)",
+  "gui.advanced_gearbox.face_rotation_mode": "Rotation Mode (%s)",
   "gui.advanced_gearbox.face_speed": "Speed (%s)",
   "itemGroup.create_versatile_gearbox.versatile_gearbox_tab": "Versatile Gearbox"
 }

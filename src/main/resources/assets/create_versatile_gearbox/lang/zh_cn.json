@@ -35,8 +35,8 @@
   "gui.advanced_gearbox.face_rotation_mode": "旋向模式 (%s)",
 
   "create_versatile_gearbox.rotation_mode.none": "无",
-  "create_versatile_gearbox.rotation_mode.absolute_speed": "绝对旋向转速",
-  "create_versatile_gearbox.rotation_mode.absolute_multiplier": "绝对旋向倍率",
-  "create_versatile_gearbox.rotation_mode.relative_speed": "相对旋向转速",
-  "create_versatile_gearbox.rotation_mode.relative_multiplier": "相对旋向倍率"
+  "create_versatile_gearbox.rotation_mode.absolute_forward": "绝对正转",
+  "create_versatile_gearbox.rotation_mode.absolute_reverse": "绝对反转",
+  "create_versatile_gearbox.rotation_mode.relative_forward": "相对正转",
+  "create_versatile_gearbox.rotation_mode.relative_reverse": "相对反转"
 }

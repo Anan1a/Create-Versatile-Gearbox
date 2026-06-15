@@ -10,7 +10,7 @@ import net.createmod.catnip.lang.Lang;
 import net.minecraft.network.chat.Component;
 
 /**
- * 旋转模式滑条，控制使用绝对旋向还是相对旋向的转速/倍率。
+ * 旋转模式滑条，控制该面的旋向参考系和方向。
  * <p>
  * 示例化添加方式：
  * <pre>{@code
@@ -24,13 +24,13 @@ import net.minecraft.network.chat.Component;
  */
 public class RotModeBehaviour extends AbstractOptionBehaviour<RotModeBehaviour.Mode> {
 
-    /** 选项枚举：控制参考系 × 控制值类型，NONE 表示不使用。 */
+    /** 选项枚举：参考系（绝对/相对） × 方向（正/反），NONE 表示不启用。 */
     public enum Mode implements INamedIconOptions {
         NONE(CVGIcons.I_NONE),
-        ABSOLUTE_SPEED(CVGIcons.I_ABSOLUTE_SPEED),
-        ABSOLUTE_MULTIPLIER(CVGIcons.I_ABSOLUTE_MULTIPLIER),
-        RELATIVE_SPEED(CVGIcons.I_RELATIVE_SPEED),
-        RELATIVE_MULTIPLIER(CVGIcons.I_RELATIVE_MULTIPLIER);
+        ABSOLUTE_FORWARD(CVGIcons.I_ABSOLUTE_FORWARD),
+        ABSOLUTE_REVERSE(CVGIcons.I_ABSOLUTE_REVERSE),
+        RELATIVE_FORWARD(CVGIcons.I_RELATIVE_FORWARD),
+        RELATIVE_REVERSE(CVGIcons.I_RELATIVE_REVERSE);
 
         private final String translationKey;
         private final AllIcons icon;

@@ -23,7 +23,13 @@
   "create_versatile_gearbox.ponder.versatile_gearbox_usage.text_2": "ǝɔɐɟ ʎuɐ ɯoɹɟ ʇnduı ɹǝʍod ǝʌıǝɔǝɹ uɐɔ xoqɹɐǝ⅁",
   "create_versatile_gearbox.ponder.versatile_gearbox_usage.text_3": "sǝɔɐɟ ɹǝɥʇo ןןɐ oʇ ɹǝʍod ʇıɯsuɐɹʇ puⱯ",
   "create_versatile_gearbox.ponder.versatile_gearbox_usage.text_4": "ǝʇɐʇs ʇɟɐɥs ǝןbboʇ oʇ ɥɔuǝɹʍ ɐ ɥʇıʍ ǝɔɐɟ ɐ ʞɔıןɔ-ʇɥbıᴚ",
+  "create_versatile_gearbox.rotation_mode.absolute_forward": "pɹɐʍɹoℲ ǝʇnןosqⱯ",
+  "create_versatile_gearbox.rotation_mode.absolute_reverse": "ǝsɹǝʌǝᴚ ǝʇnןosqⱯ",
+  "create_versatile_gearbox.rotation_mode.none": "ǝuoN",
+  "create_versatile_gearbox.rotation_mode.relative_forward": "pɹɐʍɹoℲ ǝʌıʇɐןǝᴚ",
+  "create_versatile_gearbox.rotation_mode.relative_reverse": "ǝsɹǝʌǝᴚ ǝʌıʇɐןǝᴚ",
   "gui.advanced_gearbox.face_multiplier": ")%s( ɹǝıןdıʇןnW",
+  "gui.advanced_gearbox.face_rotation_mode": ")%s( ǝpoW uoıʇɐʇoᴚ",
   "gui.advanced_gearbox.face_speed": ")%s( pǝǝdS",
   "itemGroup.create_versatile_gearbox.versatile_gearbox_tab": "xoqɹɐǝ⅁ ǝןıʇɐsɹǝΛ"
 }

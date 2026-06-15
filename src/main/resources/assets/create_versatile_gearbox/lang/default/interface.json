@@ -22,8 +22,8 @@
   "gui.advanced_gearbox.face_rotation_mode": "Rotation Mode (%s)",
 
   "create_versatile_gearbox.rotation_mode.none": "None",
-  "create_versatile_gearbox.rotation_mode.absolute_speed": "Absolute Direction Speed",
-  "create_versatile_gearbox.rotation_mode.absolute_multiplier": "Absolute Direction Multiplier",
-  "create_versatile_gearbox.rotation_mode.relative_speed": "Relative Direction Speed",
-  "create_versatile_gearbox.rotation_mode.relative_multiplier": "Relative Direction Multiplier"
+  "create_versatile_gearbox.rotation_mode.absolute_forward": "Absolute Forward",
+  "create_versatile_gearbox.rotation_mode.absolute_reverse": "Absolute Reverse",
+  "create_versatile_gearbox.rotation_mode.relative_forward": "Relative Forward",
+  "create_versatile_gearbox.rotation_mode.relative_reverse": "Relative Reverse"
 }

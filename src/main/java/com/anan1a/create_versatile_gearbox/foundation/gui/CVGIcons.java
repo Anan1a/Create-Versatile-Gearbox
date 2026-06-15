@@ -37,10 +37,10 @@ public class CVGIcons extends AllIcons {
 
     public static final CVGIcons
         I_NONE = newRow(),
-        I_ABSOLUTE_SPEED = next(),
-        I_ABSOLUTE_MULTIPLIER = next(),
-        I_RELATIVE_SPEED = next(),
-        I_RELATIVE_MULTIPLIER = next();
+        I_ABSOLUTE_FORWARD = next(),
+        I_ABSOLUTE_REVERSE = next(),
+        I_RELATIVE_FORWARD = next(),
+        I_RELATIVE_REVERSE = next();
 
     public CVGIcons(int x, int y) {
         super(x, y);
