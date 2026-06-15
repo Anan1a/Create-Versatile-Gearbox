@@ -32,11 +32,6 @@ public class AdvancedGearboxFaceContainer extends EnumFaceContainer<AdvancedGear
     /** 转速字段槽。 */
     private final FieldSlot<Integer> ArgValueSlot;
 
-    /** NBT 键名：每面倍率值（float）。 */
-    public static final String MULTIPLIER_KEY = "Multiplier";
-    /** 倍率字段槽。 */
-    private final FieldSlot<Float> multiplierSlot;
-
     /** NBT 键名：每面选项模式序数。 */
     public static final String OPTION_MODE_KEY = "OptionMode";
     /** 选项模式序数字段槽。 */
@@ -51,7 +46,6 @@ public class AdvancedGearboxFaceContainer extends EnumFaceContainer<AdvancedGear
     public AdvancedGearboxFaceContainer() {
         this(AdvancedGearboxBlock.DEFAULT_SHAFT_STATE,
             16,
-            1.0f,
             0);
     }
 
@@ -62,11 +56,9 @@ public class AdvancedGearboxFaceContainer extends EnumFaceContainer<AdvancedGear
      */
     public AdvancedGearboxFaceContainer(AdvancedGearboxShaftState defaultState,
                                         int defaultArgValue,
-                                        float defaultMultiplier,
                                         int defaultOptionMode) {
         super(defaultState);
         this.ArgValueSlot = add(SPEED_VALUE_KEY, new IntSerializer(defaultArgValue));
-        this.multiplierSlot = add(MULTIPLIER_KEY, new FloatSerializer(defaultMultiplier));
         this.optionModeSlot = add(OPTION_MODE_KEY, new IntSerializer(defaultOptionMode));
     }
 
@@ -84,22 +76,6 @@ public class AdvancedGearboxFaceContainer extends EnumFaceContainer<AdvancedGear
      */
     public void setArgValue(Direction face, int value) {
         ArgValueSlot.set(face, value);
-    }
-
-    // ===== Multiplier 访问 =====
-
-    /**
-     * 获取指定面的倍率值。
-     */
-    public float getMultiplier(Direction face) {
-        return multiplierSlot.get(face);
-    }
-
-    /**
-     * 设置指定面的倍率值。
-     */
-    public void setMultiplier(Direction face, float value) {
-        multiplierSlot.set(face, value);
     }
 
     // ===== OptionMode 访问 =====
