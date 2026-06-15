@@ -26,18 +26,26 @@ public class RotModeBehaviour extends AbstractOptionBehaviour<RotModeBehaviour.M
 
     /** 选项枚举：参考系（绝对/相对） × 方向（正/反），NONE 表示不启用。 */
     public enum Mode implements INamedIconOptions {
-        NONE(CVGIcons.I_NONE),
-        ABSOLUTE_FORWARD(CVGIcons.I_ABSOLUTE_FORWARD),
-        ABSOLUTE_REVERSE(CVGIcons.I_ABSOLUTE_REVERSE),
-        RELATIVE_FORWARD(CVGIcons.I_RELATIVE_FORWARD),
-        RELATIVE_REVERSE(CVGIcons.I_RELATIVE_REVERSE);
+        NONE(CVGIcons.I_NONE, false, false),
+        ABSOLUTE_FORWARD(CVGIcons.I_ABSOLUTE_FORWARD, true, true),
+        ABSOLUTE_REVERSE(CVGIcons.I_ABSOLUTE_REVERSE, true, false),
+        RELATIVE_FORWARD(CVGIcons.I_RELATIVE_FORWARD, false, true),
+        RELATIVE_REVERSE(CVGIcons.I_RELATIVE_REVERSE, false, false);
 
+        /** 选项翻译键。 */
         private final String translationKey;
+        /** 选项图标。 */
         private final AllIcons icon;
+        /** 是否为绝对旋向（false = 相对旋向）。 */
+        private final boolean absolute;
+        /** 是否为正转（false = 反转）。 */
+        private final boolean forward;
 
-        Mode(AllIcons icon) {
-            this.icon = icon;
+        Mode(AllIcons icon, boolean absolute, boolean forward) {
             this.translationKey = "create_versatile_gearbox.rotation_mode." + Lang.asId(name());
+            this.icon = icon;
+            this.absolute = absolute;
+            this.forward = forward;
         }
 
         @Override
@@ -48,6 +56,16 @@ public class RotModeBehaviour extends AbstractOptionBehaviour<RotModeBehaviour.M
         @Override
         public String getTranslationKey() {
             return translationKey;
+        }
+
+        /** 是否为绝对旋向（false = 相对旋向）。 */
+        public boolean isAbsolute() {
+            return absolute;
+        }
+
+        /** 是否为正转（false = 反转）。 */
+        public boolean isForward() {
+            return forward;
         }
     }
 
