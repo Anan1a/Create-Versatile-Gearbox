@@ -68,7 +68,7 @@ public class AdvancedGearboxConfigBehaviours {
                     new FaceValueBoxTransform(dir, 12, 12, () -> be.getShaftState(dir) == AdvancedGearboxShaftState.CFG),
                     netId++, dir.getName()
             );
-            rotationMode.withCallback(val -> faceData.setOptionMode(dir, val));
+            rotationMode.withCallback(val -> faceData.setRotMode(dir, val));
             rotModeBehaviours[i] = rotationMode;
             list.add(rotationMode);
         }
@@ -83,7 +83,7 @@ public class AdvancedGearboxConfigBehaviours {
         for (Direction dir : Direction.values()) {
             int i = dir.get3DDataValue();
             intBehaviours[i].value = faceData.getArgValue(dir);
-            rotModeBehaviours[i].clampValue(faceData.getOptionMode(dir));
+            rotModeBehaviours[i].clampValue(faceData.getRotMode(dir));
         }
     }
 }

@@ -86,7 +86,7 @@ public class AdvancedGearboxBlockEntity extends SplitShaftBlockEntity implements
      * 获取指定面的选项模式枚举。
      */
     public Mode getOptionMode(Direction face) {
-        return faceData.resolveOptionMode(face);
+        return faceData.resolveRotMode(face);
     }
 
     // ===== 面状态访问 =====

@@ -33,9 +33,9 @@ public class AdvancedGearboxFaceContainer extends EnumFaceContainer<AdvancedGear
     private final FieldSlot<Integer> ArgValueSlot;
 
     /** NBT 键名：每面选项模式序数。 */
-    public static final String OPTION_MODE_KEY = "OptionMode";
+    public static final String ROT_MODE_KEY = "RotMode";
     /** 选项模式序数字段槽。 */
-    private final FieldSlot<Integer> optionModeSlot;
+    private final FieldSlot<Integer> rotModeSlot;
 
     /**
      * 构造全默认值的容器。
@@ -56,10 +56,10 @@ public class AdvancedGearboxFaceContainer extends EnumFaceContainer<AdvancedGear
      */
     public AdvancedGearboxFaceContainer(AdvancedGearboxShaftState defaultState,
                                         int defaultArgValue,
-                                        int defaultOptionMode) {
+                                        int defaultRotMode) {
         super(defaultState);
         this.ArgValueSlot = add(SPEED_VALUE_KEY, new IntSerializer(defaultArgValue));
-        this.optionModeSlot = add(OPTION_MODE_KEY, new IntSerializer(defaultOptionMode));
+        this.rotModeSlot = add(ROT_MODE_KEY, new IntSerializer(defaultRotMode));
     }
 
     // ===== ArgValue 访问 =====
@@ -78,26 +78,33 @@ public class AdvancedGearboxFaceContainer extends EnumFaceContainer<AdvancedGear
         ArgValueSlot.set(face, value);
     }
 
-    // ===== OptionMode 访问 =====
+    // ===== RotMode 访问 =====
 
     /**
      * 获取指定面的选项模式枚举（从序数转换）。
      */
-    public Mode resolveOptionMode(Direction face) {
-        return Mode.values()[optionModeSlot.get(face)];
+    public Mode resolveRotMode(Direction face) {
+        return Mode.values()[rotModeSlot.get(face)];
+    }
+
+    /**
+     * 设置指定面的选项模式枚举。
+     */
+    public void setRotMode(Direction face, Mode mode) {
+        rotModeSlot.set(face, mode.ordinal());
     }
 
     /**
      * 获取指定面的选项模式序数。
      */
-    public int getOptionMode(Direction face) {
-        return optionModeSlot.get(face);
+    public int getRotMode(Direction face) {
+        return rotModeSlot.get(face);
     }
 
     /**
      * 设置指定面的选项模式序数。
      */
-    public void setOptionMode(Direction face, int value) {
-        optionModeSlot.set(face, value);
+    public void setRotMode(Direction face, int value) {
+        rotModeSlot.set(face, value);
     }
 }
