@@ -36,7 +36,7 @@ public class CountBehaviour extends AbstractValueBehaviour {
     public ValueSettingsBoard createBoard(Player player, BlockHitResult hitResult) {
         return new ValueSettingsBoard(
                 label, maxValue, 1,
-                List.of(Component.literal("\u27f3").withStyle(ChatFormatting.BOLD)),
+                List.of(Component.literal("N").withStyle(ChatFormatting.BOLD)),
                 new ValueSettingsFormatter(this::formatSettings)
         );
     }

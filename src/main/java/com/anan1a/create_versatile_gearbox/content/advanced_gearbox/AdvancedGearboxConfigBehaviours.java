@@ -3,8 +3,8 @@ package com.anan1a.create_versatile_gearbox.content.advanced_gearbox;
 import java.util.List;
 
 import com.anan1a.create_versatile_gearbox.foundation.behaviour.option.RotModeBehaviour;
-import com.anan1a.create_versatile_gearbox.foundation.behaviour.value.Pow2Behaviour;
-import com.anan1a.create_versatile_gearbox.foundation.behaviour.value.IntBehaviour;
+import com.anan1a.create_versatile_gearbox.foundation.behaviour.value.signed.Pow2Behaviour;
+import com.anan1a.create_versatile_gearbox.foundation.behaviour.value.signed.IntBehaviour;
 import com.anan1a.create_versatile_gearbox.foundation.behaviour.FaceValueBoxTransform;
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
 import com.simibubi.create.infrastructure.config.AllConfigs;
@@ -29,7 +29,6 @@ public class AdvancedGearboxConfigBehaviours {
 
     private final AdvancedGearboxFaceContainer faceData;
     private final IntBehaviour[] intBehaviours;
-    private final Pow2Behaviour[] pow2Behaviours;
     private final RotModeBehaviour[] rotModeBehaviours;
 
     /**
@@ -44,11 +43,9 @@ public class AdvancedGearboxConfigBehaviours {
                                            List<BlockEntityBehaviour> list) {
         this.faceData = faceData;
         this.intBehaviours = new IntBehaviour[6];
-        this.pow2Behaviours = new Pow2Behaviour[6];
         this.rotModeBehaviours = new RotModeBehaviour[6];
 
         int maxRotationSpeed = AllConfigs.server().kinetics.maxRotationSpeed.get();
-        int maxExponent = (int) (Math.log(maxRotationSpeed) / Math.log(2));
 
         int netId = 0;
         for (Direction dir : Direction.values()) {
@@ -65,18 +62,6 @@ public class AdvancedGearboxConfigBehaviours {
             speed.withCallback(val -> faceData.setSpeedValue(dir, val));
             intBehaviours[i] = speed;
             list.add(speed);
-
-            // ---- 倍率值滑条（双排 ÷/×，离散指数 -8~8） ----
-            Pow2Behaviour multiplier = new Pow2Behaviour(
-                    Component.translatable("gui.advanced_gearbox.face_multiplier", dir.getName()),
-                    be,
-                    new FaceValueBoxTransform(dir, 4, 4, () -> be.getShaftState(dir) == AdvancedGearboxShaftState.CFG),
-                    netId++, dir.getName(),
-                    maxExponent
-            );
-            multiplier.withCallback(val -> faceData.setMultiplier(dir, multiplier.indexToMultiplier(val)));
-            pow2Behaviours[i] = multiplier;
-            list.add(multiplier);
 
             RotModeBehaviour rotationMode = new RotModeBehaviour(
                     Component.translatable("gui.advanced_gearbox.face_rotation_mode", dir.getName()),
@@ -99,7 +84,6 @@ public class AdvancedGearboxConfigBehaviours {
         for (Direction dir : Direction.values()) {
             int i = dir.get3DDataValue();
             intBehaviours[i].value = faceData.getSpeedValue(dir);
-            pow2Behaviours[i].value = pow2Behaviours[i].multiplierToIndex(faceData.getMultiplier(dir));
             rotModeBehaviours[i].clampValue(faceData.getOptionMode(dir));
         }
     }

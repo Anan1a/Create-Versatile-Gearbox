@@ -1,6 +1,7 @@
-package com.anan1a.create_versatile_gearbox.foundation.behaviour.value;
+package com.anan1a.create_versatile_gearbox.foundation.behaviour.value.signed;
 
 import com.anan1a.create_versatile_gearbox.foundation.behaviour.FaceValueBoxTransform;
+import com.anan1a.create_versatile_gearbox.foundation.behaviour.value.AbstractValueBehaviour;
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
 
 import net.minecraft.network.chat.Component;

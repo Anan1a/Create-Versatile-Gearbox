@@ -1,4 +1,4 @@
-package com.anan1a.create_versatile_gearbox.foundation.behaviour.value;
+package com.anan1a.create_versatile_gearbox.foundation.behaviour.value.signed;
 
 import java.util.List;
 
