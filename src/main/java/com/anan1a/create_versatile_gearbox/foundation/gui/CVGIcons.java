@@ -31,34 +31,29 @@ public class CVGIcons extends AllIcons {
             ResourceLocation.fromNamespaceAndPath(MODID, "textures/gui/icons.png");
     public static final int ICON_ATLAS_SIZE = 128;
 
-    private static int gridX = 0, gridY = -1;
-    private final int px, py;
+    private static int x = 0, y = -1;
+    private int iconX;
+    private int iconY;
 
     public static final CVGIcons
         I_NONE = newRow(),
         I_ABSOLUTE_SPEED = next(),
         I_ABSOLUTE_MULTIPLIER = next(),
         I_RELATIVE_SPEED = next(),
-        I_RELATIVE_MULTIPLIER = next(),
-
-        I_NONE_BOLD = newRow(),
-        I_ABSOLUTE_SPEED_BOLD = next(),
-        I_ABSOLUTE_MULTIPLIER_BOLD = next(),
-        I_RELATIVE_SPEED_BOLD = next(),
-        I_RELATIVE_MULTIPLIER_BOLD = next();
+        I_RELATIVE_MULTIPLIER = next();
 
     public CVGIcons(int x, int y) {
         super(x, y);
-        this.px = x * 16;
-        this.py = y * 16;
-    }
-
-    private static CVGIcons next() {
-        return new CVGIcons(++gridX, gridY);
+        this.iconX = x * 16;
+        this.iconY = y * 16;
     }
 
     private static CVGIcons newRow() {
-        return new CVGIcons(gridX = 0, ++gridY);
+        return new CVGIcons(x = 0, ++y);
+    }
+
+    private static CVGIcons next() {
+        return new CVGIcons(++x, y);
     }
 
     @OnlyIn(Dist.CLIENT)
@@ -70,7 +65,7 @@ public class CVGIcons extends AllIcons {
     @OnlyIn(Dist.CLIENT)
     @Override
     public void render(GuiGraphics graphics, int x, int y) {
-        graphics.blit(ICON_ATLAS, x, y, 0, px, py, 16, 16, ICON_ATLAS_SIZE, ICON_ATLAS_SIZE);
+        graphics.blit(ICON_ATLAS, x, y, 0, iconX, iconY, 16, 16, ICON_ATLAS_SIZE, ICON_ATLAS_SIZE);
     }
 
     @OnlyIn(Dist.CLIENT)
@@ -86,10 +81,10 @@ public class CVGIcons extends AllIcons {
         Vec3 vec3 = new Vec3(1, 1, 0);
         Vec3 vec4 = new Vec3(1, 0, 0);
 
-        float u1 = px * 1f / ICON_ATLAS_SIZE;
-        float u2 = (px + 16) * 1f / ICON_ATLAS_SIZE;
-        float v1 = py * 1f / ICON_ATLAS_SIZE;
-        float v2 = (py + 16) * 1f / ICON_ATLAS_SIZE;
+        float u1 = iconX * 1f / ICON_ATLAS_SIZE;
+        float u2 = (iconX + 16) * 1f / ICON_ATLAS_SIZE;
+        float v1 = iconY * 1f / ICON_ATLAS_SIZE;
+        float v2 = (iconY + 16) * 1f / ICON_ATLAS_SIZE;
 
         vertex(builder, matrix, vec1, rgb, u1, v1, light);
         vertex(builder, matrix, vec2, rgb, u1, v2, light);
