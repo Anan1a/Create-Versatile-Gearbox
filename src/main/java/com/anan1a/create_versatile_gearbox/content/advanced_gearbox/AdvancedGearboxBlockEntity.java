@@ -79,7 +79,7 @@ public class AdvancedGearboxBlockEntity extends SplitShaftBlockEntity implements
      * 获取指定面的转速值。
      */
     public int getSpeedValue(Direction face) {
-        return faceData.getSpeedValue(face);
+        return faceData.getArgValue(face);
     }
 
     /**

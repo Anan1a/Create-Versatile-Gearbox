@@ -3,7 +3,6 @@ package com.anan1a.create_versatile_gearbox.content.advanced_gearbox;
 import java.util.List;
 
 import com.anan1a.create_versatile_gearbox.foundation.behaviour.option.RotModeBehaviour;
-import com.anan1a.create_versatile_gearbox.foundation.behaviour.value.signed.Pow2Behaviour;
 import com.anan1a.create_versatile_gearbox.foundation.behaviour.value.signed.IntBehaviour;
 import com.anan1a.create_versatile_gearbox.foundation.behaviour.FaceValueBoxTransform;
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
@@ -59,7 +58,7 @@ public class AdvancedGearboxConfigBehaviours {
                     netId++, dir.getName(),
                     maxRotationSpeed
             );
-            speed.withCallback(val -> faceData.setSpeedValue(dir, val));
+            speed.withCallback(val -> faceData.setArgValue(dir, val));
             intBehaviours[i] = speed;
             list.add(speed);
 
@@ -83,7 +82,7 @@ public class AdvancedGearboxConfigBehaviours {
     public void syncFromFaceData() {
         for (Direction dir : Direction.values()) {
             int i = dir.get3DDataValue();
-            intBehaviours[i].value = faceData.getSpeedValue(dir);
+            intBehaviours[i].value = faceData.getArgValue(dir);
             rotModeBehaviours[i].clampValue(faceData.getOptionMode(dir));
         }
     }
