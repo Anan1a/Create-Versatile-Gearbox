@@ -35,10 +35,10 @@ public class IntBehaviour extends AbstractSignedBehaviour {
     @Override
     public ValueSettingsBoard createBoard(Player player, BlockHitResult hitResult) {
         return new ValueSettingsBoard(
-                label, maxValue, 32,
+                label, maxValue, 8,
                 List.of(
-                        Component.literal("\u27f3").withStyle(ChatFormatting.BOLD),
-                        Component.literal("\u27f2").withStyle(ChatFormatting.BOLD)
+                        Component.literal("-").withStyle(ChatFormatting.BOLD),
+                        Component.literal("+").withStyle(ChatFormatting.BOLD)
                 ),
                 new ValueSettingsFormatter(this::formatSettings)
         );
