@@ -30,13 +30,21 @@
   "create_versatile_gearbox.ponder.versatile_gearbox_shaft_control.text_4": "再次点击可以重新激活该面",
   "create_versatile_gearbox.ponder.versatile_gearbox_shaft_control.text_5": "轴被重新激活，恢复动力传输",
 
-  "gui.advanced_gearbox.face_speed": "转速 (%s)",
-  "gui.advanced_gearbox.face_multiplier": "倍率 (%s)",
+  "gui.advanced_gearbox.face_value": "值 (%s)",
   "gui.advanced_gearbox.face_rotation_mode": "旋向模式 (%s)",
+  "gui.advanced_gearbox.face_operation_mode": "操作模式 (%s)",
 
   "create_versatile_gearbox.rotation_mode.none": "无",
   "create_versatile_gearbox.rotation_mode.absolute_forward": "绝对正转",
   "create_versatile_gearbox.rotation_mode.absolute_reverse": "绝对反转",
   "create_versatile_gearbox.rotation_mode.relative_forward": "相对正转",
-  "create_versatile_gearbox.rotation_mode.relative_reverse": "相对反转"
+  "create_versatile_gearbox.rotation_mode.relative_reverse": "相对反转",
+
+  "create_versatile_gearbox.operation_mode.idle": "保持",
+  "create_versatile_gearbox.operation_mode.set": "设定",
+  "create_versatile_gearbox.operation_mode.mag_add": "增加",
+  "create_versatile_gearbox.operation_mode.mag_sub": "减少",
+  "create_versatile_gearbox.operation_mode.mul": "相乘",
+  "create_versatile_gearbox.operation_mode.div": "相除",
+  "create_versatile_gearbox.operation_mode.rev_div": "反除"
 }

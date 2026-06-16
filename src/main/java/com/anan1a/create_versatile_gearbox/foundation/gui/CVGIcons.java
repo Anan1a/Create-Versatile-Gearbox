@@ -36,11 +36,20 @@ public class CVGIcons extends AllIcons {
     private int iconY;
 
     public static final CVGIcons
+        // 选项模式图标
         I_NONE = newRow(),
         I_ABSOLUTE_FORWARD = next(),
         I_ABSOLUTE_REVERSE = next(),
         I_RELATIVE_FORWARD = next(),
-        I_RELATIVE_REVERSE = next();
+        I_RELATIVE_REVERSE = next(),
+        // 操作模式图标
+        I_IDLE = newRow(),
+        I_SET = next(),
+        I_MAG_ADD = next(),
+        I_MAG_SUB = next(),
+        I_MUL = next(),
+        I_DIV = next(),
+        I_REV_DIV = next();
 
     public CVGIcons(int x, int y) {
         super(x, y);

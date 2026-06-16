@@ -14,7 +14,7 @@ import net.minecraft.network.chat.Component;
  * <p>
  * 示例化添加方式：
  * <pre>{@code
- * behaviours.add(new RotModeBehaviour(
+ * behaviours.add(new RotationModeBehaviour(
  *     Component.translatable("gui.advanced_gearbox.face_rotation_mode", dir.getName()),
  *     be,
  *     new FaceValueBoxTransform(dir, 12, 12, () -> condition),
@@ -22,10 +22,10 @@ import net.minecraft.network.chat.Component;
  * ));
  * }</pre>
  */
-public class RotModeBehaviour extends AbstractOptionBehaviour<RotModeBehaviour.Mode> {
+public class RotationModeBehaviour extends AbstractOptionBehaviour<RotationModeBehaviour.RotationMode> {
 
     /** 选项枚举：参考系（绝对/相对） × 方向（正/反），NONE 表示不启用。 */
-    public enum Mode implements INamedIconOptions {
+    public enum RotationMode implements INamedIconOptions {
         NONE(CVGIcons.I_NONE, false, false),
         ABSOLUTE_FORWARD(CVGIcons.I_ABSOLUTE_FORWARD, true, true),
         ABSOLUTE_REVERSE(CVGIcons.I_ABSOLUTE_REVERSE, true, false),
@@ -41,7 +41,7 @@ public class RotModeBehaviour extends AbstractOptionBehaviour<RotModeBehaviour.M
         /** 是否为正转（false = 反转）。 */
         private final boolean forward;
 
-        Mode(AllIcons icon, boolean absolute, boolean forward) {
+        RotationMode(AllIcons icon, boolean absolute, boolean forward) {
             this.translationKey = "create_versatile_gearbox.rotation_mode." + Lang.asId(name());
             this.icon = icon;
             this.absolute = absolute;
@@ -49,13 +49,13 @@ public class RotModeBehaviour extends AbstractOptionBehaviour<RotModeBehaviour.M
         }
 
         @Override
-        public AllIcons getIcon() {
-            return icon;
+        public String getTranslationKey() {
+            return translationKey;
         }
 
         @Override
-        public String getTranslationKey() {
-            return translationKey;
+        public AllIcons getIcon() {
+            return icon;
         }
 
         /** 是否为绝对旋向（false = 相对旋向）。 */
@@ -69,11 +69,11 @@ public class RotModeBehaviour extends AbstractOptionBehaviour<RotModeBehaviour.M
         }
     }
 
-    private static final String TYPE_PREFIX = "rot_mode_";
+    private static final String TYPE_PREFIX = "rotation_mode_";
 
-    public RotModeBehaviour(Component label, SmartBlockEntity be,
-                            FaceValueBoxTransform slot, int netId,
-                            String typeSuffix) {
-        super(Mode.class, label, be, slot, netId, TYPE_PREFIX + typeSuffix);
+    public RotationModeBehaviour(Component label, SmartBlockEntity be,
+                                 FaceValueBoxTransform slot, int netId,
+                                 String typeSuffix) {
+        super(RotationMode.class, label, be, slot, netId, TYPE_PREFIX + typeSuffix);
     }
 }

@@ -7,7 +7,8 @@ import com.simibubi.create.content.contraptions.StructureTransform;
 import com.simibubi.create.content.kinetics.transmission.SplitShaftBlockEntity;
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
 
-import com.anan1a.create_versatile_gearbox.foundation.behaviour.option.RotModeBehaviour.Mode;
+import com.anan1a.create_versatile_gearbox.foundation.behaviour.option.RotationModeBehaviour.RotationMode;
+import com.anan1a.create_versatile_gearbox.foundation.behaviour.option.OperationModeBehaviour.OperationMode;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -85,8 +86,15 @@ public class AdvancedGearboxBlockEntity extends SplitShaftBlockEntity implements
     /**
      * 获取指定面的选项模式枚举。
      */
-    public Mode getOptionMode(Direction face) {
+    public RotationMode getOptionMode(Direction face) {
         return faceData.resolveRotMode(face);
+    }
+
+    /**
+     * 获取指定面的操作模式枚举。
+     */
+    public OperationMode getOpMode(Direction face) {
+        return faceData.resolveOpMode(face);
     }
 
     // ===== 面状态访问 =====

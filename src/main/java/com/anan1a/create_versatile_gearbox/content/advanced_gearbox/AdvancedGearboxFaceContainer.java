@@ -2,9 +2,10 @@ package com.anan1a.create_versatile_gearbox.content.advanced_gearbox;
 
 import com.anan1a.create_versatile_gearbox.foundation.container.EnumFaceContainer;
 import com.anan1a.create_versatile_gearbox.foundation.container.FieldSlot;
-import com.anan1a.create_versatile_gearbox.foundation.container.serializer.FloatSerializer;
 import com.anan1a.create_versatile_gearbox.foundation.container.serializer.IntSerializer;
-import com.anan1a.create_versatile_gearbox.foundation.behaviour.option.RotModeBehaviour.Mode;
+
+import com.anan1a.create_versatile_gearbox.foundation.behaviour.option.RotationModeBehaviour.RotationMode;
+import com.anan1a.create_versatile_gearbox.foundation.behaviour.option.OperationModeBehaviour.OperationMode;
 
 import net.minecraft.core.Direction;
 
@@ -16,8 +17,8 @@ import net.minecraft.core.Direction;
  * <pre>
  * {
  *   "FaceStateData": {
- *     "DOWN":  { "FaceState": "fwd", "ArgValue": 5, "Multiplier": 1.5 },
- *     "UP":    { "FaceState": "rev", "ArgValue": 0, "Multiplier": 1.0 },
+ *     "DOWN":  { "FaceState": "fwd", "ArgValue": 5, "RotationMode": 0, "OpMode": 5},
+ *     "UP":    { "FaceState": "rev", "ArgValue": 0, "RotationMode": 0, "OpMode": 0},
  *     ...
  *   }
  * }
@@ -33,9 +34,14 @@ public class AdvancedGearboxFaceContainer extends EnumFaceContainer<AdvancedGear
     private final FieldSlot<Integer> ArgValueSlot;
 
     /** NBT 键名：每面选项模式序数。 */
-    public static final String ROT_MODE_KEY = "RotMode";
+    public static final String ROT_MODE_KEY = "RotationMode";
     /** 选项模式序数字段槽。 */
     private final FieldSlot<Integer> rotModeSlot;
+
+    /** NBT 键名：每面操作模式序数。 */
+    public static final String OP_MODE_KEY = "OperationMode";
+    /** 操作模式序数字段槽。 */
+    private final FieldSlot<Integer> opModeSlot;
 
     /**
      * 构造全默认值的容器。
@@ -46,6 +52,7 @@ public class AdvancedGearboxFaceContainer extends EnumFaceContainer<AdvancedGear
     public AdvancedGearboxFaceContainer() {
         this(AdvancedGearboxBlock.DEFAULT_SHAFT_STATE,
             16,
+            0,
             0);
     }
 
@@ -56,10 +63,12 @@ public class AdvancedGearboxFaceContainer extends EnumFaceContainer<AdvancedGear
      */
     public AdvancedGearboxFaceContainer(AdvancedGearboxShaftState defaultState,
                                         int defaultArgValue,
-                                        int defaultRotMode) {
+                                        int defaultRotMode,
+                                        int defaultOpMode) {
         super(defaultState);
         this.ArgValueSlot = add(SPEED_VALUE_KEY, new IntSerializer(defaultArgValue));
         this.rotModeSlot = add(ROT_MODE_KEY, new IntSerializer(defaultRotMode));
+        this.opModeSlot = add(OP_MODE_KEY, new IntSerializer(defaultOpMode));
     }
 
     // ===== ArgValue 访问 =====
@@ -78,20 +87,20 @@ public class AdvancedGearboxFaceContainer extends EnumFaceContainer<AdvancedGear
         ArgValueSlot.set(face, value);
     }
 
-    // ===== RotMode 访问 =====
+    // ===== RotationMode 访问 =====
 
     /**
      * 获取指定面的选项模式枚举（从序数转换）。
      */
-    public Mode resolveRotMode(Direction face) {
-        return Mode.values()[rotModeSlot.get(face)];
+    public RotationMode resolveRotMode(Direction face) {
+        return RotationMode.values()[rotModeSlot.get(face)];
     }
 
     /**
      * 设置指定面的选项模式枚举。
      */
-    public void setRotMode(Direction face, Mode mode) {
-        rotModeSlot.set(face, mode.ordinal());
+    public void setRotMode(Direction face, RotationMode rotationMode) {
+        rotModeSlot.set(face, rotationMode.ordinal());
     }
 
     /**
@@ -107,4 +116,35 @@ public class AdvancedGearboxFaceContainer extends EnumFaceContainer<AdvancedGear
     public void setRotMode(Direction face, int value) {
         rotModeSlot.set(face, value);
     }
+
+    // ===== OperationMode 访问 =====
+
+    /**
+     * 获取指定面的操作模式枚举（从序数转换）。
+     */
+    public OperationMode resolveOpMode(Direction face) {
+        return OperationMode.values()[opModeSlot.get(face)];
+    }
+
+    /**
+     * 设置指定面的操作模式枚举。
+     */
+    public void setOpMode(Direction face, OperationMode operationMode) {
+        opModeSlot.set(face, operationMode.ordinal());
+    }
+
+    /**
+     * 获取指定面的操作模式序数。
+     */
+    public int getOpMode(Direction face) {
+        return opModeSlot.get(face);
+    }
+
+    /**
+     * 设置指定面的操作模式序数。
+     */
+    public void setOpMode(Direction face, int value) {
+        opModeSlot.set(face, value);
+    }
+
 }

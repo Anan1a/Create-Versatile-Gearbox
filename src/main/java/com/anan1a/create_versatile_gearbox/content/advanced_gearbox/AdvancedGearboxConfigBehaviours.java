@@ -2,7 +2,8 @@ package com.anan1a.create_versatile_gearbox.content.advanced_gearbox;
 
 import java.util.List;
 
-import com.anan1a.create_versatile_gearbox.foundation.behaviour.option.RotModeBehaviour;
+import com.anan1a.create_versatile_gearbox.foundation.behaviour.option.RotationModeBehaviour;
+import com.anan1a.create_versatile_gearbox.foundation.behaviour.option.OperationModeBehaviour;
 import com.anan1a.create_versatile_gearbox.foundation.behaviour.value.CountBehaviour;
 import com.anan1a.create_versatile_gearbox.foundation.behaviour.FaceValueBoxTransform;
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
@@ -27,8 +28,9 @@ import net.minecraft.network.chat.Component;
 public class AdvancedGearboxConfigBehaviours {
 
     private final AdvancedGearboxFaceContainer faceData;
-    private final CountBehaviour[] countBehaviours;
-    private final RotModeBehaviour[] rotModeBehaviours;
+    private final CountBehaviour[] argValueBehaviours;
+    private final RotationModeBehaviour[] rotationModeBehaviours;
+    private final OperationModeBehaviour[] operationModeBehaviours;
 
     /**
      * 构造 12 个滑条（6 速度 + 6 倍率）并注册到 behaviours 列表。
@@ -41,36 +43,49 @@ public class AdvancedGearboxConfigBehaviours {
                                            AdvancedGearboxFaceContainer faceData,
                                            List<BlockEntityBehaviour> list) {
         this.faceData = faceData;
-        this.countBehaviours = new CountBehaviour[6];
-        this.rotModeBehaviours = new RotModeBehaviour[6];
+        this.argValueBehaviours = new CountBehaviour[6];
+        this.rotationModeBehaviours = new RotationModeBehaviour[6];
+        this.operationModeBehaviours = new OperationModeBehaviour[6];
 
-        int maxRotationSpeed = AllConfigs.server().kinetics.maxRotationSpeed.get();
+        int maxRotationValue = AllConfigs.server().kinetics.maxRotationSpeed.get();
 
         int netId = 0;
         for (Direction dir : Direction.values()) {
             int i = dir.get3DDataValue();
 
-            // ---- 速度值滑条（双排 CCW/CW，值域 ±maxRotationSpeed） ----
-            CountBehaviour speed = new CountBehaviour(
-                    Component.translatable("gui.advanced_gearbox.face_speed", dir.getName()),
+            // ---- 值滑条 ----
+            CountBehaviour argValue = new CountBehaviour(
+                    Component.translatable("gui.advanced_gearbox.face_value", dir.getName()),
                     be,
                     new FaceValueBoxTransform(dir, 4, 12, () -> be.getShaftState(dir) == AdvancedGearboxShaftState.CFG),
                     netId++, dir.getName(),
-                    maxRotationSpeed
+                    maxRotationValue
             );
-            speed.withCallback(val -> faceData.setArgValue(dir, val));
-            countBehaviours[i] = speed;
-            list.add(speed);
+            argValue.withCallback(val -> faceData.setArgValue(dir, val));
+            argValueBehaviours[i] = argValue;
+            list.add(argValue);
 
-            RotModeBehaviour rotationMode = new RotModeBehaviour(
+            // ---- 旋转模式滑条 ----
+            RotationModeBehaviour rotationMode = new RotationModeBehaviour(
                     Component.translatable("gui.advanced_gearbox.face_rotation_mode", dir.getName()),
                     be,
                     new FaceValueBoxTransform(dir, 4, 4, () -> be.getShaftState(dir) == AdvancedGearboxShaftState.CFG),
                     netId++, dir.getName()
             );
             rotationMode.withCallback(val -> faceData.setRotMode(dir, val));
-            rotModeBehaviours[i] = rotationMode;
+            rotationModeBehaviours[i] = rotationMode;
             list.add(rotationMode);
+
+            // ---- 倍率模式滑条 ----
+            OperationModeBehaviour operationMode = new OperationModeBehaviour(
+                    Component.translatable("gui.advanced_gearbox.face_operation_mode", dir.getName()),
+                    be,
+                    new FaceValueBoxTransform(dir, 12, 12, () -> be.getShaftState(dir) == AdvancedGearboxShaftState.CFG),
+                    netId++, dir.getName()
+            );
+            operationMode.withCallback(val -> faceData.setOpMode(dir, val));
+            operationModeBehaviours[i] = operationMode;
+            list.add(operationMode);
         }
     }
 
@@ -82,8 +97,9 @@ public class AdvancedGearboxConfigBehaviours {
     public void syncFromFaceData() {
         for (Direction dir : Direction.values()) {
             int i = dir.get3DDataValue();
-            countBehaviours[i].value = faceData.getArgValue(dir);
-            rotModeBehaviours[i].clampValue(faceData.getRotMode(dir));
+            argValueBehaviours[i].value = faceData.getArgValue(dir);
+            rotationModeBehaviours[i].clampValue(faceData.getRotMode(dir));
+            operationModeBehaviours[i].clampValue(faceData.getOpMode(dir));
         }
     }
 }
