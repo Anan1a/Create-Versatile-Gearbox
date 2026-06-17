@@ -11,9 +11,8 @@ import net.minecraft.network.chat.Component;
 /**
  * 双排指数幂滑条，内部值 v 直接为指数（2 的幂次）。
  * <p>
- * 值域 {@code [-maxExponent, maxExponent]}，col 0 为恒等。
- * Row 0 = 除幂 (÷2^{|v|})，Row 1 = 乘幂 (×2^{|v|})。
- * 不涉及负数，只有乘除幂。
+ * 值域 {@code [-maxExponent, maxExponent]}，其中 maxExponent = log₂(maxValue)。
+ * col 0 为恒等，Row 0 = 除幂 (÷2^{|v|})，Row 1 = 乘幂 (×2^{|v|})。
  */
 public class ExpBehaviour extends AbstractSignedBehaviour {
 
@@ -26,16 +25,16 @@ public class ExpBehaviour extends AbstractSignedBehaviour {
      * @param slot              交互框变换
      * @param netId             网络 ID
      * @param typeSuffix        类型后缀（拼入 typeName）
-     * @param maxExponent       最大指数（值域为 {@code [-maxExponent, maxExponent]}）
+     * @param maxValue          值域来源最大值（maxExponent = log₂(maxValue)）
      * @param milestoneInterval 刻度间隔（0 = 无刻度）
      * @param rowLabels         双排行标题列表，长度 2（row 0=负行, row 1=正行）
      */
     public ExpBehaviour(Component label, SmartBlockEntity be,
                         FaceValueBoxTransform slot, int netId,
-                        String typeSuffix, int maxExponent,
+                        String typeSuffix, int maxValue,
                         int milestoneInterval, List<Component> rowLabels) {
-        super(label, be, slot, netId, TYPE_PREFIX + typeSuffix, maxExponent, milestoneInterval, rowLabels);
-        this.maxExponent = maxExponent;
+        super(label, be, slot, netId, TYPE_PREFIX + typeSuffix, maxExponent(maxValue), milestoneInterval, rowLabels);
+        this.maxExponent = maxExponent(maxValue);
         between(-maxExponent, maxExponent);
     }
 
@@ -44,29 +43,29 @@ public class ExpBehaviour extends AbstractSignedBehaviour {
      */
     public ExpBehaviour(Component label, SmartBlockEntity be,
                         FaceValueBoxTransform slot, int netId,
-                        String typeSuffix, int maxExponent,
+                        String typeSuffix, int maxValue,
                         int milestoneInterval) {
-        this(label, be, slot, netId, typeSuffix, maxExponent, milestoneInterval,
+        this(label, be, slot, netId, typeSuffix, maxValue, milestoneInterval,
                 List.of(
                         Component.literal("\u00F7").withStyle(ChatFormatting.BOLD),
                         Component.literal("\u00D7").withStyle(ChatFormatting.BOLD)
                 ));
     }
 
-    /** 指数 → 浮点倍率（供外部使用）。 */
-    public float expToMultiplier(int exp) {
+    /** 指数 → 浮点值（供外部使用）。 */
+    public float expToValue(int exp) {
         if (exp == 0) return 1.0f;
         if (exp > 0) return (float) (1 << exp);
         return 1.0f / (1 << -exp);
     }
 
-    /** 浮点倍率 → 指数（数据同步时使用）。 */
-    public int multiplierToExp(float multiplier) {
-        if (multiplier == 1.0f) return 0;
-        if (multiplier > 1.0f) {
-            return Math.round((float) (Math.log(multiplier) / Math.log(2)));
+    /** 浮点值 → 指数（数据同步时使用）。 */
+    public int valueToExp(float value) {
+        if (value == 1.0f) return 0;
+        if (value > 1.0f) {
+            return Math.round((float) (Math.log(value) / Math.log(2)));
         } else {
-            return -Math.round((float) (Math.log(1.0f / multiplier) / Math.log(2)));
+            return -Math.round((float) (Math.log(1.0f / value) / Math.log(2)));
         }
     }
 

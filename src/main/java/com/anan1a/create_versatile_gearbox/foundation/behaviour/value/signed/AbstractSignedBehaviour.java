@@ -24,6 +24,11 @@ public abstract class AbstractSignedBehaviour extends AbstractValueBehaviour {
         super(label, be, slot, netId, typeName, maxCols, milestoneInterval, rowLabels);
     }
 
+    /** 由 maxValue 计算最大指数（log₂(maxValue)，纯整数位运算）。 */
+    protected static int maxExponent(int maxValue) {
+        return 31 - Integer.numberOfLeadingZeros(maxValue);
+    }
+
     // 将内部值按符号映射到两行 UI，col 0=0（停转）：
     // v ≥ 0 → row 1 (col=v)；v < 0 → row 0 (col=-v)
     @Override

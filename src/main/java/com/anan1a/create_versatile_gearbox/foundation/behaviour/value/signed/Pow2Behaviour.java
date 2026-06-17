@@ -11,7 +11,7 @@ import net.minecraft.network.chat.Component;
 /**
  * 双排指数幂滑条，内部值 v = 0 为停转，v ≠ 0 对应 2 的幂次。
  * <p>
- * 值域 {@code [-(2M+1), 2M+1]}，其中 M = {@code maxExponent}。
+ * 值域 {@code [-(2M+1), 2M+1]}，其中 M = log₂(maxValue)。
  * 两行各 {@code 2M+2} 个槽位，col 0=停转，col 1~2M+1=倍率：
  * <ul>
  *   <li>Row 0（负幂 -）：v ∈ [-(2M+1), -1]，col = -v，左到右 -1/256 → -1 → -256</li>
@@ -30,17 +30,17 @@ public class Pow2Behaviour extends AbstractSignedBehaviour {
      * @param slot              交互框变换
      * @param netId             网络 ID
      * @param typeSuffix        类型后缀（拼入 typeName）
-     * @param maxExponent       最大指数（值域为 {@code [-(2M+1), 2M+1]}）
+     * @param maxValue          值域来源最大值（maxExponent = log₂(maxValue)）
      * @param milestoneInterval 刻度间隔（0 = 无刻度）
      * @param rowLabels         双排行标题列表，长度 2（row 0=负行, row 1=正行）
      */
     public Pow2Behaviour(Component label, SmartBlockEntity be,
                          FaceValueBoxTransform slot, int netId,
-                         String typeSuffix, int maxExponent,
+                         String typeSuffix, int maxValue,
                          int milestoneInterval, List<Component> rowLabels) {
         super(label, be, slot, netId, TYPE_PREFIX + typeSuffix,
-                maxExponent * 2 + 1, milestoneInterval, rowLabels);
-        this.maxExponent = maxExponent;
+                maxExponent(maxValue) * 2 + 1, milestoneInterval, rowLabels);
+        this.maxExponent = maxExponent(maxValue);
         between(-maxExponent * 2 - 1, maxExponent * 2 + 1);
     }
 
@@ -49,9 +49,9 @@ public class Pow2Behaviour extends AbstractSignedBehaviour {
      */
     public Pow2Behaviour(Component label, SmartBlockEntity be,
                          FaceValueBoxTransform slot, int netId,
-                         String typeSuffix, int maxExponent,
+                         String typeSuffix, int maxValue,
                          int milestoneInterval) {
-        this(label, be, slot, netId, typeSuffix, maxExponent, milestoneInterval,
+        this(label, be, slot, netId, typeSuffix, maxValue, milestoneInterval,
                 List.of(
                         Component.literal("\u27f3").withStyle(ChatFormatting.BOLD),
                         Component.literal("\u27f2").withStyle(ChatFormatting.BOLD)
@@ -59,14 +59,14 @@ public class Pow2Behaviour extends AbstractSignedBehaviour {
     }
 
     /**
-     * 内部值到倍率的转换，供外部（callback、sync）调用。
+     * 内部值到浮点值的转换，供外部（callback、sync）调用。
      * <ul>
      *   <li>v = 0 → 0（停转）</li>
      *   <li>v ≥ 1 → 2^{v-1-M}（范围 +1/256 ~ +256）</li>
      *   <li>v ≤ -1 → -2^{-v-1-M}（范围 -1/256 ~ -256）</li>
      * </ul>
      */
-    public float indexToMultiplier(int index) {
+    public float indexToValue(int index) {
         if (index == 0) return 0f;
         if (index > 0) {
             int exp = index - 1 - maxExponent;
@@ -79,13 +79,13 @@ public class Pow2Behaviour extends AbstractSignedBehaviour {
         }
     }
 
-    /** 倍率反转为内部值（{@link #indexToMultiplier} 的逆运算）。 */
-    public int multiplierToIndex(float multiplier) {
-        if (multiplier == 0) return 0;
-        if (multiplier > 0) {
-            return Math.round((float) (Math.log(multiplier) / Math.log(2))) + maxExponent + 1;
+    /** 浮点值反转为内部值（{@link #indexToValue} 的逆运算）。 */
+    public int valueToIndex(float value) {
+        if (value == 0) return 0;
+        if (value > 0) {
+            return Math.round((float) (Math.log(value) / Math.log(2))) + maxExponent + 1;
         } else {
-            return -Math.round((float) (Math.log(-multiplier) / Math.log(2))) - 1 - maxExponent;
+            return -Math.round((float) (Math.log(-value) / Math.log(2))) - 1 - maxExponent;
         }
     }
 
