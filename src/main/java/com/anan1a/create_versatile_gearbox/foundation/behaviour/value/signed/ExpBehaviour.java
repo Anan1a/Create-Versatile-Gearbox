@@ -23,23 +23,48 @@ public class ExpBehaviour extends AbstractSignedBehaviour {
 
     private static final String TYPE_PREFIX = "exp_";
     private final int maxExponent;
+    private final int milestoneInterval;
+    private final List<Component> rowLabels;
 
+    /**
+     * @param label             滑条标签
+     * @param be                所属 BlockEntity
+     * @param slot              交互框变换
+     * @param netId             网络 ID
+     * @param typeSuffix        类型后缀（拼入 typeName）
+     * @param maxExponent       最大指数（值域为 {@code [-maxExponent, maxExponent]}）
+     * @param milestoneInterval 刻度间隔（0 = 无刻度）
+     * @param rowLabels         双排行标题列表，长度 2（row 0=负行, row 1=正行）
+     */
     public ExpBehaviour(Component label, SmartBlockEntity be,
                         FaceValueBoxTransform slot, int netId,
-                        String typeSuffix, int maxExponent) {
+                        String typeSuffix, int maxExponent,
+                        int milestoneInterval, List<Component> rowLabels) {
         super(label, be, slot, netId, TYPE_PREFIX + typeSuffix);
         this.maxExponent = maxExponent;
+        this.milestoneInterval = milestoneInterval;
+        this.rowLabels = rowLabels;
         between(-maxExponent, maxExponent);
+    }
+
+    /**
+     * 简化构造器，行标题默认为 {@code "÷"} 和 {@code "×"}。
+     */
+    public ExpBehaviour(Component label, SmartBlockEntity be,
+                        FaceValueBoxTransform slot, int netId,
+                        String typeSuffix, int maxExponent,
+                        int milestoneInterval) {
+        this(label, be, slot, netId, typeSuffix, maxExponent, milestoneInterval,
+                List.of(
+                        Component.literal("\u00F7").withStyle(ChatFormatting.BOLD),
+                        Component.literal("\u00D7").withStyle(ChatFormatting.BOLD)
+                ));
     }
 
     @Override
     public ValueSettingsBoard createBoard(Player player, BlockHitResult hitResult) {
         return new ValueSettingsBoard(
-                label, maxExponent, 1,
-                List.of(
-                        Component.literal("\u00F7").withStyle(ChatFormatting.BOLD),
-                        Component.literal("\u00D7").withStyle(ChatFormatting.BOLD)
-                ),
+                label, maxExponent, milestoneInterval, rowLabels,
                 new ValueSettingsFormatter(this::formatSettings)
         );
     }

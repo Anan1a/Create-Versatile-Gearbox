@@ -9,6 +9,7 @@ import com.anan1a.create_versatile_gearbox.foundation.behaviour.FaceValueBoxTran
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
 import com.simibubi.create.infrastructure.config.AllConfigs;
 
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 
@@ -59,7 +60,9 @@ public class AdvancedGearboxConfigBehaviours {
                     be,
                     new FaceValueBoxTransform(dir, 4, 12, () -> be.getShaftState(dir) == AdvancedGearboxShaftState.CFG),
                     netId++, dir.getName(),
-                    maxRotationValue
+                    maxRotationValue,
+                    32,
+                    List.of(Component.literal("V").withStyle(ChatFormatting.BOLD))
             );
             argValue.withCallback(val -> faceData.setArgValue(dir, val));
             argValueBehaviours[i] = argValue;

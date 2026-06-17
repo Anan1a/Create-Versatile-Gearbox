@@ -22,21 +22,45 @@ public class CountBehaviour extends AbstractValueBehaviour {
 
     private static final String TYPE_PREFIX = "count_";
     private final int maxValue;
+    private final int milestoneInterval;
+    private final List<Component> rowLabels;
 
+    /**
+     * @param label             滑条标签
+     * @param be                所属 BlockEntity
+     * @param slot              交互框变换
+     * @param netId             网络 ID
+     * @param typeSuffix        类型后缀（拼入 typeName）
+     * @param maxValue          值域最大值（值域为 {@code [0, maxValue]}）
+     * @param milestoneInterval 刻度间隔（0 = 无刻度）
+     * @param rowLabels         单排行标题列表，长度 1
+     */
     public CountBehaviour(Component label, SmartBlockEntity be,
                           FaceValueBoxTransform slot, int netId,
-                          String typeSuffix, int maxValue) {
+                          String typeSuffix, int maxValue,
+                          int milestoneInterval, List<Component> rowLabels) {
         super(label, be, slot, netId, TYPE_PREFIX + typeSuffix);
         this.maxValue = maxValue;
+        this.milestoneInterval = milestoneInterval;
+        this.rowLabels = rowLabels;
         between(0, maxValue);
     }
 
-    // 单排 UI
+    /**
+     * 简化构造器，行标题默认为 {@code "N"}。
+     */
+    public CountBehaviour(Component label, SmartBlockEntity be,
+                          FaceValueBoxTransform slot, int netId,
+                          String typeSuffix, int maxValue,
+                          int milestoneInterval) {
+        this(label, be, slot, netId, typeSuffix, maxValue, milestoneInterval,
+                List.of(Component.literal("N").withStyle(ChatFormatting.BOLD)));
+    }
+
     @Override
     public ValueSettingsBoard createBoard(Player player, BlockHitResult hitResult) {
         return new ValueSettingsBoard(
-                label, maxValue, 1,
-                List.of(Component.literal("N").withStyle(ChatFormatting.BOLD)),
+                label, maxValue, milestoneInterval, rowLabels,
                 new ValueSettingsFormatter(this::formatSettings)
         );
     }

@@ -27,25 +27,49 @@ public class Pow2Behaviour extends AbstractSignedBehaviour {
 
     private static final String TYPE_PREFIX = "pow2_";
     private final int maxExponent;
+    private final int milestoneInterval;
+    private final List<Component> rowLabels;
 
+    /**
+     * @param label             滑条标签
+     * @param be                所属 BlockEntity
+     * @param slot              交互框变换
+     * @param netId             网络 ID
+     * @param typeSuffix        类型后缀（拼入 typeName）
+     * @param maxExponent       最大指数（值域为 {@code [-(2M+1), 2M+1]}）
+     * @param milestoneInterval 刻度间隔（0 = 无刻度）
+     * @param rowLabels         双排行标题列表，长度 2（row 0=负行, row 1=正行）
+     */
     public Pow2Behaviour(Component label, SmartBlockEntity be,
                          FaceValueBoxTransform slot, int netId,
-                         String typeSuffix, int maxExponent) {
+                         String typeSuffix, int maxExponent,
+                         int milestoneInterval, List<Component> rowLabels) {
         super(label, be, slot, netId, TYPE_PREFIX + typeSuffix);
         this.maxExponent = maxExponent;
+        this.milestoneInterval = milestoneInterval;
+        this.rowLabels = rowLabels;
         // 值域 [-(2M+1), 2M+1]，v=0 为停转，正负各 2M+1 个倍率值
         between(-maxExponent * 2 - 1, maxExponent * 2 + 1);
     }
 
-    // 滑条 UI：双排设计，第一排=负幂(-)，第二排=正幂(+)，每行 col 0=停转，col 1~2M+1=倍率
-    @Override
-    public ValueSettingsBoard createBoard(Player player, BlockHitResult hitResult) {
-        return new ValueSettingsBoard(
-                label, maxExponent * 2 + 1, 1,
+    /**
+     * 简化构造器，行标题默认为 {@code "\u27f3"} 和 {@code "\u27f2"}。
+     */
+    public Pow2Behaviour(Component label, SmartBlockEntity be,
+                         FaceValueBoxTransform slot, int netId,
+                         String typeSuffix, int maxExponent,
+                         int milestoneInterval) {
+        this(label, be, slot, netId, typeSuffix, maxExponent, milestoneInterval,
                 List.of(
                         Component.literal("\u27f3").withStyle(ChatFormatting.BOLD),
                         Component.literal("\u27f2").withStyle(ChatFormatting.BOLD)
-                ),
+                ));
+    }
+
+    @Override
+    public ValueSettingsBoard createBoard(Player player, BlockHitResult hitResult) {
+        return new ValueSettingsBoard(
+                label, maxExponent * 2 + 1, milestoneInterval, rowLabels,
                 new ValueSettingsFormatter(this::formatSettings)
         );
     }
