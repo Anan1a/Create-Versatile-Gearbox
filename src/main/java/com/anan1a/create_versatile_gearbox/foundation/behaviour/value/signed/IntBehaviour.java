@@ -4,13 +4,9 @@ import java.util.List;
 
 import com.anan1a.create_versatile_gearbox.foundation.behaviour.FaceValueBoxTransform;
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
-import com.simibubi.create.foundation.blockEntity.behaviour.ValueSettingsBoard;
-import com.simibubi.create.foundation.blockEntity.behaviour.ValueSettingsFormatter;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.phys.BlockHitResult;
 
 /**
  * 双排整数域滑条，值域 {@code [-maxValue, maxValue]}，col 0 为停转。
@@ -21,8 +17,6 @@ public class IntBehaviour extends AbstractSignedBehaviour {
 
     private static final String TYPE_PREFIX = "int_";
     private final int maxValue;
-    private final int milestoneInterval;
-    private final List<Component> rowLabels;
 
     /**
      * @param label             滑条标签
@@ -38,10 +32,8 @@ public class IntBehaviour extends AbstractSignedBehaviour {
                         FaceValueBoxTransform slot, int netId,
                         String typeSuffix, int maxValue,
                         int milestoneInterval, List<Component> rowLabels) {
-        super(label, be, slot, netId, TYPE_PREFIX + typeSuffix);
+        super(label, be, slot, netId, TYPE_PREFIX + typeSuffix, maxValue, milestoneInterval, rowLabels);
         this.maxValue = maxValue;
-        this.milestoneInterval = milestoneInterval;
-        this.rowLabels = rowLabels;
         between(-maxValue, maxValue);
     }
 
@@ -57,14 +49,6 @@ public class IntBehaviour extends AbstractSignedBehaviour {
                         Component.literal("-").withStyle(ChatFormatting.BOLD),
                         Component.literal("+").withStyle(ChatFormatting.BOLD)
                 ));
-    }
-
-    @Override
-    public ValueSettingsBoard createBoard(Player player, BlockHitResult hitResult) {
-        return new ValueSettingsBoard(
-                label, maxValue, milestoneInterval, rowLabels,
-                new ValueSettingsFormatter(this::formatSettings)
-        );
     }
 
     @Override

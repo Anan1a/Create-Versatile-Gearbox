@@ -1,5 +1,7 @@
 package com.anan1a.create_versatile_gearbox.foundation.behaviour.value.signed;
 
+import java.util.List;
+
 import com.anan1a.create_versatile_gearbox.foundation.behaviour.FaceValueBoxTransform;
 import com.anan1a.create_versatile_gearbox.foundation.behaviour.value.AbstractValueBehaviour;
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
@@ -17,8 +19,9 @@ public abstract class AbstractSignedBehaviour extends AbstractValueBehaviour {
 
     public AbstractSignedBehaviour(Component label, SmartBlockEntity be,
                                    FaceValueBoxTransform slot, int netId,
-                                   String typeName) {
-        super(label, be, slot, netId, typeName);
+                                   String typeName, int maxCols,
+                                   int milestoneInterval, List<Component> rowLabels) {
+        super(label, be, slot, netId, typeName, maxCols, milestoneInterval, rowLabels);
     }
 
     // 将内部值按符号映射到两行 UI，col 0=0（停转）：
