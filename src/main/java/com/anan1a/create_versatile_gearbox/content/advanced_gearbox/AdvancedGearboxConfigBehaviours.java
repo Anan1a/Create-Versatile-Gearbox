@@ -58,7 +58,7 @@ public class AdvancedGearboxConfigBehaviours {
             CountBehaviour argValue = new CountBehaviour(
                     Component.translatable("gui.advanced_gearbox.face_value", dir.getName()),
                     be,
-                    new FaceValueBoxTransform(dir, 4, 12, () -> be.getShaftState(dir) == AdvancedGearboxShaftState.CFG),
+                    new FaceValueBoxTransform(dir, 12, 4, () -> be.getShaftState(dir) == AdvancedGearboxShaftState.CFG),
                     netId++, dir.getName(),
                     maxRotationValue,
                     32,
@@ -72,7 +72,7 @@ public class AdvancedGearboxConfigBehaviours {
             RotationModeBehaviour rotationMode = new RotationModeBehaviour(
                     Component.translatable("gui.advanced_gearbox.face_rotation_mode", dir.getName()),
                     be,
-                    new FaceValueBoxTransform(dir, 4, 4, () -> be.getShaftState(dir) == AdvancedGearboxShaftState.CFG),
+                    new FaceValueBoxTransform(dir, 4, 12, () -> be.getShaftState(dir) == AdvancedGearboxShaftState.CFG),
                     netId++, dir.getName()
             );
             rotationMode.withCallback(val -> faceData.setRotMode(dir, val));
@@ -83,7 +83,7 @@ public class AdvancedGearboxConfigBehaviours {
             OperationModeBehaviour operationMode = new OperationModeBehaviour(
                     Component.translatable("gui.advanced_gearbox.face_operation_mode", dir.getName()),
                     be,
-                    new FaceValueBoxTransform(dir, 12, 12, () -> be.getShaftState(dir) == AdvancedGearboxShaftState.CFG),
+                    new FaceValueBoxTransform(dir, 4, 4, () -> be.getShaftState(dir) == AdvancedGearboxShaftState.CFG),
                     netId++, dir.getName()
             );
             operationMode.withCallback(val -> faceData.setOpMode(dir, val));
