@@ -26,11 +26,11 @@ public class RotationModeBehaviour extends AbstractOptionBehaviour<RotationModeB
 
     /** 选项枚举：参考系（绝对/相对） × 方向（正/反），NONE 表示不启用。 */
     public enum RotationMode implements INamedIconOptions {
-        NONE(CVGIcons.I_NONE, false, false),
-        ABSOLUTE_FORWARD(CVGIcons.I_ABSOLUTE_FORWARD, true, true),
-        ABSOLUTE_REVERSE(CVGIcons.I_ABSOLUTE_REVERSE, true, false),
-        RELATIVE_FORWARD(CVGIcons.I_RELATIVE_FORWARD, false, true),
-        RELATIVE_REVERSE(CVGIcons.I_RELATIVE_REVERSE, false, false);
+        NONE(CVGIcons.I_NONE, false, false),                            // 不启用
+        ABSOLUTE_FORWARD(CVGIcons.I_ABSOLUTE_FORWARD, true, true),      // 绝对正转
+        ABSOLUTE_REVERSE(CVGIcons.I_ABSOLUTE_REVERSE, true, false),     // 绝对反转
+        RELATIVE_FORWARD(CVGIcons.I_RELATIVE_FORWARD, false, true),     // 相对正转
+        RELATIVE_REVERSE(CVGIcons.I_RELATIVE_REVERSE, false, false);    // 相对反转
 
         /** 选项翻译键。 */
         private final String translationKey;
@@ -69,6 +69,7 @@ public class RotationModeBehaviour extends AbstractOptionBehaviour<RotationModeB
         }
     }
 
+    /** 旋转模式行为类型前缀。 */
     private static final String TYPE_PREFIX = "rotation_mode_";
 
     public RotationModeBehaviour(Component label, SmartBlockEntity be,

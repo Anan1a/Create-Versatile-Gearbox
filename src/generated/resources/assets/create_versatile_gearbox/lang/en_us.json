@@ -13,7 +13,7 @@
   "create_versatile_gearbox.configuration.section.create_versatile_gearbox.common.toml.title": "Common Configuration",
   "create_versatile_gearbox.configuration.title": "Versatile Gearbox Configuration",
   "create_versatile_gearbox.operation_mode.div": "Divide",
-  "create_versatile_gearbox.operation_mode.idle": "Idle",
+  "create_versatile_gearbox.operation_mode.hold": "Hold",
   "create_versatile_gearbox.operation_mode.mag_add": "Magnitude Add",
   "create_versatile_gearbox.operation_mode.mag_sub": "Magnitude Subtract",
   "create_versatile_gearbox.operation_mode.mul": "Multiply",

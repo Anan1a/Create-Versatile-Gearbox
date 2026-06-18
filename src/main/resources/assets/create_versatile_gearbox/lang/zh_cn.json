@@ -40,7 +40,7 @@
   "create_versatile_gearbox.rotation_mode.relative_forward": "相对正转",
   "create_versatile_gearbox.rotation_mode.relative_reverse": "相对反转",
 
-  "create_versatile_gearbox.operation_mode.idle": "保持",
+  "create_versatile_gearbox.operation_mode.hold": "保持",
   "create_versatile_gearbox.operation_mode.set": "设定",
   "create_versatile_gearbox.operation_mode.mag_add": "增加",
   "create_versatile_gearbox.operation_mode.mag_sub": "减少",
