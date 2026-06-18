@@ -67,6 +67,28 @@ public class RotationModeBehaviour extends AbstractOptionBehaviour<RotationModeB
         public boolean isForward() {
             return forward;
         }
+
+        /**
+         * 根据输入值计算该面的输出值。
+         * <p>
+         * 调用方需要倍率时按 {@code modifier = output / input} 转换。
+         * <ul>
+         *   <li>NONE → 0（不传动力）</li>
+         *   <li>相对正转 → input（输出 = 输入）</li>
+         *   <li>相对反转 → -input（输出 = -输入）</li>
+         *   <li>绝对正转 → |input|（方向固定正转）</li>
+         *   <li>绝对反转 → -|input|（方向固定反转）</li>
+         * </ul>
+         *
+         * @param input 输入值
+         * @return 输出值
+         */
+        public float apply(float input) {
+            if (this == NONE) return 0;
+            float sign = forward ? 1 : -1;
+            if (absolute) return Math.abs(input) * sign;
+            return input * sign;
+        }
     }
 
     /** 旋转模式行为类型前缀。 */

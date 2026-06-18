@@ -56,6 +56,27 @@ public class OperationModeBehaviour extends AbstractOptionBehaviour<OperationMod
         public AllIcons getIcon() {
             return icon;
         }
+
+        /**
+         * 根据输入值 {@code s} 和设定值 {@code v} 计算输出值。
+         * <p>
+         * 运算规则见枚举常量注释。除数为 0 时返回 0。
+         *
+         * @param s 输入值
+         * @param v 设定值（滑条值）
+         * @return 输出值
+         */
+        public float apply(float s, int v) {
+            return switch (this) {
+                case HOLD    -> s;
+                case SET     -> v;
+                case MAG_ADD -> s + Math.signum(s) * v;
+                case MAG_SUB -> s - Math.signum(s) * v;
+                case MUL     -> s * v;
+                case DIV     -> v != 0 ? s / v : 0;
+                case REV_DIV -> s != 0 ? (float) v / s : 0;
+            };
+        }
     }
 
     /** 操作模式行为类型前缀。 */

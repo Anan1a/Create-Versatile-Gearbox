@@ -49,7 +49,7 @@ public class AdvancedGearboxBlockEntity extends SplitShaftBlockEntity implements
      * 数据流关系：
      * <ul>
      *   <li>NBT 持久化 → {@link #write}/{@link #read} 调 faceData.writeToRoot()/readFromRoot()</li>
-     *   <li>动力计算 → getShaftState/getSpeedValue/getMultiplier 直接从 faceData 读</li>
+     *   <li>动力计算 → getShaftState/getSettingValue/getMultiplier 直接从 faceData 读</li>
      *   <li>渲染管线 → getModelData() 调 faceData.toArray() 导出</li>
      *   <li>扳手交互 → setShaftState() 调 faceData.set() 修改</li>
      *   <li>滑条交互 → AdvancedGearboxConfigBehaviours callback 写入 faceData.setSpeedValue()</li>
@@ -77,23 +77,23 @@ public class AdvancedGearboxBlockEntity extends SplitShaftBlockEntity implements
     // ===== 选项模式访问 =====
 
     /**
-     * 获取指定面的转速值。
+     * 获取指定面的设定值（滑条值，即 OperationMode 中的 {@code v}）。
      */
-    public int getSpeedValue(Direction face) {
-        return faceData.getArgValue(face);
+    public int getSettingValue(Direction face) {
+        return faceData.getSettingValue(face);
     }
 
     /**
-     * 获取指定面的选项模式枚举。
+     * 获取指定面的旋转模式枚举。
      */
-    public RotationMode getOptionMode(Direction face) {
+    public RotationMode getRotationMode(Direction face) {
         return faceData.resolveRotMode(face);
     }
 
     /**
      * 获取指定面的操作模式枚举。
      */
-    public OperationMode getOpMode(Direction face) {
+    public OperationMode getOperationMode(Direction face) {
         return faceData.resolveOpMode(face);
     }
 

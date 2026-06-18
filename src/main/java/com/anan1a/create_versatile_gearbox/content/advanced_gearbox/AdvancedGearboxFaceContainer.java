@@ -11,14 +11,14 @@ import net.minecraft.core.Direction;
 
 /**
  * 高级齿轮箱面数据容器：在 {@link EnumFaceContainer} 的枚举状态基础上，
- * 通过继承的 {@link #add} 方法扩展存储每面的转速值（int）和倍率值（float）。
+ * 通过继承的 {@link #add} 方法扩展存储每面的设定值（int）和旋转模式序数（int）。
  * <p>
  * NBT 结构：
  * <pre>
  * {
  *   "FaceStateData": {
- *     "DOWN":  { "FaceState": "fwd", "ArgValue": 5, "RotationMode": 0, "OpMode": 5},
- *     "UP":    { "FaceState": "rev", "ArgValue": 0, "RotationMode": 0, "OpMode": 0},
+ *     "DOWN":  { "FaceState": "fwd", "SettingValue": 5, "RotationMode": 0, "OperationMode": 5},
+ *     "UP":    { "FaceState": "rev", "SettingValue": 0, "RotationMode": 0, "OperationMode": 0},
  *     ...
  *   }
  * }
@@ -28,14 +28,14 @@ import net.minecraft.core.Direction;
  */
 public class AdvancedGearboxFaceContainer extends EnumFaceContainer<AdvancedGearboxShaftState> {
 
-    /** NBT 键名：每面转速值（int）。 */
-    public static final String SPEED_VALUE_KEY = "ArgValue";
-    /** 转速字段槽。 */
-    private final FieldSlot<Integer> ArgValueSlot;
+    /** NBT 键名：每面设定值（int）。 */
+    public static final String SPEED_VALUE_KEY = "SettingValue";
+    /** 设定值字段槽。 */
+    private final FieldSlot<Integer> SettingValueSlot;
 
-    /** NBT 键名：每面选项模式序数。 */
+    /** NBT 键名：每面旋转模式序数。 */
     public static final String ROT_MODE_KEY = "RotationMode";
-    /** 选项模式序数字段槽。 */
+    /** 旋转模式序数字段槽。 */
     private final FieldSlot<Integer> rotModeSlot;
 
     /** NBT 键名：每面操作模式序数。 */
@@ -47,12 +47,12 @@ public class AdvancedGearboxFaceContainer extends EnumFaceContainer<AdvancedGear
      * 构造全默认值的容器。
      * <p>
      * 所有面的状态初始化为 {@link AdvancedGearboxBlock#DEFAULT_SHAFT_STATE}，
-     * ArgValue = 16，Multiplier = 1.0。
+     * SettingValue = 16，RotationMode = 1，OpMode = 0。
      */
     public AdvancedGearboxFaceContainer() {
         this(AdvancedGearboxBlock.DEFAULT_SHAFT_STATE,
             16,
-            0,
+            1,
             0);
     }
 
@@ -62,56 +62,56 @@ public class AdvancedGearboxFaceContainer extends EnumFaceContainer<AdvancedGear
      * @param defaultState 默认面状态
      */
     public AdvancedGearboxFaceContainer(AdvancedGearboxShaftState defaultState,
-                                        int defaultArgValue,
+                                        int defaultSettingValue,
                                         int defaultRotMode,
                                         int defaultOpMode) {
         super(defaultState);
-        this.ArgValueSlot = add(SPEED_VALUE_KEY, new IntSerializer(defaultArgValue));
+        this.SettingValueSlot = add(SPEED_VALUE_KEY, new IntSerializer(defaultSettingValue));
         this.rotModeSlot = add(ROT_MODE_KEY, new IntSerializer(defaultRotMode));
         this.opModeSlot = add(OP_MODE_KEY, new IntSerializer(defaultOpMode));
     }
 
-    // ===== ArgValue 访问 =====
+    // ===== SettingValue 访问 =====
 
     /**
-     * 获取指定面的转速值。
+     * 获取指定面的设定值。
      */
-    public int getArgValue(Direction face) {
-        return ArgValueSlot.get(face);
+    public int getSettingValue(Direction face) {
+        return SettingValueSlot.get(face);
     }
 
     /**
-     * 设置指定面的转速值。
+     * 设置指定面的设定值。
      */
-    public void setArgValue(Direction face, int value) {
-        ArgValueSlot.set(face, value);
+    public void setSettingValue(Direction face, int value) {
+        SettingValueSlot.set(face, value);
     }
 
     // ===== RotationMode 访问 =====
 
     /**
-     * 获取指定面的选项模式枚举（从序数转换）。
+     * 获取指定面的旋转模式枚举（从序数转换）。
      */
     public RotationMode resolveRotMode(Direction face) {
         return RotationMode.values()[rotModeSlot.get(face)];
     }
 
     /**
-     * 设置指定面的选项模式枚举。
+     * 设置指定面的旋转模式枚举。
      */
     public void setRotMode(Direction face, RotationMode rotationMode) {
         rotModeSlot.set(face, rotationMode.ordinal());
     }
 
     /**
-     * 获取指定面的选项模式序数。
+     * 获取指定面的旋转模式序数。
      */
     public int getRotMode(Direction face) {
         return rotModeSlot.get(face);
     }
 
     /**
-     * 设置指定面的选项模式序数。
+     * 设置指定面的旋转模式序数。
      */
     public void setRotMode(Direction face, int value) {
         rotModeSlot.set(face, value);

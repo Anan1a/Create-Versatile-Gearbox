@@ -29,7 +29,7 @@ import net.minecraft.network.chat.Component;
 public class AdvancedGearboxConfigBehaviours {
 
     private final AdvancedGearboxFaceContainer faceData;
-    private final CountBehaviour[] argValueBehaviours;
+    private final CountBehaviour[] settingValueBehaviours;
     private final RotationModeBehaviour[] rotationModeBehaviours;
     private final OperationModeBehaviour[] operationModeBehaviours;
 
@@ -44,7 +44,7 @@ public class AdvancedGearboxConfigBehaviours {
                                            AdvancedGearboxFaceContainer faceData,
                                            List<BlockEntityBehaviour> list) {
         this.faceData = faceData;
-        this.argValueBehaviours = new CountBehaviour[6];
+        this.settingValueBehaviours = new CountBehaviour[6];
         this.rotationModeBehaviours = new RotationModeBehaviour[6];
         this.operationModeBehaviours = new OperationModeBehaviour[6];
 
@@ -55,7 +55,7 @@ public class AdvancedGearboxConfigBehaviours {
             int i = dir.get3DDataValue();
 
             // ---- 值滑条 ----
-            CountBehaviour argValue = new CountBehaviour(
+            CountBehaviour settingValue = new CountBehaviour(
                     Component.translatable("gui.advanced_gearbox.face_value", dir.getName()),
                     be,
                     new FaceValueBoxTransform(dir, 12, 4, () -> be.getShaftState(dir) == AdvancedGearboxShaftState.CFG),
@@ -64,9 +64,9 @@ public class AdvancedGearboxConfigBehaviours {
                     32,
                     List.of(Component.literal("V").withStyle(ChatFormatting.BOLD))
             );
-            argValue.withCallback(val -> faceData.setArgValue(dir, val));
-            argValueBehaviours[i] = argValue;
-            list.add(argValue);
+            settingValue.withCallback(val -> faceData.setSettingValue(dir, val));
+            settingValueBehaviours[i] = settingValue;
+            list.add(settingValue);
 
             // ---- 旋转模式滑条 ----
             RotationModeBehaviour rotationMode = new RotationModeBehaviour(
@@ -100,7 +100,7 @@ public class AdvancedGearboxConfigBehaviours {
     public void syncFromFaceData() {
         for (Direction dir : Direction.values()) {
             int i = dir.get3DDataValue();
-            argValueBehaviours[i].value = faceData.getArgValue(dir);
+            settingValueBehaviours[i].value = faceData.getSettingValue(dir);
             rotationModeBehaviours[i].clampValue(faceData.getRotMode(dir));
             operationModeBehaviours[i].clampValue(faceData.getOpMode(dir));
         }
