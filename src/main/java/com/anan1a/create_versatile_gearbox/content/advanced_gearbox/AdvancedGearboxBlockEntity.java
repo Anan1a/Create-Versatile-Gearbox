@@ -46,7 +46,7 @@ public class AdvancedGearboxBlockEntity extends SplitShaftBlockEntity implements
      * 六面数据的唯一真实来源（Single Source of Truth）。
      * <p>
      * 包含每面的枚举状态（ShaftState）、转速值（SpeedValue）和倍率值（Multiplier）。
-     * 初始化时全默认为：FWD、0、1.0，在 {@link #read} 中从 NBT 恢复覆盖。
+     * 初始化时全默认为：SHAFT、0、1.0，在 {@link #read} 中从 NBT 恢复覆盖。
      * <p>
      * 数据流关系：
      * <ul>
@@ -135,7 +135,7 @@ public class AdvancedGearboxBlockEntity extends SplitShaftBlockEntity implements
     /**
      * 循环切换指定面的传动轴状态。
      * <p>
-     * 状态切换顺序：FWD → REV → OFF → VAR → CFG → FWD
+     * 状态切换顺序：SHAFT → OFF → CFG → SHAFT
      * <p>
      * 与 {@link #setShaftState(Direction, AdvancedGearboxShaftState)} 的区别：
      * 此方法直接基于当前状态计算下一个状态，无需外部传入目标值。
@@ -220,11 +220,19 @@ public class AdvancedGearboxBlockEntity extends SplitShaftBlockEntity implements
         // 获取理论速度
         float theoreticalSpeed = getTheoreticalSpeed();
 
+        // 如果是动力源面，返回旋转方向倍率
         if (face == source) {
-            return axisStep * getRotationModeApply(face, 1.0f);
+            float output = axisStep * getRotationModeApply(face, 1.0f);
+            return output != 0 ? output : 1;
         }
+
+        // 如果动力源面不转动或自身速度为 0，直接返回 0
+        if (!getRotationMode(source).isRotating() || theoreticalSpeed == 0)
+            return 0;
+
+        // 计算输出速度
         float output = computeFaceOutput(face, theoreticalSpeed);
-        return theoreticalSpeed != 0 ? (axisStep * output / theoreticalSpeed) : 0;
+        return axisStep * output / theoreticalSpeed;
     }
 
     /**

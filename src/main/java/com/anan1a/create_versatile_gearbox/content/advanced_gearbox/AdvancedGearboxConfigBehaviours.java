@@ -56,15 +56,17 @@ public class AdvancedGearboxConfigBehaviours {
         for (Direction dir : Direction.values()) {
             int i = dir.get3DDataValue();
 
-            Supplier<Boolean> isCfg = () -> be.getShaftState(dir) == AdvancedGearboxShaftState.FWD
+            // 仅当该面是有轴面且不是动力源面时才显示
+            Supplier<Boolean> isOutputShaft = () -> be.getShaftState(dir) == AdvancedGearboxShaftState.SHAFT
                                       && (!be.hasSource() || be.getSourceFacing() != dir);
-            Supplier<Boolean> isFwd = () -> be.getShaftState(dir) == AdvancedGearboxShaftState.FWD;
+            // 仅当该面是有轴面时才显示
+            Supplier<Boolean> isShaft = () -> be.getShaftState(dir) == AdvancedGearboxShaftState.SHAFT;
 
             // ---- 值滑条 ----
             CountBehaviour settingValue = new CountBehaviour(
                     Component.translatable("gui.advanced_gearbox.face_value", dir.getName()),
                     be,
-                    new FaceValueBoxTransform(dir, 12, 12, 4, -1, isCfg),
+                    new FaceValueBoxTransform(dir, 12, 12, 4, -1, isOutputShaft),
                     netId++, dir.getName(),
                     maxRotationValue,
                     32,
@@ -83,7 +85,7 @@ public class AdvancedGearboxConfigBehaviours {
             RotationModeBehaviour rotationMode = new RotationModeBehaviour(
                     Component.translatable("gui.advanced_gearbox.face_rotation_mode", dir.getName()),
                     be,
-                    new FaceValueBoxTransform(dir, 8, 12, 4, -1, isFwd),
+                    new FaceValueBoxTransform(dir, 8, 12, 4, -1, isShaft),
                     netId++, dir.getName()
             );
             rotationMode.withCallback(val -> {
@@ -99,7 +101,7 @@ public class AdvancedGearboxConfigBehaviours {
             OperationModeBehaviour operationMode = new OperationModeBehaviour(
                     Component.translatable("gui.advanced_gearbox.face_operation_mode", dir.getName()),
                     be,
-                    new FaceValueBoxTransform(dir, 4, 12, 4, -1, isCfg),
+                    new FaceValueBoxTransform(dir, 4, 12, 4, -1, isOutputShaft),
                     netId++, dir.getName()
             );
             operationMode.withCallback(val -> {

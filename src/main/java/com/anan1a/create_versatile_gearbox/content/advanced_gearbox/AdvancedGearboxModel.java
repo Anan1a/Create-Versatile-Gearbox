@@ -41,36 +41,32 @@ public class AdvancedGearboxModel extends DynamicTextureModel<AdvancedGearboxSha
     /** 高级齿轮箱方块纹理的基础路径。 */
     private static final String TEXTURE_BASE = "block/advanced_gearbox/";
 
+    /** 从基础路径构建纹理 ResourceLocation。 */
+    private static ResourceLocation gearboxTexture(String name) {
+        return ResourceLocation.fromNamespaceAndPath(MODID, TEXTURE_BASE + name);
+    }
+
     /** 关闭外壳替换使用的纹理（来自 Create 的黄铜机壳）。 */
     private static final ResourceLocation TEXTURE_BRASS_CASING =
             ResourceLocation.fromNamespaceAndPath("create", "block/brass_casing");
-    /** 正向核心占位纹理。 */
-    private static final ResourceLocation TEXTURE_FWD_CORE =
-            ResourceLocation.fromNamespaceAndPath(MODID, TEXTURE_BASE + "fwd_core");
-    /** 反向核心目标纹理。 */
-    private static final ResourceLocation TEXTURE_REV_CORE =
-            ResourceLocation.fromNamespaceAndPath(MODID, TEXTURE_BASE + "rev_core");
+    /** 核心占位纹理。 */
+    private static final ResourceLocation TEXTURE_CORE = gearboxTexture("core");
     /** 有轴外壳占位纹理（OFF 时替换为黄铜机壳，CFG 时替换为 1）。 */
-    private static final ResourceLocation TEXTURE_OFF_SHELL =
-            ResourceLocation.fromNamespaceAndPath(MODID, TEXTURE_BASE + "off_shell");
+    private static final ResourceLocation TEXTURE_OFF_SHELL = gearboxTexture("off_shell");
 
-    /** 注册两个动态纹理条目：核心（FWD/REV 切换）和外壳（OFF 时隐藏轴）。 */
+    /** 注册两个动态纹理条目：核心（有轴状态切换）和外壳（OFF 时隐藏轴）。 */
     private static final List<TextureEntry<AdvancedGearboxShaftState>> TEXTURE_ENTRIES = List.of(
             new TextureEntry<>(
-                    TEXTURE_FWD_CORE,
+                    TEXTURE_CORE,
                     Map.of(
-                            AdvancedGearboxShaftState.FWD, TEXTURE_FWD_CORE,
-                            AdvancedGearboxShaftState.REV, TEXTURE_REV_CORE,
-                            AdvancedGearboxShaftState.VAR,
-                            ResourceLocation.fromNamespaceAndPath(MODID, TEXTURE_BASE + "core")
+                            AdvancedGearboxShaftState.SHAFT, TEXTURE_CORE
                     )
             ),
             new TextureEntry<>(
                     TEXTURE_OFF_SHELL,
                     Map.of(
                             AdvancedGearboxShaftState.OFF, TEXTURE_BRASS_CASING,
-                            AdvancedGearboxShaftState.CFG,
-                            ResourceLocation.fromNamespaceAndPath(MODID, TEXTURE_BASE + "1")
+                            AdvancedGearboxShaftState.CFG, gearboxTexture("1")
                     )
             )
     );

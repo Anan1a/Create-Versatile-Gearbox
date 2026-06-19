@@ -24,13 +24,13 @@ import net.minecraft.network.chat.Component;
  */
 public class RotationModeBehaviour extends AbstractOptionBehaviour<RotationModeBehaviour.RotationMode> {
 
-    /** 选项枚举：参考系（绝对/相对） × 方向（正/反），NONE 表示不启用。 */
+    /** 选项枚举：参考系（绝对/相对） × 方向（正/反），带转动开关。 */
     public enum RotationMode implements INamedIconOptions {
-        NONE(CVGIcons.I_NONE, false, false),                            // 不启用
-        ABSOLUTE_FORWARD(CVGIcons.I_ABSOLUTE_FORWARD, true, true),      // 绝对正转
-        ABSOLUTE_REVERSE(CVGIcons.I_ABSOLUTE_REVERSE, true, false),     // 绝对反转
-        RELATIVE_FORWARD(CVGIcons.I_RELATIVE_FORWARD, false, true),     // 相对正转
-        RELATIVE_REVERSE(CVGIcons.I_RELATIVE_REVERSE, false, false);    // 相对反转
+        NONE(CVGIcons.I_NONE, false, false, false),                         // 不启用
+        ABSOLUTE_FORWARD(CVGIcons.I_ABSOLUTE_FORWARD, true, true, true),    // 绝对正转
+        ABSOLUTE_REVERSE(CVGIcons.I_ABSOLUTE_REVERSE, true, false, true),   // 绝对反转
+        RELATIVE_FORWARD(CVGIcons.I_RELATIVE_FORWARD, false, true, true),   // 相对正转
+        RELATIVE_REVERSE(CVGIcons.I_RELATIVE_REVERSE, false, false, true);  // 相对反转
 
         /** 选项翻译键。 */
         private final String translationKey;
@@ -40,12 +40,15 @@ public class RotationModeBehaviour extends AbstractOptionBehaviour<RotationModeB
         private final boolean absolute;
         /** 是否为正转（false = 反转）。 */
         private final boolean forward;
+        /** 是否转动（false = 不传动力）。 */
+        private final boolean rotating;
 
-        RotationMode(AllIcons icon, boolean absolute, boolean forward) {
+        RotationMode(AllIcons icon, boolean absolute, boolean forward, boolean rotating) {
             this.translationKey = "create_versatile_gearbox.rotation_mode." + Lang.asId(name());
             this.icon = icon;
             this.absolute = absolute;
             this.forward = forward;
+            this.rotating = rotating;
         }
 
         @Override
@@ -68,10 +71,14 @@ public class RotationModeBehaviour extends AbstractOptionBehaviour<RotationModeB
             return forward;
         }
 
+        /** 是否转动（false = 不传动力）。 */
+        public boolean isRotating() {
+            return rotating;
+        }
+
         /**
          * 根据输入值计算该面的输出值。
          * <p>
-         * 调用方需要倍率时按 {@code modifier = output / input} 转换。
          * <ul>
          *   <li>NONE → 0（不传动力）</li>
          *   <li>相对正转 → input（输出 = 输入）</li>
@@ -84,10 +91,7 @@ public class RotationModeBehaviour extends AbstractOptionBehaviour<RotationModeB
          * @return 输出值
          */
         public float apply(float input) {
-            if (this == NONE) return 0;
-            float sign = forward ? 1 : -1;
-            if (absolute) return Math.abs(input) * sign;
-            return input * sign;
+            return rotating ? (absolute ? Math.abs(input) : input) * (forward ? 1 : -1) : 0;
         }
     }
 

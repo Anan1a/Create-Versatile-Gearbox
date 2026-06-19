@@ -76,8 +76,8 @@ public class AdvancedGearboxBlock extends KineticBlock implements IBE<AdvancedGe
     public static final BooleanProperty WEST_CONNECTED = CONNECTION_PROPERTIES[4];
     public static final BooleanProperty EAST_CONNECTED = CONNECTION_PROPERTIES[5];
 
-    /** 默认面状态：所有面初始化为 FWD（有轴、正向） */
-    public static final AdvancedGearboxShaftState DEFAULT_SHAFT_STATE = AdvancedGearboxShaftState.FWD;
+    /** 默认面状态：所有面初始化为 SHAFT（有传动轴） */
+    public static final AdvancedGearboxShaftState DEFAULT_SHAFT_STATE = AdvancedGearboxShaftState.SHAFT;
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
@@ -168,7 +168,7 @@ public class AdvancedGearboxBlock extends KineticBlock implements IBE<AdvancedGe
     /**
      * 判断指定面是否有传动轴接口。
      * <p>
-     * 只有当该面状态有传动轴（FWD/REV）时才返回 true。
+     * 只有当该面状态有传动轴（SHAFT）时才返回 true。
      * 从 BlockEntity 的 NBT 面状态数据读取，而非 BlockState 的 BooleanProperty。
      */
     @Override
