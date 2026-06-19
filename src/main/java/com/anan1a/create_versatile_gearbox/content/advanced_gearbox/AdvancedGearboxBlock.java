@@ -126,10 +126,10 @@ public class AdvancedGearboxBlock extends KineticBlock implements IBE<AdvancedGe
      * @param state 方块状态
      * @return 推动反应类型
      */
-    @Override
-    public PushReaction getPistonPushReaction(BlockState state) {
-        return PushReaction.PUSH_ONLY;
-    }
+    // @Override
+    // public PushReaction getPistonPushReaction(BlockState state) {
+    //     return PushReaction.NORMAL;
+    // }
 
     /**
      * 获取方块破坏时的掉落物

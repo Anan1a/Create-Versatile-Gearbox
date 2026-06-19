@@ -74,7 +74,7 @@ public class AdvancedGearboxVisual extends KineticBlockEntityVisual<AdvancedGear
         
         // 遍历六个方向（DOWN, UP, NORTH, SOUTH, WEST, EAST）
         for (Direction direction : Iterate.directions) {
-            // 跳过 OFF 面：不创建实例，此时显示安山岩机壳纹理
+            // 跳过无轴状态组的面：不创建实例
             // 使用枚举的统一方法判断，便于扩展新状态
             if (!blockEntity.getShaftState(direction).hasShaft())
                 continue;

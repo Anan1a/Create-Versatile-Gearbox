@@ -41,15 +41,17 @@ public abstract class AbstractOptionBehaviour<E extends Enum<E> & INamedIconOpti
      * 从 faceData 同步滑条值时使用，直接赋值不触发回调/NBT写入/网络包。
      * 超出范围的旧数据会被钳位到合法区间。
      */
-    public void clampValue(int raw) {
-        this.value = Mth.clamp(raw, 0, maxIndex);
+    public void setRawValue(int value) {
+        this.value = Mth.clamp(value, 0, maxIndex);
     }
 
+    /** 获取选项滑条的类型。 */
     @Override
     public BehaviourType<?> getType() {
         return type;
     }
 
+    /** 获取选项滑条的网络 ID。 */
     @Override
     public int netId() {
         return netId;

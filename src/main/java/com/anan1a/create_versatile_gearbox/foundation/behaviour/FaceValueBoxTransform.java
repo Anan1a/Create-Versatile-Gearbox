@@ -22,8 +22,8 @@ import net.minecraft.world.phys.Vec3;
  */
 public class FaceValueBoxTransform extends ValueBoxTransform.Sided {
 
-    /** widget 相对于整面的宽度比例（6/12 = 0.5）。 */
-    private static final float WIDGET_WIDTH = 6 / 12f;
+    /** 缩放基准值：widget 宽度除以该值得到缩放比例。 */
+    private static final float SCALE_BASE = 12f;
 
     /** 该滑条绑定的所有面方向。 */
     private final Set<Direction> faces;
@@ -31,10 +31,52 @@ public class FaceValueBoxTransform extends ValueBoxTransform.Sided {
     private final float xPos;
     /** widget 在面上的 voxel y 坐标（0~16）。 */
     private final float yPos;
+    /** widget 的实际宽度（voxel 单位，用于定位和缩放）。 */
+    private final float width;
+    /** widget 沿 Z 轴的内缩偏移量（voxel 单位），越大越远离表面。 */
+    private final float offset;
     /** 激活条件回调，返回 true 时才显示该滑条。 */
     private final Supplier<Boolean> activeCondition;
 
     /**
+     * 构造函数，用于自定义宽度和偏移。
+     * @param faces           绑定的面方向集合
+     * @param x               voxel x 坐标（0~16）
+     * @param y               voxel y 坐标（0~16）
+     * @param width           widget 实际宽度（voxel 单位，用于定位和缩放）
+     * @param offset          widget 沿 Z 轴内缩偏移量（voxel 单位），越大越远离表面
+     * @param activeCondition 每次激活判断时调用，返回 true 才允许交互
+     */
+    public FaceValueBoxTransform(Set<Direction> faces, float x, float y, float width, float offset,
+                                 Supplier<Boolean> activeCondition) {
+        this.faces = faces;
+        this.xPos = x;
+        this.yPos = y;
+        this.width = width;
+        this.offset = offset;
+        // 子类字段已赋值，可安全覆写父类构造器中 scale = getScale() 得到的错误值
+        this.scale = width / SCALE_BASE;
+        this.activeCondition = activeCondition;
+    }
+
+     /**
+     * 构造函数，用于单面，自定义宽度和偏移。
+     * @param face            绑定的面方向
+     * @param x               voxel x 坐标（0~16）
+     * @param y               voxel y 坐标（0~16）
+     * @param width           widget 实际宽度（voxel 单位，用于定位和缩放）
+     * @param offset          widget 沿 Z 轴内缩偏移量（voxel 单位），越大越远离表面
+     * @param activeCondition 每次激活判断时调用，返回 true 才允许交互
+     */
+    public FaceValueBoxTransform(Direction face, float x, float y, float width, float offset,
+                                 Supplier<Boolean> activeCondition) {
+        this(Set.of(face), x, y, width, offset, activeCondition);
+    }
+
+    /**
+     * 默认构造器，宽度默认 6，偏移默认 0。
+     * <p>
+     * 宽度默认为 6，与 {@link ValueBoxTransform} 相同。
      * @param faces           绑定的面方向集合
      * @param x               voxel x 坐标（0~16）
      * @param y               voxel y 坐标（0~16）
@@ -42,14 +84,15 @@ public class FaceValueBoxTransform extends ValueBoxTransform.Sided {
      */
     public FaceValueBoxTransform(Set<Direction> faces, float x, float y,
                                  Supplier<Boolean> activeCondition) {
-        this.faces = faces;
-        this.xPos = x;
-        this.yPos = y;
-        this.activeCondition = activeCondition;
+        this(faces, x, y, 6, 0, activeCondition);
     }
 
-    /**
-     * 单面快捷构造器。
+     /**
+     * 默认构造器，用于单面，宽度默认 6，偏移默认 0。
+     * @param face            绑定的面方向
+     * @param x               voxel x 坐标（0~16）
+     * @param y               voxel y 坐标（0~16）
+     * @param activeCondition 每次激活判断时调用，返回 true 才允许交互
      */
     public FaceValueBoxTransform(Direction face, float x, float y,
                                  Supplier<Boolean> activeCondition) {
@@ -66,7 +109,7 @@ public class FaceValueBoxTransform extends ValueBoxTransform.Sided {
      */
     @Override
     protected Vec3 getSouthLocation() {
-        return VecHelper.voxelSpace(xPos, yPos, 16 - WIDGET_WIDTH);
+        return VecHelper.voxelSpace(xPos, yPos, 16 - width / SCALE_BASE + offset);
     }
 
     /**
@@ -82,10 +125,13 @@ public class FaceValueBoxTransform extends ValueBoxTransform.Sided {
     /**
      * widget 渲染缩放比例。
      * <p>
-     * 返回 0.5（相对于整面 1.0），使 widget 在面上约为半面大小。
+     * 返回 0.5（相对于6格像素如果材质是16x），使 widget 在面上约为半面大小。
      */
     @Override
     public float getScale() {
-        return WIDGET_WIDTH;
+        // 父类构造器调用此方法时 width 未初始化（默认值 0），导致 scale = 0。
+        // 已在构造器中用 this.scale = width / SCALE_BASE 覆写。
+        // 保留此方法，用于后续可能的扩展。
+        return width / SCALE_BASE;
     }
 }

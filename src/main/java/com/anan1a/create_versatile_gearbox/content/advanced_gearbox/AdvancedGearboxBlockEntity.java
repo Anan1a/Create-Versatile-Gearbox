@@ -4,6 +4,8 @@ import java.util.List;
 
 import com.simibubi.create.api.contraption.transformable.TransformableBlockEntity;
 import com.simibubi.create.content.contraptions.StructureTransform;
+import com.simibubi.create.content.kinetics.RotationPropagator;
+import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
 import com.simibubi.create.content.kinetics.transmission.SplitShaftBlockEntity;
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
 
@@ -87,14 +89,14 @@ public class AdvancedGearboxBlockEntity extends SplitShaftBlockEntity implements
      * 获取指定面的旋转模式枚举。
      */
     public RotationMode getRotationMode(Direction face) {
-        return faceData.resolveRotMode(face);
+        return faceData.resolveRotationMode(face);
     }
 
     /**
      * 获取指定面的操作模式枚举。
      */
     public OperationMode getOperationMode(Direction face) {
-        return faceData.resolveOpMode(face);
+        return faceData.resolveOperationMode(face);
     }
 
     // ===== 面状态访问 =====
@@ -171,23 +173,58 @@ public class AdvancedGearboxBlockEntity extends SplitShaftBlockEntity implements
     // ===== 动力传输逻辑 =====
 
     /**
-     * 计算指定面的旋转速度倍率（单参数版，供 Create 动力网络调用）。
+     * 滑条值变更后重新传播动力网络。
      * <p>
-     * 仅考虑该面自身的轴向和状态，不与动力源面做联合计算。
-     * 公式：{@code axisStep × modifier}
-     * <ul>
-     *   <li>{@code axisStep} = 该面的轴方向（POSITIVE=1, NEGATIVE=-1）</li>
-     *   <li>{@code modifier} = 该面状态的倍率（FWD=1, REV=-1, OFF=0 ...）</li>
-     * </ul>
+     * 参照 {@code SpeedControllerBlockEntity.updateTargetRotation()}：
+     * <ol>
+     *   <li>从应力网络移除旧数据</li>
+     *   <li>断开所有邻居的轴连接</li>
+     *   <li>清除当前动力源信息</li>
+     *   <li>重新连接 → 触发全套传播，所有面都用新值计算</li>
+     * </ol>
+     */
+    public void repropagateKinetics() {
+        // 如果有网络连接
+        if (hasNetwork())
+            // 从应力网络（Stress/KineticNetwork）注销，消除旧应力贡献
+            getOrCreateNetwork().remove(this);
+        // 断开与所有邻居方块的轴连接
+        RotationPropagator.handleRemoved(level, worldPosition, this);
+        // 清除动力源位置（source）和内部速度，标记为"无源"
+        removeSource();
+        // 重新与邻居建立轴连接 → 触发 RotationPropagator 从邻居传播到自身 → 再传播到所有输出面
+        attachKinetics();
+    }
+
+    /**
+     * 计算指定面的旋转速度倍率，供 Create 动力网络传播调用。
+     * <p>
+     * Create 的 {@code RotationPropagator} 在轴连接时通过双向公式计算倍率：
+     * <pre>
+     * result = M_source(方向) × (1 / M_target(反向))
+     * </pre>
+     * 此方法为 {@code getAxisModifier} 提供每个面的倍率（即公式中的 M）。
+     * <p>
+     * 输入面（face == source）出现在双向公式的分母中，需返回逆倍率
+     * 使输入速度正确传入。输出面出现在分子中，直接返回 output / input。
      *
      * @param face 要计算的面方向
-     * @return 旋转速度倍率（-1=反向, 0=关闭, 1=正向）
+     * @return 该面在双向公式中的倍率 M
      */
     @Override
     public float getRotationSpeedModifier(Direction face) {
-        // 计算旋转速度倍率：轴方向 × 状态倍率
-        return face.getAxisDirection().getStep()
-                * getShaftState(face).getModifier();
+        // 获取该面的轴方向
+        float axisStep = face.getAxisDirection().getStep();
+        // 获取动力源面
+        Direction source = getSourceFacing();
+        // 获取理论速度
+        float theoreticalSpeed = getTheoreticalSpeed();
+
+        if (face == source) {
+            return axisStep * getRotationModeApply(face, 1.0f);
+        }
+        float output = computeFaceOutput(face, theoreticalSpeed);
+        return theoreticalSpeed != 0 ? (axisStep * output / theoreticalSpeed) : 0;
     }
 
     /**
@@ -205,6 +242,47 @@ public class AdvancedGearboxBlockEntity extends SplitShaftBlockEntity implements
         return baseSpeed != 0
                 ? baseSpeed * getRotationSpeedModifier(direction)
                 : 0;
+    }
+
+    /**
+     * 计算指定面在输入值下的最终输出值。
+     * <p>
+     * 按顺序应用 OperationMode 和 RotationMode：
+     * <ol>
+     *   <li>OperationMode：用设定值 {@code v} 对输入值做运算（SET、MUL 等）</li>
+     *   <li>RotationMode：对运算结果应用旋向修正（绝对/相对、正/反）</li>
+     * </ol>
+     *
+     * @param face  目标面
+     * @param input 输入值（动力源速度或中间倍率）
+     * @return 该面的最终输出值
+     */
+    public float computeFaceOutput(Direction face, float input) {
+        return getRotationModeApply(face, getOperationModeApply(face, input));
+    }
+
+    /**
+     * 对指定面的 RotationMode 应用输入值。
+     * <p>
+     * 该方法用于在需要直接应用旋转修正时，如计算输出速度。
+     * @param face 目标面
+     * @param input 输入值
+     * @return 输出值
+     */
+    public float getRotationModeApply(Direction face, float input) {
+        return getRotationMode(face).apply(input);
+    }
+
+    /**
+     * 计算指定面在输入值下的最终输出值。
+     * <p>
+     * 按顺序应用 OperationMode 和 RotationMode：
+     * @param face  目标面
+     * @param input 输入值（动力源速度或中间倍率）
+     * @return 该面的最终输出值
+     */
+    public float getOperationModeApply(Direction face, float input) {
+        return getOperationMode(face).apply(input, getSettingValue(face));
     }
 
     // ===== 蓝图变换 =====

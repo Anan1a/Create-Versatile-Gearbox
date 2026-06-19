@@ -1,6 +1,8 @@
 package com.anan1a.create_versatile_gearbox.content.advanced_gearbox;
 
 import java.util.List;
+import java.util.Set;
+import java.util.function.Supplier;
 
 import com.anan1a.create_versatile_gearbox.foundation.behaviour.option.RotationModeBehaviour;
 import com.anan1a.create_versatile_gearbox.foundation.behaviour.option.OperationModeBehaviour;
@@ -54,17 +56,26 @@ public class AdvancedGearboxConfigBehaviours {
         for (Direction dir : Direction.values()) {
             int i = dir.get3DDataValue();
 
+            Supplier<Boolean> isCfg = () -> be.getShaftState(dir) == AdvancedGearboxShaftState.FWD
+                                      && (!be.hasSource() || be.getSourceFacing() != dir);
+            Supplier<Boolean> isFwd = () -> be.getShaftState(dir) == AdvancedGearboxShaftState.FWD;
+
             // ---- 值滑条 ----
             CountBehaviour settingValue = new CountBehaviour(
                     Component.translatable("gui.advanced_gearbox.face_value", dir.getName()),
                     be,
-                    new FaceValueBoxTransform(dir, 12, 4, () -> be.getShaftState(dir) == AdvancedGearboxShaftState.CFG),
+                    new FaceValueBoxTransform(dir, 12, 12, 4, -1, isCfg),
                     netId++, dir.getName(),
                     maxRotationValue,
                     32,
                     List.of(Component.literal("V").withStyle(ChatFormatting.BOLD))
             );
-            settingValue.withCallback(val -> faceData.setSettingValue(dir, val));
+            settingValue.withCallback(val -> {
+                faceData.setSettingValue(dir, val);
+                be.repropagateKinetics();
+            });
+            // 设初始值使其与 faceData 默认值一致
+            settingValue.setRawValue(faceData.getSettingValue(dir));
             settingValueBehaviours[i] = settingValue;
             list.add(settingValue);
 
@@ -72,10 +83,15 @@ public class AdvancedGearboxConfigBehaviours {
             RotationModeBehaviour rotationMode = new RotationModeBehaviour(
                     Component.translatable("gui.advanced_gearbox.face_rotation_mode", dir.getName()),
                     be,
-                    new FaceValueBoxTransform(dir, 4, 12, () -> be.getShaftState(dir) == AdvancedGearboxShaftState.CFG),
+                    new FaceValueBoxTransform(dir, 8, 12, 4, -1, isFwd),
                     netId++, dir.getName()
             );
-            rotationMode.withCallback(val -> faceData.setRotMode(dir, val));
+            rotationMode.withCallback(val -> {
+                faceData.setRotationMode(dir, val);
+                be.repropagateKinetics();
+            });
+            // 设初始值使其与 faceData 默认值一致
+            rotationMode.setRawValue(faceData.getRotationMode(dir));
             rotationModeBehaviours[i] = rotationMode;
             list.add(rotationMode);
 
@@ -83,10 +99,15 @@ public class AdvancedGearboxConfigBehaviours {
             OperationModeBehaviour operationMode = new OperationModeBehaviour(
                     Component.translatable("gui.advanced_gearbox.face_operation_mode", dir.getName()),
                     be,
-                    new FaceValueBoxTransform(dir, 4, 4, () -> be.getShaftState(dir) == AdvancedGearboxShaftState.CFG),
+                    new FaceValueBoxTransform(dir, 4, 12, 4, -1, isCfg),
                     netId++, dir.getName()
             );
-            operationMode.withCallback(val -> faceData.setOpMode(dir, val));
+            operationMode.withCallback(val -> {
+                faceData.setOperationMode(dir, val);
+                be.repropagateKinetics();
+            });
+            // 设初始值使其与 faceData 默认值一致
+            operationMode.setRawValue(faceData.getOperationMode(dir));
             operationModeBehaviours[i] = operationMode;
             list.add(operationMode);
         }
@@ -100,9 +121,9 @@ public class AdvancedGearboxConfigBehaviours {
     public void syncFromFaceData() {
         for (Direction dir : Direction.values()) {
             int i = dir.get3DDataValue();
-            settingValueBehaviours[i].value = faceData.getSettingValue(dir);
-            rotationModeBehaviours[i].clampValue(faceData.getRotMode(dir));
-            operationModeBehaviours[i].clampValue(faceData.getOpMode(dir));
+            settingValueBehaviours[i].setRawValue(faceData.getSettingValue(dir));
+            rotationModeBehaviours[i].setRawValue(faceData.getRotationMode(dir));
+            operationModeBehaviours[i].setRawValue(faceData.getOperationMode(dir));
         }
     }
 }

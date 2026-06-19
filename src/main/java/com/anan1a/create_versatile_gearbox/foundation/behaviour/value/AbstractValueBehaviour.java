@@ -60,6 +60,7 @@ public abstract class AbstractValueBehaviour extends ScrollValueBehaviour {
         withFormatter(this::formatValue);
     }
 
+    /** 创建数值滑条的设置面板。 */
     @Override
     public ValueSettingsBoard createBoard(Player player, BlockHitResult hitResult) {
         return new ValueSettingsBoard(
@@ -68,11 +69,17 @@ public abstract class AbstractValueBehaviour extends ScrollValueBehaviour {
         );
     }
 
+    public void setRawValue(int value) {
+        this.value = value;
+    }
+
+    /** 获取数值滑条的类型。 */
     @Override
     public BehaviourType<?> getType() {
         return type;
     }
 
+    /** 获取数值滑条的网络 ID。 */
     @Override
     public int netId() {
         return netId;
