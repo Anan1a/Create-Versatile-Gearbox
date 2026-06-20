@@ -4,8 +4,6 @@ import java.util.List;
 
 import com.simibubi.create.api.contraption.transformable.TransformableBlockEntity;
 import com.simibubi.create.content.contraptions.StructureTransform;
-import com.simibubi.create.content.kinetics.RotationPropagator;
-import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
 import com.simibubi.create.content.kinetics.transmission.SplitShaftBlockEntity;
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
 
@@ -173,26 +171,32 @@ public class AdvancedGearboxBlockEntity extends SplitShaftBlockEntity implements
     // ===== 动力传输逻辑 =====
 
     /**
-     * 滑条值变更后重新传播动力网络。
+     * 动力源被摧毁时重新搜索新源。
      * <p>
-     * 参照 {@code SpeedControllerBlockEntity.updateTargetRotation()}：
-     * <ol>
-     *   <li>从应力网络移除旧数据</li>
-     *   <li>断开所有邻居的轴连接</li>
-     *   <li>清除当前动力源信息</li>
-     *   <li>重新连接 → 触发全套传播，所有面都用新值计算</li>
-     * </ol>
+     * 在 {@code super.removeSource()} 清空前检查源方块是否仍在。
+     * 仅当源方块真的不存在了时才执行全量重连（速度变更时不触发）。
+     */
+    @Override
+    public void removeSource() {
+        // 判断源方块是否存在且是否已被摧毁
+        if (hasSource() && level.getBlockEntity(source) == null)
+            repropagateKinetics();  // 源方块已被摧毁，重新传播动力网络
+        else
+            super.removeSource();   // 源方块仍在 world 中，正常清除旧状态
+    }
+
+    /**
+     * 重新传播动力网络。
+     * <p>
+     * 断开邻居连接 → 清除自身旧源/速度/网络 → 重新附着连接。
+     * 三步各有其职责，从邻居到自身到重新连接，缺一不可。
      */
     public void repropagateKinetics() {
-        // 如果有网络连接
-        if (hasNetwork())
-            // 从应力网络（Stress/KineticNetwork）注销，消除旧应力贡献
-            getOrCreateNetwork().remove(this);
-        // 断开与所有邻居方块的轴连接
-        RotationPropagator.handleRemoved(level, worldPosition, this);
-        // 清除动力源位置（source）和内部速度，标记为"无源"
-        removeSource();
-        // 重新与邻居建立轴连接 → 触发 RotationPropagator 从邻居传播到自身 → 再传播到所有输出面
+        // 1. 通知邻居断开轴连接，邻居清除对此 BE 的引用
+        detachKinetics();
+        // 2. 清除自身旧状态（speed=0, source=null, setNetwork(null) 从应力网络注销）
+        super.removeSource();
+        // 3. 重新与邻居建立轴连接 → RotationPropagator 用新配置从邻居传播到自身 → 再到所有输出面
         attachKinetics();
     }
 
@@ -220,7 +224,7 @@ public class AdvancedGearboxBlockEntity extends SplitShaftBlockEntity implements
         // 获取理论速度
         float theoreticalSpeed = getTheoreticalSpeed();
 
-        // 如果是动力源面，返回旋转方向倍率
+        // 如果是动力源面，返回旋转方向倍率（保底 1 保持网络存活）
         if (face == source) {
             float output = axisStep * getRotationModeApply(face, 1.0f);
             return output != 0 ? output : 1;

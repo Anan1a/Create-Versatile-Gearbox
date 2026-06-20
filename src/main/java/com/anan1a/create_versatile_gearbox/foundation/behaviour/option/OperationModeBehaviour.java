@@ -69,7 +69,7 @@ public class OperationModeBehaviour extends AbstractOptionBehaviour<OperationMod
         public float apply(float s, int v) {
             return switch (this) {
                 case HOLD    -> s;
-                case SET     -> v;
+                case SET     -> Math.signum(s) * v;
                 case MAG_ADD -> s + Math.signum(s) * v;
                 case MAG_SUB -> s - Math.signum(s) * v;
                 case MUL     -> s * v;

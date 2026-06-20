@@ -46,27 +46,38 @@ public class AdvancedGearboxModel extends DynamicTextureModel<AdvancedGearboxSha
         return ResourceLocation.fromNamespaceAndPath(MODID, TEXTURE_BASE + name);
     }
 
-    /** 关闭外壳替换使用的纹理（来自 Create 的黄铜机壳）。 */
+    /** 黄铜齿轮箱纹理。 */
+    // private static final ResourceLocation TEXTURE_BRASS_GEARBOX =
+    //         ResourceLocation.fromNamespaceAndPath("create", "block/brass_gearbox");
+    /** 黄铜外壳纹理。 */
     private static final ResourceLocation TEXTURE_BRASS_CASING =
             ResourceLocation.fromNamespaceAndPath("create", "block/brass_casing");
     /** 核心占位纹理。 */
-    private static final ResourceLocation TEXTURE_CORE = gearboxTexture("core");
-    /** 有轴外壳占位纹理（OFF 时替换为黄铜机壳，CFG 时替换为 1）。 */
-    private static final ResourceLocation TEXTURE_OFF_SHELL = gearboxTexture("off_shell");
+    private static final ResourceLocation TEXTURE_CORE = gearboxTexture("placeholder/core");
+    /** 中间占位纹理。 */
+    private static final ResourceLocation TEXTURE_MIDDLE = gearboxTexture("placeholder/middle");
+    /** 外壳占位纹理。 */
+    private static final ResourceLocation TEXTURE_CASING = gearboxTexture("placeholder/casing");
 
     /** 注册两个动态纹理条目：核心（有轴状态切换）和外壳（OFF 时隐藏轴）。 */
     private static final List<TextureEntry<AdvancedGearboxShaftState>> TEXTURE_ENTRIES = List.of(
             new TextureEntry<>(
                     TEXTURE_CORE,
                     Map.of(
-                            AdvancedGearboxShaftState.SHAFT, TEXTURE_CORE
+                        AdvancedGearboxShaftState.SHAFT, TEXTURE_CORE
                     )
             ),
             new TextureEntry<>(
-                    TEXTURE_OFF_SHELL,
+                    TEXTURE_MIDDLE,
+                    Map.of(
+                        AdvancedGearboxShaftState.SHAFT, gearboxTexture("2")
+                    )
+            ),
+            new TextureEntry<>(
+                    TEXTURE_CASING,
                     Map.of(
                             AdvancedGearboxShaftState.OFF, TEXTURE_BRASS_CASING,
-                            AdvancedGearboxShaftState.CFG, gearboxTexture("1")
+                            AdvancedGearboxShaftState.CFG, gearboxTexture("widget_3x3")
                     )
             )
     );

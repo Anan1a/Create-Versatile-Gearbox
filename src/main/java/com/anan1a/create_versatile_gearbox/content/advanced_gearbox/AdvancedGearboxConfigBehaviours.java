@@ -53,6 +53,7 @@ public class AdvancedGearboxConfigBehaviours {
         int maxRotationValue = AllConfigs.server().kinetics.maxRotationSpeed.get();
 
         int netId = 0;
+        float offset = -0.75f;
         for (Direction dir : Direction.values()) {
             int i = dir.get3DDataValue();
 
@@ -66,7 +67,7 @@ public class AdvancedGearboxConfigBehaviours {
             CountBehaviour settingValue = new CountBehaviour(
                     Component.translatable("gui.advanced_gearbox.face_value", dir.getName()),
                     be,
-                    new FaceValueBoxTransform(dir, 12, 12, 4, -1, isOutputShaft),
+                    new FaceValueBoxTransform(dir, 12, 12, 4, offset, isOutputShaft),
                     netId++, dir.getName(),
                     maxRotationValue,
                     32,
@@ -85,7 +86,7 @@ public class AdvancedGearboxConfigBehaviours {
             RotationModeBehaviour rotationMode = new RotationModeBehaviour(
                     Component.translatable("gui.advanced_gearbox.face_rotation_mode", dir.getName()),
                     be,
-                    new FaceValueBoxTransform(dir, 8, 12, 4, -1, isShaft),
+                    new FaceValueBoxTransform(dir, 8, 12, 4, offset, isShaft),
                     netId++, dir.getName()
             );
             rotationMode.withCallback(val -> {
@@ -101,7 +102,7 @@ public class AdvancedGearboxConfigBehaviours {
             OperationModeBehaviour operationMode = new OperationModeBehaviour(
                     Component.translatable("gui.advanced_gearbox.face_operation_mode", dir.getName()),
                     be,
-                    new FaceValueBoxTransform(dir, 4, 12, 4, -1, isOutputShaft),
+                    new FaceValueBoxTransform(dir, 4, 12, 4, offset, isOutputShaft),
                     netId++, dir.getName()
             );
             operationMode.withCallback(val -> {
