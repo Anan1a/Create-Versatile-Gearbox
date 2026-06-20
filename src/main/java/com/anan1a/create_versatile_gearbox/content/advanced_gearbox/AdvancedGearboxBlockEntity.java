@@ -240,16 +240,16 @@ public class AdvancedGearboxBlockEntity extends SplitShaftBlockEntity implements
     }
 
     /**
-     * 计算指定方向的实际旋转速度（Renderer / Visual 统一入口）。
+     * 获取指定面的视觉旋转速度（Renderer / Visual 统一入口）。
      * <p>
-     * 从动力网络读取基础速度，叠加该面的倍率后返回。
-     * 速度 = 0 时直接返回 0（无动力传入）。
-     * 倍率为 0 时也返回 0（该面关闭）。
+     * 从动力网络读取本块的基础速度，叠加该面的旋转倍率后返回。
+     * 仅用于渲染/视觉展示，不参与动力网络计算。
+     * 速度 = 0 时直接返回 0（无动力传入或该面关闭）。
      *
-     * @param direction 要计算的方向
-     * @return 该方向的旋转速度（正=正向旋转，负=反向旋转，0=静止）
+     * @param direction 要计算的面方向
+     * @return 该面的视觉旋转速度（正=正向旋转，负=反向旋转，0=静止）
      */
-    public float getSpeedForDirection(Direction direction) {
+    public float getVisualSpeed(Direction direction) {
         float baseSpeed = getSpeed();
         return baseSpeed != 0
                 ? baseSpeed * getRotationSpeedModifier(direction)

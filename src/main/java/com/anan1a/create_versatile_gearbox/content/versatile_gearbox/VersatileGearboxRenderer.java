@@ -91,7 +91,7 @@ public class VersatileGearboxRenderer extends KineticBlockEntityRenderer<Versati
 
         // 计算该方向的实际速度（考虑传动比）
         // 使用 BE 的统一方法，与 Visual 保持一致
-        float speedForDirection = be.getSpeedForDirection(direction);
+        float speedForDirection = be.getVisualSpeed(direction);
 
         // 使用修正后的速度计算旋转角度
         float angle = getAngleForDirection(be, pos, shaftAxis, speedForDirection);

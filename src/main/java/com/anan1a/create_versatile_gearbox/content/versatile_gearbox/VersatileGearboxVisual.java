@@ -92,7 +92,7 @@ public class VersatileGearboxVisual extends KineticBlockEntityVisual<VersatileGe
      * @return 该方向的旋转速度（负数表示反向旋转）
      */
     private float getSpeed(Direction direction) {
-        return blockEntity.getSpeedForDirection(direction);
+        return blockEntity.getVisualSpeed(direction);
     }
 
     /**

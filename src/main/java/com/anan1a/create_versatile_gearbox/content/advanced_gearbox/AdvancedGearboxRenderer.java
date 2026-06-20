@@ -101,7 +101,7 @@ public class AdvancedGearboxRenderer extends KineticBlockEntityRenderer<Advanced
 
         // 计算该方向的实际速度（考虑传动比）
         // 使用 BE 的统一方法，与 Visual 保持一致
-        float speedForDirection = be.getSpeedForDirection(direction);
+        float speedForDirection = be.getVisualSpeed(direction);
 
         // 使用修正后的速度计算旋转角度
         // 负速度会产生负角度，实现反向旋转

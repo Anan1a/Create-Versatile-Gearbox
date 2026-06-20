@@ -67,7 +67,7 @@ public class AdvancedGearboxConfigBehaviours {
             CountBehaviour settingValue = new CountBehaviour(
                     Component.translatable("gui.advanced_gearbox.face_value", dir.getName()),
                     be,
-                    new FaceValueBoxTransform(dir, 12, 12, 4, offset, isOutputShaft),
+                    new FaceValueBoxTransform(dir, 12, 12, 4, offset, isShaft),
                     netId++, dir.getName(),
                     maxRotationValue,
                     32,
@@ -102,7 +102,7 @@ public class AdvancedGearboxConfigBehaviours {
             OperationModeBehaviour operationMode = new OperationModeBehaviour(
                     Component.translatable("gui.advanced_gearbox.face_operation_mode", dir.getName()),
                     be,
-                    new FaceValueBoxTransform(dir, 4, 12, 4, offset, isOutputShaft),
+                    new FaceValueBoxTransform(dir, 4, 12, 4, offset, isShaft),
                     netId++, dir.getName()
             );
             operationMode.withCallback(val -> {
