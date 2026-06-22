@@ -32,76 +32,25 @@ public class VersatileGearboxBlockEntity extends SplitShaftBlockEntity {
      */
     @Override
     public float getRotationSpeedModifier(Direction face) {
-        BlockState state = getBlockState();
-
-        // 1. 输出面无传动轴 → 断开
-        if (!VersatileGearboxBlock.getShaftState(face, state).shouldRenderShaft()) return 0;
-
-        // 2. 无动力源或动力源面无传动轴 → 断开（getSourceFacing() 无源时返回 null）
-        Direction source = getSourceFacing();
-        if (source == null || !VersatileGearboxBlock.getShaftState(source, state).shouldRenderShaft()) return 0;
-
-        // 3. 计算旋转方向
-        return getRotationSpeedModifier(face, source, state);
+        // 计算旋转方向
+        return face.getAxisDirection().getStep()
+                * VersatileGearboxBlock.getShaftState(face, getBlockState()).getModifier();
     }
 
     /**
-     * 根据动力源面计算指定输出面的旋转速度 Modifier（静态方法）。
+     * 获取指定面的视觉旋转速度（Renderer / Visual 统一入口）。
      * <p>
-     * 三状态计算逻辑：
-     * <pre>
-     * modifier = axisAdjust × faceModifier × sourceModifier
+     * 从动力网络读取本块的基础速度，叠加该面的旋转倍率后返回。
+     * 仅用于渲染/视觉展示，不参与动力网络计算。
+     * 速度 = 0 时直接返回 0（无动力传入或该面关闭）。
      *
-     * axisAdjust: 轴方向对齐时 +1，相反时 -1
-     *   faceModifier: FWD=+1, REV=-1, OFF=0
-     * sourceModifier: FWD=+1, REV=-1, OFF=0
-     * </pre>
-     *
-     * @param face   输出面
-     * @param source 动力源面
-     * @param state  方块状态
-     * @return 旋转速度倍率（-1 ~ 1）
+     * @param direction 要计算的面方向
+     * @return 该面的视觉旋转速度（正=正向旋转，负=反向旋转，0=静止）
      */
-    public static float getRotationSpeedModifier(Direction face, Direction source, BlockState state) {
-        // 获取动力源面状态
-        VersatileGearboxShaftState sourceState = VersatileGearboxBlock.getShaftState(source, state);
-
-        // 如果动力源面关闭（非传动轴状态），所有输出都停止
-        if (!sourceState.shouldRenderShaft()) return 0;
-
-        // 获取输出面状态
-        VersatileGearboxShaftState faceState = VersatileGearboxBlock.getShaftState(face, state);
-        // 如果输出面关闭（非传动轴状态），返回 0（不输出动力）
-        if (!faceState.shouldRenderShaft()) return 0;
-
-        // 轴方向修正
-        int axisAdjust = face.getAxisDirection() == source.getAxisDirection() ? 1 : -1;
-        return axisAdjust * faceState.getModifier() * sourceState.getModifier();
-    }
-
-    /**
-     * 计算指定方向的实际旋转速度。
-     * <p>
-     * 统一 Renderer 和 Visual 的速度计算逻辑：
-     * <ol>
-     *   <li>使用传入的基础速度</li>
-     *   <li>如果有速度且有动力源，应用方向倍率</li>
-     * </ol>
-     *
-     * @param baseSpeed    基础速度（来自动力网络）
-     * @param direction    要计算的方向
-     * @param sourceFacing 动力源方向（可为 null）
-     * @return 该方向的旋转速度（负数表示反向旋转）
-     */
-    public float getSpeedForDirection(float baseSpeed, Direction direction, Direction sourceFacing) {
-        if (baseSpeed != 0 && sourceFacing != null) {
-            return baseSpeed * getRotationSpeedModifier(direction, sourceFacing, getBlockState());
-        }
-        return baseSpeed;
-    }
-
-    @Override
-    protected boolean isNoisy() {
-        return true;
+    public float getVisualSpeed(Direction direction) {
+        float baseSpeed = getSpeed();
+        return baseSpeed != 0
+                ? baseSpeed * getRotationSpeedModifier(direction)
+                : 0;
     }
 }

@@ -15,5 +15,23 @@
   "create_versatile_gearbox.configuration.magicNumberIntroduction.tooltip": "What do you want the magic number introduction to say",
 
   "create_versatile_gearbox.configuration.items": "Item List",
-  "create_versatile_gearbox.configuration.items.tooltip": "A list of items to log during common setup"
+  "create_versatile_gearbox.configuration.items.tooltip": "A list of items to log during common setup",
+
+  "gui.advanced_gearbox.face_value": "Value (%s)",
+  "gui.advanced_gearbox.face_rotation_mode": "Rotation Mode (%s)",
+  "gui.advanced_gearbox.face_operation_mode": "Operation Mode (%s)",
+
+  "create_versatile_gearbox.rotation_mode.none": "None",
+  "create_versatile_gearbox.rotation_mode.absolute_forward": "Absolute Forward",
+  "create_versatile_gearbox.rotation_mode.absolute_reverse": "Absolute Reverse",
+  "create_versatile_gearbox.rotation_mode.relative_forward": "Relative Forward",
+  "create_versatile_gearbox.rotation_mode.relative_reverse": "Relative Reverse",
+
+  "create_versatile_gearbox.operation_mode.hold": "Hold",
+  "create_versatile_gearbox.operation_mode.set": "Set",
+  "create_versatile_gearbox.operation_mode.mag_add": "Magnitude Add",
+  "create_versatile_gearbox.operation_mode.mag_sub": "Magnitude Subtract",
+  "create_versatile_gearbox.operation_mode.mul": "Multiply",
+  "create_versatile_gearbox.operation_mode.div": "Divide",
+  "create_versatile_gearbox.operation_mode.rev_div": "Reverse Divide"
 }

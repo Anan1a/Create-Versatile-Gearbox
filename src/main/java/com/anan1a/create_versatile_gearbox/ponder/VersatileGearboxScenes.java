@@ -124,14 +124,8 @@ public class VersatileGearboxScenes {
         // 初始设置转速，防止动效异常
         // setKineticSpeed: 设置方块的动力速度（RPM - 每分钟转速）
         // 正值 = 顺时针旋转，负值 = 逆时针旋转，0 = 停止
-        // 16 RPM 是 Create 模组的常见速度
-        scene.world().setKineticSpeed(gearboxSelection, 32);    // 齿轮箱开始转动
-//        scene.world().setKineticSpeed(shaftXGroup1, 16);        // -X轴方向轴转动
-//        scene.world().setKineticSpeed(shaftXGroup2, -16);       // +X轴方向轴转动
-//        scene.world().setKineticSpeed(shaftZGroup1, 16);        // -Z轴方向轴转动
-//        scene.world().setKineticSpeed(shaftZGroup2, -16);       // +Z轴方向轴转动
-//        scene.world().setKineticSpeed(shaftYGroup1, 16);        // -Y轴方向轴转动
-//        scene.world().setKineticSpeed(shaftYGroup2, -16);       // +Y轴方向轴转动
+        // 32 RPM 是 Create 模组的常见速度
+        // scene.world().setKineticSpeed(gearboxSelection, -32);    // 齿轮箱开始转动
 
         // 首先显示中心的齿轮箱（核心组件）和下面的轴
         scene.world().showSection(shaftYGroup1, Direction.DOWN);
@@ -301,10 +295,8 @@ public class VersatileGearboxScenes {
         // 初始设置转速，防止动效异常
         // setKineticSpeed: 设置方块的动力速度（RPM - 每分钟转速）
         // 正值 = 顺时针旋转，负值 = 逆时针旋转，0 = 停止
-        // 16 RPM 是 Create 模组的常见速度
-//        scene.world().setKineticSpeed(motorGroup, -16);      // 电机开始转动
-        scene.world().setKineticSpeed(gearboxSelection, 32); // 齿轮箱开始转动
-//        scene.world().setKineticSpeed(sawGroup, 16);        // 锯木机组开始转动
+        // 32 RPM 是 Create 模组的常见速度
+        // scene.world().setKineticSpeed(gearboxSelection, -32); // 齿轮箱开始转动
 
         // --- 步骤 2：显示完整结构 ---
         // 按顺序显示：齿轮箱 → 轴 → 电机 → 锯木机

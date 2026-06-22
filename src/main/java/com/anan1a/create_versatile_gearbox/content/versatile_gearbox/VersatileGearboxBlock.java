@@ -117,10 +117,10 @@ public class VersatileGearboxBlock extends KineticBlock implements IBE<Versatile
      * @param state 方块状态
      * @return 推动反应类型
      */
-    @Override
-    public PushReaction getPistonPushReaction(BlockState state) {
-        return PushReaction.PUSH_ONLY;
-    }
+    // @Override
+    // public PushReaction getPistonPushReaction(BlockState state) {
+    //     return PushReaction.NORMAL;
+    // }
 
     /**
      * 获取方块破坏时的掉落物
@@ -163,7 +163,7 @@ public class VersatileGearboxBlock extends KineticBlock implements IBE<Versatile
      */
     @Override
     public boolean hasShaftTowards(LevelReader world, BlockPos pos, BlockState state, Direction face) {
-        return getShaftState(face, state).shouldRenderShaft();
+        return getShaftState(face, state).hasShaft();
     }
 
     /**

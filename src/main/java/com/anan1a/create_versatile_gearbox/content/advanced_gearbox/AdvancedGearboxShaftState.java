@@ -5,21 +5,22 @@ import net.minecraft.util.StringRepresentable;
 /**
  * 传动轴状态枚举
  * <p>
- * <b>有轴状态</b>：FWD（正向旋转）、REV（反向旋转）<br>
- * <b>无轴状态</b>：OFF（不输出动力）
+ * <b>有轴状态</b>：SHAFT（有传动轴，可变配）<br>
+ * <b>无轴状态</b>：OFF（关闭，不输出动力）、CFG（配置面，用作滑条交互面）
  */
 public enum AdvancedGearboxShaftState implements StringRepresentable {
-    FWD(true, false, 1),   // 同向旋转（与动力源同方向），无纹理连接，倍率 1
-    REV(true, false, -1),  // 反向旋转（与动力源反方向），无纹理连接，倍率 -1
-    OFF(false, true, 0);   // 关闭（不输出动力），有纹理连接，倍率 0
+    SHAFT(true, false),  // 有传动轴
+    OFF(false, true),   // 关闭（不输出动力），有纹理连接
+    CFG(false, false);  // 配置面（无轴、无纹理连接，用作滑条交互面）
 
     /**
-     * 该状态是否渲染传动轴。
+     * 该面是否有传动轴。
      * <p>
-     * 统一管理渲染逻辑，便于扩展新状态（如 PARTIAL、LOCKED 等）。
-     * Renderer 和 Visual 都应使用此方法判断。
+     * 有轴 = 渲染半轴模型 + 可进行动力传输。
+     * 无轴（OFF）= 不渲染、不传动力（`hasShaftTowards` 返回 false）。
+     * Renderer、Visual、动力网络判断都应使用此方法。
      */
-    private final boolean shouldRenderShaft;
+    private final boolean hasShaft;
 
     /**
      * 该状态是否显示纹理连接效果。
@@ -29,17 +30,9 @@ public enum AdvancedGearboxShaftState implements StringRepresentable {
      */
     private final boolean hasTextureConnection;
 
-    /**
-     * 该状态的数值倍率。
-     * <p>
-     * 用于计算旋转速度的方向和大小：
-     */
-    private final int modifier;
-
-    AdvancedGearboxShaftState(boolean shouldRenderShaft, boolean hasTextureConnection, int modifier) {
-        this.shouldRenderShaft = shouldRenderShaft;
+    AdvancedGearboxShaftState(boolean hasShaft, boolean hasTextureConnection) {
+        this.hasShaft = hasShaft;
         this.hasTextureConnection = hasTextureConnection;
-        this.modifier = modifier;
     }
 
     /**
@@ -58,25 +51,25 @@ public enum AdvancedGearboxShaftState implements StringRepresentable {
     /**
      * 获取下一个状态。
      * <p>
-     * 顺序：FWD → REV → OFF → FWD
+     * 顺序：SHAFT → OFF → CFG → SHAFT
      *
      * @return 下一个状态
      */
     public AdvancedGearboxShaftState next() {
         return switch (this) {
-            case FWD -> REV;
-            case REV -> OFF;
-            case OFF -> FWD;
+            case SHAFT -> OFF;
+            case OFF -> CFG;
+            case CFG -> SHAFT;
         };
     }
 
     /**
-     * 判断该状态是否应该渲染传动轴。
+     * 判断该面是否有传动轴。
      *
-     * @return true 表示渲染传动轴，false 表示不渲染
+     * @return true 表示有轴（渲染 + 可传动力），false 表示无轴
      */
-    public boolean shouldRenderShaft() {
-        return shouldRenderShaft;
+    public boolean hasShaft() {
+        return hasShaft;
     }
 
     /**
@@ -86,14 +79,5 @@ public enum AdvancedGearboxShaftState implements StringRepresentable {
      */
     public boolean hasTextureConnection() {
         return hasTextureConnection;
-    }
-
-    /**
-     * 获取该状态的数值倍率。
-     *
-     * @return 数值倍率
-     */
-    public int getModifier() {
-        return modifier;
     }
 }

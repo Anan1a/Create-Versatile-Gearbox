@@ -8,7 +8,6 @@ import dev.engine_room.flywheel.api.instance.Instance;
 import dev.engine_room.flywheel.api.visualization.VisualizationContext;
 import dev.engine_room.flywheel.lib.model.Models;
 import net.createmod.catnip.data.Iterate;
-import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 
 import java.util.function.Consumer;
@@ -36,15 +35,6 @@ public class VersatileGearboxVisual extends KineticBlockEntityVisual<VersatileGe
     protected final RotatingInstance[] keys = new RotatingInstance[6];
 
     /**
-     * 当前动力源面的朝向。
-     * <p>
-     * 用于计算各方向的旋转方向（正转/反转）。
-     * 从 {@code blockEntity.source} 与自身位置的偏移推算。
-     * 如果没有动力源则为 null。
-     */
-    protected Direction sourceFacing;
-
-    /**
      * 构造可视化实例。
      * <p>
      * 执行一次性的半轴实例分配：遍历六个面，仅为非 OFF 面创建旋转实例。
@@ -58,10 +48,6 @@ public class VersatileGearboxVisual extends KineticBlockEntityVisual<VersatileGe
         // 调用父类构造函数，初始化基础 KineticBlockEntityVisual 功能
         super(context, blockEntity, partialTick);
 
-        // 初始化动力源朝向：从 BE 的 source 字段推算动力输入方向
-        // 这是计算各面旋转方向的前提
-        updateSourceFacing();
-        
         // 一次性分配半轴实例：遍历六面，仅为非 OFF 面创建 RotatingInstance
         // 实例数量在此时固定，后续不增删
         initShaftInstances();
@@ -82,7 +68,7 @@ public class VersatileGearboxVisual extends KineticBlockEntityVisual<VersatileGe
         for (Direction direction : Iterate.directions) {
             // 跳过 OFF 面：不创建实例，此时显示机壳纹理
             // 使用枚举的统一方法判断，便于扩展新状态
-            if (!VersatileGearboxBlock.getShaftState(direction, blockEntity.getBlockState()).shouldRenderShaft())
+            if (!VersatileGearboxBlock.getShaftState(direction, blockEntity.getBlockState()).hasShaft())
                 continue;
 
             // 创建旋转实例并配置
@@ -106,27 +92,7 @@ public class VersatileGearboxVisual extends KineticBlockEntityVisual<VersatileGe
      * @return 该方向的旋转速度（负数表示反向旋转）
      */
     private float getSpeed(Direction direction) {
-        return blockEntity.getSpeedForDirection(blockEntity.getSpeed(), direction, sourceFacing);
-    }
-
-    /**
-     * 更新动力源朝向。
-     * <p>
-     * 从 {@code blockEntity.source}（动力源 BlockPos）与自身位置的偏移
-     * 计算动力源所在的 {@link Direction}。
-     * 每帧调用以响应动力连接变化。
-     */
-    protected void updateSourceFacing() {
-        // 检查是否有动力源且位置有效
-        if (blockEntity.hasSource() && blockEntity.source != null) {
-            // 计算动力源与自身位置的偏移向量
-            BlockPos offset = blockEntity.source.subtract(pos);
-            // 从偏移向量获取最接近的方向（即动力源所在的面）
-            sourceFacing = Direction.getNearest(offset.getX(), offset.getY(), offset.getZ());
-        } else {
-            // 无动力源时设为 null，此时各面速度均为基础速度（无方向修正）
-            sourceFacing = null;
-        }
+        return blockEntity.getVisualSpeed(direction);
     }
 
     /**
@@ -143,9 +109,6 @@ public class VersatileGearboxVisual extends KineticBlockEntityVisual<VersatileGe
      */
     @Override
     public void update(float partialTick) {
-        // 每帧更新动力源朝向（响应动力连接变化）
-        updateSourceFacing();
-
         // 遍历六个方向，更新所有已存在的旋转实例
         for (int i = 0; i < 6; i++) {
             RotatingInstance instance = keys[i];

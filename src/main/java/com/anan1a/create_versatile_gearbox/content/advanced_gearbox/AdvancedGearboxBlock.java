@@ -25,7 +25,6 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
-import net.minecraft.world.level.material.PushReaction;
 import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.phys.HitResult;
 
@@ -76,8 +75,8 @@ public class AdvancedGearboxBlock extends KineticBlock implements IBE<AdvancedGe
     public static final BooleanProperty WEST_CONNECTED = CONNECTION_PROPERTIES[4];
     public static final BooleanProperty EAST_CONNECTED = CONNECTION_PROPERTIES[5];
 
-    /** 默认面状态：所有面初始化为 FWD（有轴、正向） */
-    public static final AdvancedGearboxShaftState DEFAULT_SHAFT_STATE = AdvancedGearboxShaftState.FWD;
+    /** 默认面状态：所有面初始化为 SHAFT（有传动轴） */
+    public static final AdvancedGearboxShaftState DEFAULT_SHAFT_STATE = AdvancedGearboxShaftState.SHAFT;
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
@@ -126,10 +125,10 @@ public class AdvancedGearboxBlock extends KineticBlock implements IBE<AdvancedGe
      * @param state 方块状态
      * @return 推动反应类型
      */
-    @Override
-    public PushReaction getPistonPushReaction(BlockState state) {
-        return PushReaction.PUSH_ONLY;
-    }
+    // @Override
+    // public PushReaction getPistonPushReaction(BlockState state) {
+    //     return PushReaction.NORMAL;
+    // }
 
     /**
      * 获取方块破坏时的掉落物
@@ -168,13 +167,14 @@ public class AdvancedGearboxBlock extends KineticBlock implements IBE<AdvancedGe
     /**
      * 判断指定面是否有传动轴接口。
      * <p>
-     * 只有当该面状态有传动轴（FWD/REV）时才返回 true。
-     * 从 BlockEntity 的 NBT 面状态数据读取，而非 BlockState 的 BooleanProperty。
+     * hasShaft()=false 无轴的面也断开。
+     * isRotating()=false 非传动模式的面完全断开。
      */
     @Override
     public boolean hasShaftTowards(LevelReader world, BlockPos pos, BlockState state, Direction face) {
         if (world.getBlockEntity(pos) instanceof AdvancedGearboxBlockEntity be) {
-            return be.getShaftState(face).shouldRenderShaft();
+            // 无轴或非传动模式 → false
+            return be.getShaftState(face).hasShaft() && be.getRotationMode(face).isRotating();
         }
         return false;
     }
