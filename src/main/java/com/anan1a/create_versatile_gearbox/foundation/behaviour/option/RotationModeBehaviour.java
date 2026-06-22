@@ -71,7 +71,7 @@ public class RotationModeBehaviour extends AbstractOptionBehaviour<RotationModeB
             return forward;
         }
 
-        /** 是否转动（false = 不传动力）。 */
+        /** 是否传动（false = 不传动力）。 */
         public boolean isRotating() {
             return rotating;
         }

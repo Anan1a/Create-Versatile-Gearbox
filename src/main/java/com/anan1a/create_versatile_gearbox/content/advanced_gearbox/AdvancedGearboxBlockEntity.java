@@ -226,14 +226,11 @@ public class AdvancedGearboxBlockEntity extends SplitShaftBlockEntity implements
 
         // 如果是动力源面，返回旋转方向倍率（保底 1 保持网络存活）
         if (face == source) {
-            float output = axisStep * getRotationModeApply(face, 1.0f);
-            return output != 0 ? output : 1;
+            return axisStep * getRotationModeApply(face, 1.0f);
         }
 
-        // 如果动力源面不转动或自身速度为 0，直接返回 0
-        if (!getRotationMode(source).isRotating() || theoreticalSpeed == 0)
-            return 0;
-
+        // 如果理论速度为 0，直接返回 0
+        if (theoreticalSpeed == 0) return 0;
         // 计算输出速度
         float output = computeFaceOutput(face, theoreticalSpeed);
         return axisStep * output / theoreticalSpeed;
